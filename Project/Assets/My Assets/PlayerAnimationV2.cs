@@ -284,7 +284,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				13	triple extension
 			*/ // -----------------
 			
-		driveWeight = leanWeight * (1-(velocity.z/(attributes.TRANSITION_PIVOT_SPEED*.75f))) * (attributes.STRENGTH_BASE * 1.4f);
+		driveWeight = leanWeight * (1-(velocity.z/(attributes.TRANSITION_PIVOT_SPEED*.27f))) * (attributes.STRENGTH_BASE * 1.4f);
 		if(driveWeight > 1f){
 			driveWeight = 1f;
 		}
@@ -308,7 +308,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public IEnumerator launch(){
 		StartCoroutine(launchAnimation());
 		for(int i = 0; i < 2; i++){
-			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (8000f) * attributes.STRENGTH_BASE * Time.deltaTime, ForceMode.Force);
+			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (6000f) * attributes.STRENGTH_BASE * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}
 		

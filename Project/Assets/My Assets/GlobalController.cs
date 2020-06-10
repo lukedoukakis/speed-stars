@@ -35,6 +35,7 @@ public class GlobalController : MonoBehaviour
 	
 	// racers
 	public GameObject racerPrefab;
+	public GameObject player_backEnd;
 	public GameObject player;
 	public List<GameObject> racers_backEnd;
 	public List<GameObject> racers;
@@ -175,10 +176,11 @@ public class GlobalController : MonoBehaviour
 	}
 
 	public void startRace(){
-		//fillRemainingSpotsWithBots();
+		fillRemainingSpotsWithBots();
 		goCountDownScreen();
 		clearRacersField();
 		racers = raceManager.initRace(racers_backEnd);
+		player_backEnd = raceManager.player_backEnd;
 		player = raceManager.player;
 		setCameraFocus(player, 0);
 	}
@@ -352,6 +354,7 @@ public class GlobalController : MonoBehaviour
 				}	
 			}
 			else if(currentTask == TaskManager.LOAD_SELECTED_PLAYER){
+				GameObject player;
 				GameObject b;
 				SelectionButtonScript s;
 				GameObject grid = playerSelectButtonList.grid;

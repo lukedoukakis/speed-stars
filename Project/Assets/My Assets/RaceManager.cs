@@ -31,6 +31,9 @@ public class RaceManager : MonoBehaviour
 	public int racersFinished;
 	public int playersFinished;
 	// -----------------
+	float botDifficulty;
+	// -----------------
+	public GameObject player_backEnd;
 	public GameObject player;
 	GameObject racer;
 	PlayerAttributes att;
@@ -74,6 +77,14 @@ public class RaceManager : MonoBehaviour
 		playersFinished = 0;
 		// -----------------
 		for(int i = 0; i < racers_backEnd.Count; i++){
+			racer = racers_backEnd[i];
+			if(racer.tag == "Player (Back End)"){
+				player_backEnd = racer;
+				botDifficulty = calculateDifficulty(racer.GetComponent<PlayerAttributes>().personalBest);
+				break;
+			}
+		}
+		for(int i = 0; i < racers_backEnd.Count; i++){
 			racers_backEnd[i].SetActive(false);
 			racer = Instantiate(racers_backEnd[i]);
 			racer.transform.SetParent(RacersFieldParent.transform);
@@ -88,12 +99,11 @@ public class RaceManager : MonoBehaviour
 			}
 			else if(racer.tag == "Bot"){
 				att.setPaths(PlayerAttributes.BOT_FORMAT, PlayerAttributes.DEFAULT_PATH_LENGTH);
-				racer.GetComponent<Bot_AI>().init();
+				racer.GetComponent<Bot_AI>().init(botDifficulty);
 			}
 			// --
 			att.setAttributesFromOther(racers_backEnd[i]);
 			tc.init();
-			tc.raceManager = this;
 			anim.globalController = gc;
 			anim.mode = 1;
 			rb.velocity = Vector3.zero;
@@ -123,10 +133,27 @@ public class RaceManager : MonoBehaviour
 		setRacerModes(racers, "Marks");
 		// -----------------
 		
-		Debug.Log("racer count this race: " + racers.Count);
-		
 		return racers;
 		
+	}
+	
+	float calculateDifficulty(float time){
+		Debug.Log("playerPB: " + time);
+		float difficulty = 10f/time;
+		if(difficulty > 0f){
+			if(difficulty > .7f){
+				if(difficulty > 1f){
+					difficulty = 1f;
+				}
+			}
+			else{
+				difficulty = .7f;
+			}
+		}
+		else{
+			difficulty = Random.Range(.7f, 1f);
+		}
+		return difficulty;
 	}
 	
 	void assignLanes(List<GameObject> racers){
@@ -145,14 +172,6 @@ public class RaceManager : MonoBehaviour
 	public void setOffRacers(){
 		raceActive = true;
 		setRacerModes(racers, "Race");
-		/*
-		GameObject racer;
-		for(int i = 0; i < racers.Count; i++){
-			racer = racers[i];
-			racer.GetComponent<TimerController>().start();
-			racer.GetComponent<PlayerAttributes>().isRacing = true;
-		}
-		*/
 	}
 	
 	
@@ -177,8 +196,9 @@ public class RaceManager : MonoBehaviour
 		if(racer.tag == "Player"){
 			playersFinished++;
 			if((att.finishTime < att.personalBest) || (att.personalBest == -1f)){
-				att.personalBest = att.finishTime;
 				att.resultTag = "<color=red>PB</color>";
+				att.personalBest = att.finishTime;
+				player_backEnd.GetComponent<PlayerAttributes>().personalBest = att.finishTime;
 				playerPB = true;
 			}
 		}

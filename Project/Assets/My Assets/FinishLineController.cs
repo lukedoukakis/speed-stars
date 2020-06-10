@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class FinishLineController : MonoBehaviour
 {
+	
+	public RaceManager raceManager;
+	
     // Start is called before the first frame update
     void Start()
     {
@@ -22,6 +25,7 @@ public class FinishLineController : MonoBehaviour
 		if(g.tag == "Chest"){
 			GameObject racer = g.transform.parent.parent.parent.parent.parent.parent.parent.gameObject;
 			racer.GetComponent<TimerController>().stop();
+			raceManager.addFinisher(racer);
 		}
 	}
 		

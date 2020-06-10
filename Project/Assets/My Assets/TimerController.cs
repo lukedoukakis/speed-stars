@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class TimerController : MonoBehaviour
 {
-	public RaceManager raceManager;
 	PlayerAttributes attributes;
 	public PlayerAnimationV2 animation;
 	
@@ -59,8 +58,6 @@ public class TimerController : MonoBehaviour
 			finished = true;
 			isCounting = false;
 			isRecording = false;
-		
-			raceManager.addFinisher(this.gameObject);
 		}
 		
 		

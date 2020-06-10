@@ -13,7 +13,7 @@ public class Bot_AI : MonoBehaviour
 	// -----------------
 	bool reaction;
 	float reactionTime;
-	int randomRange;
+	float randomRange;
 	// -----------------
 	int freeTicks;
 	int downTicks;
@@ -55,7 +55,7 @@ public class Bot_AI : MonoBehaviour
 		if(reaction){
 			adjustStride();
 			// -----------------
-			int randomDeviation = Random.Range(0-randomRange,randomRange);
+			int randomDeviation = (int)(Random.Range(0f-randomRange,randomRange));
 			// -----------------
 			if(ticksPassedLeft >= frequencyLeft){
 				if(inputLeft == 0){
@@ -91,7 +91,7 @@ public class Bot_AI : MonoBehaviour
 	public void adjustStride(){
 		float zTilt = anim.zTilt;
 		zSpeed = anim.velocity.z;
-		zSpeedOverTransitionPivotSpeed = (zSpeed / transitionPivotSpeed) + .55f;
+		zSpeedOverTransitionPivotSpeed = (zSpeed / (transitionPivotSpeed-50f)) + .55f;
 		if(zSpeedOverTransitionPivotSpeed > 1f){
 			if(zSpeedOverTransitionPivotSpeed > 1.1f){
 				zSpeedOverTransitionPivotSpeed = 1.1f;
@@ -134,7 +134,7 @@ public class Bot_AI : MonoBehaviour
 	
 	
 	
-	public void init(){
+	public void init(float difficulty){
 		anim = gameObject.GetComponent<PlayerAnimationV2>();
 		timer = gameObject.GetComponent<TimerController>();
 		// -----------------
@@ -144,19 +144,24 @@ public class Bot_AI : MonoBehaviour
 		// -----------------
 		reaction = false;
 		reactionTime = Random.Range(.19f, .21f);
-		randomRange = 0;
+		randomRange = 0f + ((1f-difficulty) * 10f);
 		// -----------------
-		freeTicks = 3000;
-		downTicks = 1250;
+		float f = Random.Range(.995f, 1.005f);
+		float cadenceModifier = difficulty;
+		if(cadenceModifier < .75f){
+			cadenceModifier = .75f;
+		}
+		freeTicks = (int)((2800f * f) * (2f-cadenceModifier));
+		downTicks = (int)((1200f * (2f-f)) * (2f-cadenceModifier));
 		ticksPassedLeft = 0;
-		ticksPassedRight = downTicks / 2 + 325;
+		ticksPassedRight = downTicks / 2 + 315;
 		frequencyLeft = downTicks;
 		frequencyRight = freeTicks;
 		inputLeft = 1;
 		inputRight = 0;
 		tickRate = 100;
 		// -----------------
-		minLean = -13f - ((1f - att.STRENGTH_BASE) * 10f);
+		minLean = -20f - (1f - att.STRENGTH_BASE);
 		maxLean = minLean + .25f;
 		fullUpright = false;
 		forward = false;

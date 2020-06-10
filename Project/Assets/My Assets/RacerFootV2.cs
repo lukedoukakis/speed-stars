@@ -24,6 +24,7 @@ public class RacerFootV2 : MonoBehaviour
 	bool touchDown;
 	public bool groundContact;
 	float groundFrames;
+	float groundBit;
 	public float swingFrames;
 	
 	float power;
@@ -138,9 +139,11 @@ public class RacerFootV2 : MonoBehaviour
 			if(animation.mode == 2){
 				if(collision.gameObject.tag == "Ground"){
 					touchDown = false;
+					groundContact = true;
 					if(groundFrames < 5f){
 						groundFrames++;
 					}
+
 				}
 			}
 		}
@@ -152,8 +155,8 @@ public class RacerFootV2 : MonoBehaviour
 				if(collision.gameObject.tag == "Ground"){
 					strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * groundFrames;
 					// -----------------
-					forceHoriz = 125f * (1f-zSpeedOverTransitionPivotSpeed);
-					if(forceHoriz > 100f){ forceHoriz = 100f; }
+					forceHoriz = 350f * (1f-(zSpeed/(transitionPivotSpeed + 120f)));
+					if(forceHoriz > 200f){ forceHoriz = 200f; }
 					forceHoriz *= strengthBonus;
 					//forceHoriz *= swingTimeBonus;
 					StartCoroutine(applyForce(forceHoriz));

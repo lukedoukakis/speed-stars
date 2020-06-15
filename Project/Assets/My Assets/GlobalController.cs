@@ -210,10 +210,12 @@ public class GlobalController : MonoBehaviour
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		string racerName = att.racerName;
 		// -----------------
+		/*
 		if(PlayerPrefs.HasKey(racerName)){
 			PlayerPrefs.DeleteKey(racerName);
-			ghostSelectButtonList.removeButton(racerName);
+			//ghostSelectButtonList.removeButton(racerName);
 		}
+		*/
 		// -----------------
 		PlayerPrefs.SetString("RACER NAMES", PlayerPrefs.GetString("RACER NAMES") + ":" + racerName);
 		// -----------------
@@ -287,7 +289,7 @@ public class GlobalController : MonoBehaviour
 		att.TILT_SPEED = float.Parse(racerInfo[14]);
 		att.pathLength = int.Parse(racerInfo[15]);
 		// --
-		att.setPaths(PlayerAttributes.BLANK_FORMAT, att.pathLength);
+		att.setPaths(att.pathLength);
 		// --
 		for(int i = 0; i < att.pathLength; i++){
 			att.velPathY[i] = float.Parse(vY[i]);
@@ -309,10 +311,11 @@ public class GlobalController : MonoBehaviour
 		bot.SetActive(false);
 		PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
 		att.racerName = racerName;
-		att.setPaths(PlayerAttributes.BOT_FORMAT, PlayerAttributes.DEFAULT_PATH_LENGTH);
+		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
 		att.randomizeStats();
 		bot.AddComponent<Bot_AI>();
+		
 		return bot;
 	}
 	
@@ -333,15 +336,29 @@ public class GlobalController : MonoBehaviour
 			currentTask = taskManager.tasks[i];
 			// -----------------
 			if(currentTask == TaskManager.SAVE_PLAYER){
+				Debug.Log("SAVE PLAYER");
 				string playerName = raceManager.player.GetComponent<PlayerAttributes>().racerName;
+				GameObject b;
 				// -----------------
 				playerSelectButtonList.removeButton(playerName);
 				saveRacer(raceManager.player);
-				GameObject b = playerSelectButtonList.addButton(playerName);
+				b = playerSelectButtonList.addButton(playerName);
 				b.GetComponent<SelectionButtonScript>().toggle();
-				ghostSelectButtonList.addButton(playerName);
+				// -----------------
+				bool selected = false;
+				if(ghostSelectButtonList.getButton(playerName) != null){
+					selected = ghostSelectButtonList.getButton(playerName).GetComponent<SelectionButtonScript>().selected;
+				}
+				ghostSelectButtonList.removeButton(playerName);
+				b = ghostSelectButtonList.addButton(playerName);
+				if(selected){
+					b.GetComponent<SelectionButtonScript>().toggle(true);
+				}
+				
+				
 			}
 			else if(currentTask == TaskManager.SAVE_SELECTED_RACERS){
+				Debug.Log("SAVE SELECTED RACERS");
 				int racerIndex;
 				GameObject racer;
 				PlayerAttributes att;
@@ -354,6 +371,7 @@ public class GlobalController : MonoBehaviour
 				}	
 			}
 			else if(currentTask == TaskManager.LOAD_SELECTED_PLAYER){
+				Debug.Log("LOAD SELECTED PLAYER");
 				GameObject player;
 				GameObject b;
 				SelectionButtonScript s;
@@ -363,7 +381,7 @@ public class GlobalController : MonoBehaviour
 					s = b.GetComponent<SelectionButtonScript>();
 					if(s.selected){
 						player = loadRacer(s.name, "Player (Back End)");
-						player.GetComponent<PlayerAttributes>().setPaths(PlayerAttributes.BLANK_FORMAT, PlayerAttributes.DEFAULT_PATH_LENGTH);
+						player.GetComponent<PlayerAttributes>().setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 						player.SetActive(false);
 						player.transform.SetParent(raceManager.RacersBackEndParent.transform);
 						racers_backEnd.Add(player);
@@ -372,6 +390,7 @@ public class GlobalController : MonoBehaviour
 				}
 			}
 			else if(currentTask == TaskManager.LOAD_SELECTED_RACERS){
+				Debug.Log("LOAD SELECTED RACERS");
 				GameObject b;
 				SelectionButtonScript s;
 				GameObject grid = ghostSelectButtonList.grid;
@@ -387,13 +406,14 @@ public class GlobalController : MonoBehaviour
 				}
 			}
 			else if(currentTask == TaskManager.CREATE_RACER){
+				Debug.Log("CREATE RACER");
 				// -----------------
 				GameObject newRacer = Instantiate(racerPrefab);
 				newRacer.tag = "Player";
 				newRacer.SetActive(false);
 				PlayerAttributes att = newRacer.GetComponent<PlayerAttributes>();
 				att.racerName = nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text;
-				att.setPaths(PlayerAttributes.BLANK_FORMAT, PlayerAttributes.DEFAULT_PATH_LENGTH);
+				att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 				att.randomizeStats();
 				att.finishTime = -1f;
 				att.personalBest = -1f;
@@ -405,6 +425,7 @@ public class GlobalController : MonoBehaviour
 				b.GetComponent<SelectionButtonScript>().toggle();
 			}
 			else if(currentTask == TaskManager.CLEAR_RACERS_FROM_SCENE){
+				Debug.Log("CLEAR RACERS FROM SCENE");
 				clearRacersField();
 				clearRacersBackEnd();
 			}

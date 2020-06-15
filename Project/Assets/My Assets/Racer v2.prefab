@@ -80,8 +80,8 @@ MonoBehaviour:
   posPathZ: []
   rightInputPath: 
   leftInputPath: 
-  POWER_BASE: 2000
-  TRANSITION_PIVOT_SPEED: 85
+  POWER_BASE: 1700
+  TRANSITION_PIVOT_SPEED: 120
   QUICKNESS_BASE: 1
   STRENGTH_BASE: 1
   BOUNCE_BASE: 1
@@ -109,9 +109,11 @@ MonoBehaviour:
   animator: {fileID: 2136866846256483637}
   pushLeg: {fileID: 0}
   pushRotation: {x: 0, y: 0, z: 0, w: 0}
+  spine: {fileID: 0}
   mode: 0
   transitionSpeed: 3
   globalController: {fileID: 0}
+  raceManager: {fileID: 0}
   attributes: {fileID: 2136866845376905248}
   timer: {fileID: 2136866845376905251}
   feet: []
@@ -183,13 +185,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1845c507d98331c46b5c5af30fb89ee9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  raceManager: {fileID: 0}
-  animation: {fileID: 3685777461851186769}
-  finished: 0
-  time: 0
-  ticks: 0
-  isCounting: 0
-  isRecording: 0
+  attributes: {fileID: 0}
+  animation: {fileID: 0}
 --- !u!65 &4411053598173383354
 BoxCollider:
   m_ObjectHideFlags: 0

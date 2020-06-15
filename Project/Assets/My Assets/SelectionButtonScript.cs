@@ -52,6 +52,21 @@ public class SelectionButtonScript : MonoBehaviour
 		}
 	}
 	
+	public void toggle(bool setting){
+		if(!(list.canSelectMultiple)){
+			list.toggleAllOff();
+		}
+		selected = setting;
+		if(selected){
+			setColor(selectedColorCode);
+		}
+		else{
+			setColor(unselectedColorCode);
+		}
+	}
+	
+	
+	
 	public void setColor(string colorCode){
 		Color color;
 		if(ColorUtility.TryParseHtmlString(colorCode, out color)){

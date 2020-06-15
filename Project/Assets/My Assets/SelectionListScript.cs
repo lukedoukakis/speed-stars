@@ -24,6 +24,20 @@ public class SelectionListScript : MonoBehaviour
 
     }
 	
+	public GameObject getButton(string racerName){
+		GameObject b;
+		SelectionButtonScript s;
+		foreach(Transform child in grid.transform){
+			b = child.gameObject;
+			s = b.GetComponent<SelectionButtonScript>();
+			if(s.name == racerName){
+				return b;
+			}
+		}
+		return null;
+	}
+	
+	
 	
 	public GameObject addButton(string racerName){
 		GameObject button = Instantiate(selectionButtonPrefab);
@@ -51,22 +65,6 @@ public class SelectionListScript : MonoBehaviour
 			}	
 		}
 	}
-	
-	/*
-	public void updateButton(string racerName){
-		float updatedPersonalBest = PlayerPrefs.GetString(racerName).Split(':')[2];
-		// -----------------
-		GameObject b;
-		SelectionButtonScript s;
-		foreach(Transform child in grid.transform){
-			b = child.gameObject;
-			s = b.GetComponent<SelectionButtonScript>();
-			if(s.name == racerName){
-				s.time = updatedPersonalBest;
-			}
-		}
-	}
-	*/
 
 	public void toggleAllOff(){
 		SelectionButtonScript s;

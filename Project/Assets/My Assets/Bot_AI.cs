@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Bot_AI : MonoBehaviour
 {
+	public RaceManager raceManager;
 	public PlayerAnimationV2 anim;
-	public TimerController timer;
-	// -----------------
 	public PlayerAttributes att;
+	// -----------------
 	int[] leftInputPath;
 	int[] rightInputPath;
 	// -----------------
@@ -37,22 +37,19 @@ public class Bot_AI : MonoBehaviour
 	
     // Start is called before the first frame update
     void Start()
-    {
-        
+    {   
     }
 
     // Update is called once per frame
     void Update()
     {	
-		if(!reaction){
-			if(timer.time > reactionTime){
-				reaction = true;
-			}
-		}
     }
 	
 	public void runAI(int tick){
-		if(reaction){
+		if(!reaction){
+			reaction = raceManager.raceTime > reactionTime;
+		}
+		else{
 			adjustStride();
 			// -----------------
 			int randomDeviation = (int)(Random.Range(0f-randomRange,randomRange));
@@ -70,6 +67,8 @@ public class Bot_AI : MonoBehaviour
 			}
 			att.leftInputPath[tick] = inputLeft;
 			ticksPassedLeft += tickRate + randomDeviation;
+			
+			//Debug.Log(inputLeft);
 			// --
 			if(ticksPassedRight >= frequencyRight){
 				if(inputRight == 0){
@@ -118,7 +117,7 @@ public class Bot_AI : MonoBehaviour
 				downTicks -= 5;
 				forward = false;
 			}
-			if(timer.ticks % 10 == 0){
+			if(raceManager.raceTick % 10 == 0){
 				if(zTilt > minLean){
 					forward = true;
 				}
@@ -135,10 +134,31 @@ public class Bot_AI : MonoBehaviour
 	
 	
 	public void init(float difficulty){
-		anim = gameObject.GetComponent<PlayerAnimationV2>();
-		timer = gameObject.GetComponent<TimerController>();
+		
+		float cadenceModifier = difficulty;
+		cadenceModifier *= cadenceModifier;
+		if(cadenceModifier < .7f){
+			cadenceModifier = .7f;
+		}
+		cadenceModifier += Random.Range(-.015f, .015f);
 		// -----------------
-		att = gameObject.GetComponent<PlayerAttributes>();
+		float quicknessModifier = difficulty;
+		quicknessModifier *= quicknessModifier*quicknessModifier;
+		if(quicknessModifier < .6f){
+			quicknessModifier = .6f;
+		}
+		quicknessModifier += Random.Range(-.015f, .015f);
+		// -----------------
+		float driveModifier = Random.Range(.998f, 1.002f);
+		// -----------------
+		
+		
+		
+		anim = gameObject.GetComponent<PlayerAnimationV2>();
+		att = anim.attributes;
+		//att = gameObject.GetComponent<PlayerAttributes>();
+		// -----------------
+		att.QUICKNESS_BASE = quicknessModifier;
 		leftInputPath = att.leftInputPath;
 		rightInputPath = att.rightInputPath;
 		// -----------------
@@ -146,15 +166,10 @@ public class Bot_AI : MonoBehaviour
 		reactionTime = Random.Range(.19f, .21f);
 		randomRange = 0f + ((1f-difficulty) * 10f);
 		// -----------------
-		float f = Random.Range(.995f, 1.005f);
-		float cadenceModifier = difficulty;
-		if(cadenceModifier < .75f){
-			cadenceModifier = .75f;
-		}
-		freeTicks = (int)((2800f * f) * (2f-cadenceModifier));
-		downTicks = (int)((1200f * (2f-f)) * (2f-cadenceModifier));
+		freeTicks = (int)((4400f * driveModifier) * (2f-cadenceModifier));
+		downTicks = (int)((1886f * (2f-driveModifier)) * (2f-cadenceModifier));
 		ticksPassedLeft = 0;
-		ticksPassedRight = downTicks / 2 + 315;
+		ticksPassedRight = downTicks / 2 + (int)(315f*(2f-cadenceModifier));
 		frequencyLeft = downTicks;
 		frequencyRight = freeTicks;
 		inputLeft = 1;

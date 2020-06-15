@@ -24,7 +24,6 @@ public class FinishLineController : MonoBehaviour
 		GameObject g = col.gameObject;
 		if(g.tag == "Chest"){
 			GameObject racer = g.transform.parent.parent.parent.parent.parent.parent.parent.gameObject;
-			racer.GetComponent<TimerController>().stop();
 			raceManager.addFinisher(racer);
 		}
 	}

@@ -18952,7 +18952,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Start Menu
+  m_Text: OK
 --- !u!222 &1263377550
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -27710,6 +27710,7 @@ MonoBehaviour:
   raceManager: {fileID: 1738763328}
   racerPrefab: {fileID: 2136866845376905259, guid: 2425a9bb872ab4d40bf2605528694255,
     type: 3}
+  player_backEnd: {fileID: 0}
   player: {fileID: 0}
   racers_backEnd: []
   racers: []
@@ -27800,6 +27801,7 @@ MonoBehaviour:
   ghostCount: 0
   racersFinished: 0
   playersFinished: 0
+  player_backEnd: {fileID: 0}
   player: {fileID: 0}
 --- !u!1 &1742820180
 GameObject:

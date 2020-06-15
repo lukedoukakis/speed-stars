@@ -64,37 +64,33 @@ public class RacerFootV2 : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-
-		if(tag == "Player" || tag == "Bot"){
-			
-			if(animation.mode == 1){
-				swingTimeBonus = 1f;
+		if(animation.mode == 1){
+			swingTimeBonus = 1f;
+		}
+		else if(animation.mode == 2){
+			leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
+			transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
+			zSpeed = rb.velocity.z;
+			ySpeed = rb.velocity.y;
+			zSpeedOverTransitionPivotSpeed = zSpeed/transitionPivotSpeed;
+			if(zSpeedOverTransitionPivotSpeed > 1f){
+				zSpeedOverTransitionPivotSpeed = 1f;
 			}
-			else if(animation.mode == 2){
-				leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
-				transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
-				zSpeed = rb.velocity.z;
-				ySpeed = rb.velocity.y;
-				zSpeedOverTransitionPivotSpeed = zSpeed/transitionPivotSpeed;
-				if(zSpeedOverTransitionPivotSpeed > 1f){
-					zSpeedOverTransitionPivotSpeed = 1f;
-				}
-				if(leanMagnitude < .375f){
-					leanMagnitude = .375f;
-				}
-				if(!touchDown){
-					swingFrames++;
-					swingTimeBonus = swingFrames  / turnoverFactor;
-					if(swingTimeBonus > .065f){
-						if(swingTimeBonus > .12f){
-							swingTimeBonus = .12f;
-						}
+			if(leanMagnitude < .375f){
+				leanMagnitude = .375f;
+			}
+			if(!touchDown){
+				swingFrames++;
+				swingTimeBonus = swingFrames  / turnoverFactor;
+				if(swingTimeBonus > .065f){
+					if(swingTimeBonus > .12f){
+						swingTimeBonus = .12f;
 					}
-					else{
-						swingTimeBonus = .065f;
-					}
-					swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 10000f;
 				}
+				else{
+					swingTimeBonus = .065f;
+				}
+				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 10000f;
 			}
 			//Debug.Log(animation.zTilt);
 			//Debug.Log(leanMagnitude);
@@ -102,68 +98,65 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionEnter(Collision collision){
-		if(tag == "Player" || tag == "Bot"){
-			if(animation.mode == 2){
-				if(collision.gameObject.tag == "Ground"){
-					touchDown = true;
-					groundContact = true;
-					// -----------------
-					strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * 4.0f;
-					bounceBonus = (1f - leanMagnitude) * (zSpeedOverTransitionPivotSpeed) * 3.0f;
-					if(strengthBonus < 1f){ strengthBonus = 1f; }
-					if(strengthBonus > 3f * strength){ strengthBonus = 3f * strength; }
-					if(bounceBonus < .75f){ bounceBonus = .75f; }
-					if(bounceBonus > 1.5f * (bounce*bounce)){ bounceBonus = 1.5f * (bounce*bounce); }
-					
-					// -----------------
-					forceDirHoriz = Vector3.forward;
-					forceDirVert = Vector3.up;
-					forceHoriz = 1f;
-					forceVert = 1f;
-					forceHoriz *= power * (1f-zSpeedOverTransitionPivotSpeed);
-					forceHoriz *= strengthBonus;
-					forceHoriz *= bounceBonus;
-					forceHoriz *= swingTimeBonus;
-					// -----------------
-					StartCoroutine(applyForce(forceHoriz));
-					// -----------------
-					swingTimeBonus = 0f;
-					swingFrames = 0;
-				}
+		if(animation.mode == 2){
+			if(collision.gameObject.tag == "Ground"){
+				touchDown = true;
+				groundContact = true;
+				// -----------------
+				strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * 4.0f;
+				bounceBonus = (1f - leanMagnitude) * (zSpeedOverTransitionPivotSpeed) * 3.0f;
+				if(strengthBonus < 1f){ strengthBonus = 1f; }
+				if(strengthBonus > 3f * strength){ strengthBonus = 3f * strength; }
+				if(bounceBonus < .75f){ bounceBonus = .75f; }
+				if(bounceBonus > 1.5f * (bounce*bounce)){ bounceBonus = 1.5f * (bounce*bounce); }
+				// -----------------
+				forceDirHoriz = Vector3.forward;
+				forceDirVert = Vector3.up;
+				forceHoriz = 1f;
+				forceVert = 1f;
+				forceHoriz *= power * (1f-zSpeedOverTransitionPivotSpeed);
+				forceHoriz *= strengthBonus;
+				forceHoriz *= bounceBonus;
+				forceHoriz *= swingTimeBonus;
+				// -----------------
+				StartCoroutine(applyForce(forceHoriz));
+				// -----------------
+				swingTimeBonus = 0f;
+				swingFrames = 0;
 			}
 		}
 	}
 	
 	void OnCollisionStay(Collision collision){
-		if(tag == "Player" || tag == "Bot"){
-			if(animation.mode == 2){
-				if(collision.gameObject.tag == "Ground"){
-					touchDown = false;
-					groundContact = true;
-					if(groundFrames < 5f){
-						groundFrames++;
-					}
-
+		if(animation.mode == 2){
+			if(collision.gameObject.tag == "Ground"){
+				touchDown = false;
+				groundContact = true;
+				if(groundFrames < 15f){
+					groundFrames++;
 				}
 			}
 		}
 	}
 	
 	void OnCollisionExit(Collision collision){
-		if(tag == "Player" || tag == "Bot"){
-			if(animation.mode == 2){
-				if(collision.gameObject.tag == "Ground"){
-					strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * groundFrames;
-					// -----------------
-					forceHoriz = 350f * (1f-(zSpeed/(transitionPivotSpeed + 120f)));
-					if(forceHoriz > 200f){ forceHoriz = 200f; }
-					forceHoriz *= strengthBonus;
-					//forceHoriz *= swingTimeBonus;
-					StartCoroutine(applyForce(forceHoriz));
-					// -----------------
-					groundFrames = 0f;
-					groundContact = false;
+		if(animation.mode == 2){
+			if(collision.gameObject.tag == "Ground"){
+				strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * groundFrames;
+				/*
+				if(strengthBonus > 1f){
+					strengthBonus = 1f;
 				}
+				*/
+				// -----------------
+				forceHoriz = 350f * (1f-(zSpeed/(transitionPivotSpeed + 120f)));
+				if(forceHoriz > 200f){ forceHoriz = 200f; }
+				forceHoriz *= strengthBonus;
+				//forceHoriz *= swingTimeBonus;
+				StartCoroutine(applyForce(forceHoriz));
+				// -----------------
+				groundFrames = 0f;
+				groundContact = false;
 			}
 		}
 	}

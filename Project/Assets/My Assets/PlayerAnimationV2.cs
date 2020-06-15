@@ -12,6 +12,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Transform pushLeg;
 	public Quaternion pushRotation;
 	
+	public Transform spine;
+	
 	public int mode;
 		/* // -----------------
 			mode
@@ -22,6 +24,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float transitionSpeed;
 	
 	public GlobalController globalController;
+	public RaceManager raceManager;
 	public PlayerAttributes attributes;
 	public TimerController timer;
 	
@@ -31,6 +34,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public bool rightInput;
 	public bool leftInput;
 	
+	int tick;
 	public bool firstMove;
 	bool firstMoveFlag;
 	bool launchFlag;
@@ -58,6 +62,7 @@ public class PlayerAnimationV2 : MonoBehaviour
     {
 		chestCollider = animator.GetBoneTransform(HumanBodyBones.UpperChest).gameObject.GetComponent<BoxCollider>();
 		pushLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
+		spine = animator.GetBoneTransform(HumanBodyBones.Spine);
 		
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
 		quickness = attributes.QUICKNESS_BASE;
@@ -72,17 +77,33 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	
     // Update is called once per frame
+	void Update()
+	{
+		
+		
+	}
+	
+	
+	
     void FixedUpdate()
     {
+		
+		tick = raceManager.raceTick;
 		
 		if(tag == "Player" || tag == "Bot"){
 			velocity = rb.velocity;
 			//Debug.Log(velocity.z);
 		}
 		else if(tag == "Ghost"){
-			if(timer.ticks < attributes.pathLength){
-				velocity = new Vector3(rb.velocity.x, attributes.velPathY[timer.ticks], attributes.velPathZ[timer.ticks]);
-				transform.position = new Vector3(transform.position.x, attributes.posPathY[timer.ticks], attributes.posPathZ[timer.ticks]);
+			if(tick < attributes.pathLength){
+				velocity = new Vector3(rb.velocity.x, attributes.velPathY[tick], attributes.velPathZ[tick]);
+				Vector3 targetPos = new Vector3(transform.position.x, attributes.posPathY[tick], attributes.posPathZ[tick]);
+				if(tick == 0){
+					transform.position = targetPos;
+				}
+				else{
+					transform.position = Vector3.Lerp(transform.position, targetPos, Time.fixedDeltaTime);
+				}
 			}
 		}
 		//-----------------------------------------------------------------------------------------------------------
@@ -120,9 +141,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 		// speed limit -----------------------------------------------------------------------------------------------------------
 		float v = velocity.z;
 		if(v > 0f){
-			if(v > 25f){
-				//v = 25f;
-			}
 		}
 		else{
 			v = 0f;
@@ -141,6 +159,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	void runMode(){
 		// set quickness to increase with speed
 		quickness = attributes.QUICKNESS_BASE * (velocity.z)*.25f;
+		//Debug.Log(quickness);
 		if(quickness > attributes.QUICKNESS_BASE){
 			if(quickness > attributes.QUICKNESS_BASE * 1.35f){
 				quickness = attributes.QUICKNESS_BASE * 1.35f;
@@ -174,11 +193,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 			rightInput = Input.GetKey(KeyCode.D);
 			leftInput = Input.GetKey(KeyCode.A);
 		}
-		if(tag == "Ghost" || tag == "Bot"){
-			//Debug.Log(zTilt);
-			if(timer.ticks < attributes.pathLength){
-				rightInput = attributes.rightInputPath[timer.ticks] == 1;
-				leftInput = attributes.leftInputPath[timer.ticks] == 1;
+		else if(tag == "Ghost" || tag == "Bot"){
+			if(tick < attributes.pathLength){
+				rightInput = attributes.rightInputPath[tick] == 1;
+				leftInput = attributes.leftInputPath[tick] == 1;
 			}
 		}
 	}
@@ -258,10 +276,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				zTilt = attributes.ZTILT_MIN;
 			}
 
-			
-			
 		}
-		//Debug.Log("rotation x: " + transform.rotation.eulerAngles.x);
 	}
 	
 	
@@ -284,7 +299,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				13	triple extension
 			*/ // -----------------
 			
-		driveWeight = leanWeight * (1-(velocity.z/(attributes.TRANSITION_PIVOT_SPEED*.27f))) * (attributes.STRENGTH_BASE * 1.4f);
+		driveWeight = leanWeight * (1-(velocity.z/(attributes.TRANSITION_PIVOT_SPEED*.19f))) * (attributes.STRENGTH_BASE * 1.4f);
 		if(driveWeight > 1f){
 			driveWeight = 1f;
 		}

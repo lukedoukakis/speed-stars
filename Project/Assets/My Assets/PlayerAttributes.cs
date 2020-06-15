@@ -5,9 +5,7 @@ using UnityEngine;
 public class PlayerAttributes : MonoBehaviour
 {
 	
-	public static int DEFAULT_PATH_LENGTH = 2000;
-	public static int BLANK_FORMAT = 1;
-	public static int BOT_FORMAT = 2;
+	public static int DEFAULT_PATH_LENGTH = 10000;
 	
 	//info
 	public string racerName;
@@ -197,7 +195,7 @@ public class PlayerAttributes : MonoBehaviour
 	*/
 	
 	// format: "blank", "bot"
-	public void setPaths(int format, int length){
+	public void setPaths(int length){
 		velPathY = new float[length];
 		velPathZ = new float[length];
 		posPathZ = new float[length];

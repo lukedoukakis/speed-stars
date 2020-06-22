@@ -8,6 +8,7 @@ public class PlayerAttributes : MonoBehaviour
 	public static int DEFAULT_PATH_LENGTH = 10000;
 	
 	//info
+	public string id;
 	public string racerName;
 	public float personalBest;
 	
@@ -140,6 +141,7 @@ public class PlayerAttributes : MonoBehaviour
 	public void setAttributesFromOther(GameObject other){
 		PlayerAttributes otherAttributes = other.GetComponent<PlayerAttributes>();
 		// -----------------
+		id = otherAttributes.id;
 		racerName = otherAttributes.racerName;
 		personalBest = otherAttributes.personalBest;
 		resultString = otherAttributes.resultString;
@@ -204,6 +206,18 @@ public class PlayerAttributes : MonoBehaviour
 		leftInputPath = new int[length];
 	}
 	
+	
+	public static string generateID(string racerName){
+		string id = racerName + "_";
+		
+		int digit;
+		for(int i = 0; i < 9; i++){
+			digit = Random.Range(0,10);
+			id += digit.ToString();
+		}
+		return id;
+		
+	}
 	
 	
 	

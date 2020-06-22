@@ -38,10 +38,12 @@ public class TimerController : MonoBehaviour
 		else{
 			attributes.leftInputPath[tick] = 0;
 		}
-		attributes.velPathY[tick] = animation.velocity.y;
-		attributes.velPathZ[tick] = animation.velocity.z;
-		attributes.posPathY[tick] = transform.position.y;
-		attributes.posPathZ[tick] = transform.position.z;
+		Vector3 vel = animation.rb.velocity;
+		Vector3 pos = transform.position;
+		attributes.velPathY[tick] = vel.y;
+		attributes.velPathZ[tick] = vel.z;
+		attributes.posPathY[tick] = pos.y;
+		attributes.posPathZ[tick] = pos.z;
 	}
 
 }

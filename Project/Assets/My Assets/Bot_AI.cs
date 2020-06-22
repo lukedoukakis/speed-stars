@@ -89,11 +89,11 @@ public class Bot_AI : MonoBehaviour
 	
 	public void adjustStride(){
 		float zTilt = anim.zTilt;
-		zSpeed = anim.velocity.z;
-		zSpeedOverTransitionPivotSpeed = (zSpeed / (transitionPivotSpeed-50f)) + .55f;
+		zSpeed = anim.rb.velocity.z;
+		zSpeedOverTransitionPivotSpeed = (zSpeed / (transitionPivotSpeed-70f)) + .55f;
 		if(zSpeedOverTransitionPivotSpeed > 1f){
-			if(zSpeedOverTransitionPivotSpeed > 1.1f){
-				zSpeedOverTransitionPivotSpeed = 1.1f;
+			if(zSpeedOverTransitionPivotSpeed > 1.2f){
+				zSpeedOverTransitionPivotSpeed = 1.2f;
 			}
 		}
 		else{
@@ -166,10 +166,10 @@ public class Bot_AI : MonoBehaviour
 		reactionTime = Random.Range(.19f, .21f);
 		randomRange = 0f + ((1f-difficulty) * 10f);
 		// -----------------
-		freeTicks = (int)((4400f * driveModifier) * (2f-cadenceModifier));
-		downTicks = (int)((1886f * (2f-driveModifier)) * (2f-cadenceModifier));
+		freeTicks = (int)((2625f * driveModifier) * (2f-cadenceModifier));
+		downTicks = (int)((1125f * (2f-driveModifier)) * (2f-cadenceModifier));
 		ticksPassedLeft = 0;
-		ticksPassedRight = downTicks / 2 + (int)(315f*(2f-cadenceModifier));
+		ticksPassedRight = downTicks / 2 + (int)(310f*(2f-cadenceModifier));
 		frequencyLeft = downTicks;
 		frequencyRight = freeTicks;
 		inputLeft = 1;

@@ -80,7 +80,7 @@ MonoBehaviour:
   posPathZ: []
   rightInputPath: 
   leftInputPath: 
-  POWER_BASE: 1700
+  POWER_BASE: 1600
   TRANSITION_PIVOT_SPEED: 120
   QUICKNESS_BASE: 1
   STRENGTH_BASE: 1

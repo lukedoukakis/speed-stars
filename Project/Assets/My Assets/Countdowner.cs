@@ -6,7 +6,7 @@ public class Countdowner : MonoBehaviour
 {
 	
 	float countdownTime;
-	string[] countdownStrings = new string[3] { "On Your Marks", "Set", ""};
+	string[] countdownStrings = new string[3] { "Marks", "Set", "Go"};
 	int countdownIndex;
 	bool isCounting;
 	public string currentString;

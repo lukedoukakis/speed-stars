@@ -3968,7 +3968,7 @@ Transform:
   - {fileID: 1776056558}
   - {fileID: 727700126}
   m_Father: {fileID: 1958034571}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &387574142
 GameObject:
@@ -4948,7 +4948,7 @@ Transform:
   m_LocalScale: {x: 10.4, y: 0.2, z: 168.78}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &461037503
 GameObject:
@@ -5436,7 +5436,7 @@ Transform:
   - {fileID: 85759005}
   - {fileID: 757580418}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &479923836
 MonoBehaviour:
@@ -7161,12 +7161,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1738763324}
-        m_MethodName: startRace
+        m_MethodName: startRaceAsLive
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -15177,7 +15177,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1075249115}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 9.264657, y: 1.3378711, z: 0}
+  m_LocalPosition: {x: 9.27, y: 1.3378711, z: 0}
   m_LocalScale: {x: 0.19999999, y: 0.21, z: 1}
   m_Children: []
   m_Father: {fileID: 378109377}
@@ -16578,7 +16578,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1165604308
 GameObject:
@@ -17562,7 +17562,7 @@ Transform:
   - {fileID: 1754594918}
   - {fileID: 1947969694}
   m_Father: {fileID: 1958034571}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1203811547
 GameObject:
@@ -18786,12 +18786,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1255773742}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.2, y: 0, z: 25}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 19.649616, y: 1.2168989, z: 99.877625}
   m_LocalScale: {x: 10.4, y: 0.2, z: 250}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_Father: {fileID: 1958034571}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1262409124
 GameObject:
@@ -20541,7 +20541,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1347453055}
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 17.12, y: 3.69, z: -107.66}
+  m_LocalPosition: {x: 14.9, y: 3.2, z: 133.96}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -20609,10 +20609,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e273d879f706e1488de53bc9af63a22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mode: 0
   gc: {fileID: 1738763324}
   referenceObject: {fileID: 1151844958}
+  startLine_100m: {fileID: 1939423563}
+  finishLine: {fileID: 1467947119}
   cameraDistance: 5
-  mode: 0
 --- !u!1 &1359709156
 GameObject:
   m_ObjectHideFlags: 0
@@ -22697,7 +22699,7 @@ Transform:
   m_LocalScale: {x: 10.4, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 1958034571}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1467947124
 MonoBehaviour:
@@ -24770,7 +24772,29 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1574668901}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1738763326}
+        m_MethodName: setupReplay
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1738763324}
+        m_MethodName: startRaceAsReplay
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1574668901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27711,7 +27735,7 @@ MonoBehaviour:
   racerPrefab: {fileID: 2136866845376905259, guid: 2425a9bb872ab4d40bf2605528694255,
     type: 3}
   player_backEnd: {fileID: 0}
-  player: {fileID: 0}
+  playerIndex: 0
   racers_backEnd: []
   racers: []
   startingLine: {fileID: 1939423563}
@@ -27785,24 +27809,28 @@ MonoBehaviour:
   gc: {fileID: 1738763324}
   countdowner: {fileID: 1738763325}
   resultsText: {fileID: 363374522}
-  raceActive: 0
-  time: 0
+  raceMode: 0
+  raceStatus: 0
+  fStart: 0
+  raceStarted: 0
+  raceTime: 0
   raceTick: 0
-  raceFinished: 0
+  focusRacerFinished: 0
+  allRacersFinished: 0
   playerPB: 0
+  player_backEnd: {fileID: 0}
+  player: {fileID: 0}
   racers_backEnd: []
   racers: []
   RacersBackEndParent: {fileID: 609319468}
   RacersFieldParent: {fileID: 137022980}
+  focusRacer: {fileID: 0}
   startingLine: {fileID: 1939423563}
   racerCount: 0
   playerCount: 0
   botCount: 0
   ghostCount: 0
   racersFinished: 0
-  playersFinished: 0
-  player_backEnd: {fileID: 0}
-  player: {fileID: 0}
 --- !u!1 &1742820180
 GameObject:
   m_ObjectHideFlags: 0
@@ -28204,7 +28232,7 @@ Transform:
   - {fileID: 726339406}
   - {fileID: 1208112383}
   m_Father: {fileID: 1958034571}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1761444763
 GameObject:
@@ -29742,12 +29770,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1738763324}
-        m_MethodName: startRace
+        m_MethodName: startRaceAsLive
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -30863,7 +30891,7 @@ GameObject:
   - component: {fileID: 1939423566}
   - component: {fileID: 1939423565}
   m_Layer: 0
-  m_Name: Starting Line
+  m_Name: Starting Line 100m
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30926,7 +30954,7 @@ Transform:
   m_LocalScale: {x: 10.4, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 1958034571}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1947875827
 GameObject:
@@ -31211,7 +31239,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1958034571}
   m_Layer: 0
-  m_Name: Track Markings
+  m_Name: Track
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31228,13 +31256,14 @@ Transform:
   m_LocalPosition: {x: -14.449617, y: -1.2168989, z: -74.877625}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 1255773746}
   - {fileID: 1202621200}
   - {fileID: 378109377}
   - {fileID: 1755379673}
   - {fileID: 1939423567}
   - {fileID: 1467947123}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1961376049
 GameObject:

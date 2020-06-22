@@ -11,6 +11,7 @@ public class SelectionButtonScript : MonoBehaviour
 	public bool selected;
 	public string selectedColorCode = "#B96481";
 	public string unselectedColorCode = "#CDB6CF";
+	public string id;
 	public string name;
 	public string time;
 	
@@ -26,14 +27,15 @@ public class SelectionButtonScript : MonoBehaviour
         
     }
 	
-	public void setFromRacer(string racerName){
+	public void setFromRacer(string id){
 		// -----------------
-		name = racerName;
+		this.id = id;
+		name = PlayerPrefs.GetString(id).Split(':')[1];
 		gameObject.transform.Find("NameText").GetComponent<Text>().text = name;
 		// -----------------
-		time = PlayerPrefs.GetString(racerName).Split(':')[1];
+		time = PlayerPrefs.GetString(id).Split(':')[2];
 		if(float.Parse(time) == -1f){
-			gameObject.transform.Find("TimeText").GetComponent<Text>().text = "No Mark";
+			gameObject.transform.Find("TimeText").GetComponent<Text>().text = "--";
 		}else{
 			gameObject.transform.Find("TimeText").GetComponent<Text>().text = time;
 		}	

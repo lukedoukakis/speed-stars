@@ -36,7 +36,7 @@ public class GlobalController : MonoBehaviour
 	// racers
 	public GameObject racerPrefab;
 	public GameObject player_backEnd;
-	public GameObject player;
+	public int playerIndex;
 	public List<GameObject> racers_backEnd;
 	public List<GameObject> racers;
 	
@@ -51,7 +51,7 @@ public class GlobalController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		//PlayerPrefs.DeleteAll();
+		PlayerPrefs.DeleteAll();
 		// -----------------
 		racers_backEnd = new List<GameObject>();
 		racers = new List<GameObject>();
@@ -72,15 +72,11 @@ public class GlobalController : MonoBehaviour
 		if(CountdownScreen.activeInHierarchy){
 			countdownText.text = countdowner.currentString;
 			if(countdowner.currentString == "Set"){
-				raceManager.setRacerModes(raceManager.racers, "Set");
+				raceManager.raceStatus = RaceManager.STATUS_SET;
 			}
 			if(countdowner.finished){
 				goRaceScreen();
 			}
-		}
-		
-		if(RaceScreen.activeInHierarchy){
-			raceManager.manageRace();
 		}
 		
     }
@@ -174,25 +170,51 @@ public class GlobalController : MonoBehaviour
 			TransitionScreen.SetActive(false);
 		}
 	}
-
-	public void startRace(){
-		fillRemainingSpotsWithBots();
-		goCountDownScreen();
-		clearRacersField();
-		racers = raceManager.initRace(racers_backEnd);
-		player_backEnd = raceManager.player_backEnd;
-		player = raceManager.player;
-		setCameraFocus(player, 0);
-	}
 	
-	public void endRace(){
+	//-----------------------------------------------------------------------------------------------------------
+	public void startRace(int mode){
+		if(mode == RaceManager.LIVE_MODE){
+			fillRemainingSpotsWithBots();
+		}
+		goCountDownScreen();
+		StartCoroutine(setupRaceWhenReady(mode));
+	}
+	IEnumerator setupRaceWhenReady(int mode){
+		yield return new WaitUntil(() => taskManager.tasks.Count == 0);
+		clearRacersField();
+		racers = raceManager.setupRace(racers_backEnd, mode);
+		// --
+		int cameraMode = 0;
+		if(mode == RaceManager.LIVE_MODE){
+			cameraMode = CameraController.CAMERA_MODE_SIDESCROLL;
+		}
+		else if(mode == RaceManager.REPLAY_MODE){
+			cameraMode = CameraController.CAMERA_MODE_TV100M;
+		}
+		setCameraFocus(raceManager.focusRacer, cameraMode);
+	}
+	public void startRaceAsLive(){
+		startRace(RaceManager.LIVE_MODE);
+	}
+	public void startRaceAsReplay(){
+		if(raceManager.raceMode != RaceManager.REPLAY_MODE){
+			taskManager.addTask(TaskManager.SETUP_REPLAY);
+		}
+		startRace(RaceManager.REPLAY_MODE);
+	}
+	//-----------------------------------------------------------------------------------------------------------
+	public void showResultsScreen(){
 		goFinishScreen();
+	}
+	public void endRace(){
 		if(raceManager.playerPB){
 			taskManager.addTask(TaskManager.SAVE_PLAYER);
 		}
 	}
-
 	
+	
+	
+	//-----------------------------------------------------------------------------------------------------------
 	void clearRacersField(){
 		racers.Clear();
 		foreach(Transform child in raceManager.RacersFieldParent.transform){
@@ -206,9 +228,19 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void saveRacer(GameObject racer){
+	public void forgetRacer(string id, bool forReplay){
+		if(forReplay){
+			id += "_REPLAY";
+		}
+		PlayerPrefs.DeleteKey(id);
+	}
+	
+	public void saveRacer(GameObject racer, bool forReplay){
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
-		string racerName = att.racerName;
+		string id = att.id;
+		if(forReplay){
+			id += "_REPLAY";
+		}
 		// -----------------
 		/*
 		if(PlayerPrefs.HasKey(racerName)){
@@ -216,8 +248,7 @@ public class GlobalController : MonoBehaviour
 			//ghostSelectButtonList.removeButton(racerName);
 		}
 		*/
-		// -----------------
-		PlayerPrefs.SetString("RACER NAMES", PlayerPrefs.GetString("RACER NAMES") + ":" + racerName);
+
 		// -----------------
 		string vY, vZ, pY, pZ, r, l;
 		vY = vZ = pY = pZ = r = l = "";
@@ -230,8 +261,9 @@ public class GlobalController : MonoBehaviour
 			l += att.leftInputPath[i].ToString() + ",";
 		}
 		// -----------------
-		PlayerPrefs.SetString(racerName,
-				racerName
+		PlayerPrefs.SetString(id,
+				id
+		+ ":" + att.racerName
 		+ ":" + att.finishTime.ToString()
 		+ ":" + att.personalBest.ToString()
 		+ ":" + att.resultString
@@ -257,39 +289,47 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	
-	public GameObject loadRacer(string racerName, string asTag){
-		if(asTag == "Bot"){ return loadNewBot(racerName); }
+	public GameObject loadRacer(string id, string asTag, bool forReplay){
 		// -----------------
 		GameObject racer = Instantiate(racerPrefab);
 		racer.tag = asTag;
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		// -----------------
-		string[] racerInfo = PlayerPrefs.GetString(racerName).Split(':');
-		string[] vY = racerInfo[16].Split(',');
-		string[] vZ = racerInfo[17].Split(',');
-		string[] pY = racerInfo[18].Split(',');
-		string[] pZ = racerInfo[19].Split(',');
-		string[] r = racerInfo[20].Split(',');
-		string[] l = racerInfo[21].Split(',');
+		if(forReplay){
+			id += "_REPLAY";
+		}
+		string[] racerInfo = PlayerPrefs.GetString(id).Split(':');
+		/*
+		for(int i = 0; i < 23; i++){
+			Debug.Log("racerInfo[" + i + "]: " + racerInfo[i]);
+		}
+		*/
+		string[] vY = racerInfo[17].Split(',');
+		string[] vZ = racerInfo[18].Split(',');
+		string[] pY = racerInfo[19].Split(',');
+		string[] pZ = racerInfo[20].Split(',');
+		string[] r = racerInfo[21].Split(',');
+		string[] l = racerInfo[22].Split(',');
 		// -----------------
-		att.racerName = racerInfo[0];
-		att.finishTime = float.Parse(racerInfo[1]);
-		att.personalBest = float.Parse(racerInfo[2]);
-		att.resultString = racerInfo[3];
-		att.POWER_BASE = float.Parse(racerInfo[4]);
-		att.TRANSITION_PIVOT_SPEED = float.Parse(racerInfo[5]);
-		att.QUICKNESS_BASE = float.Parse(racerInfo[6]);
-		att.STRENGTH_BASE = float.Parse(racerInfo[7]);
-		att.BOUNCE_BASE = float.Parse(racerInfo[8]);
-		att.ENDURANCE_BASE = float.Parse(racerInfo[9]);
-		att.ZTILT_MIN = float.Parse(racerInfo[10]);
-		att.ZTILT_MAX = float.Parse(racerInfo[11]);
-		att.HORIZ_BONUS = float.Parse(racerInfo[12]);
-		att.TURNOVER = float.Parse(racerInfo[13]);
-		att.TILT_SPEED = float.Parse(racerInfo[14]);
-		att.pathLength = int.Parse(racerInfo[15]);
+		att.id = racerInfo[0];
+		att.racerName = racerInfo[1];
+		att.finishTime = float.Parse(racerInfo[2]);
+		att.personalBest = float.Parse(racerInfo[3]);
+		att.resultString = racerInfo[4];
+		att.POWER_BASE = float.Parse(racerInfo[5]);
+		att.TRANSITION_PIVOT_SPEED = float.Parse(racerInfo[6]);
+		att.QUICKNESS_BASE = float.Parse(racerInfo[7]);
+		att.STRENGTH_BASE = float.Parse(racerInfo[8]);
+		att.BOUNCE_BASE = float.Parse(racerInfo[9]);
+		att.ENDURANCE_BASE = float.Parse(racerInfo[10]);
+		att.ZTILT_MIN = float.Parse(racerInfo[11]);
+		att.ZTILT_MAX = float.Parse(racerInfo[12]);
+		att.HORIZ_BONUS = float.Parse(racerInfo[13]);
+		att.TURNOVER = float.Parse(racerInfo[14]);
+		att.TILT_SPEED = float.Parse(racerInfo[15]);
+		att.pathLength = int.Parse(racerInfo[16]);
 		// --
-		att.setPaths(att.pathLength);
+		att.setPaths(att.pathLength + 500);
 		// --
 		for(int i = 0; i < att.pathLength; i++){
 			att.velPathY[i] = float.Parse(vY[i]);
@@ -310,6 +350,7 @@ public class GlobalController : MonoBehaviour
 		bot.transform.SetParent(raceManager.RacersBackEndParent.transform);
 		bot.SetActive(false);
 		PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
+		att.id = PlayerAttributes.generateID(racerName);
 		att.racerName = racerName;
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
@@ -321,8 +362,9 @@ public class GlobalController : MonoBehaviour
 	
 	public void fillRemainingSpotsWithBots(){
 		GameObject bot;
-		for(int i = racers_backEnd.Count; i < 2; i++){
-			bot = loadNewBot("Bot " + (i - racers_backEnd.Count).ToString());
+		int count = 8 - racers_backEnd.Count;
+		for(int i = 0; i < count; i++){
+			bot = loadNewBot("Bot " + (i).ToString());
 			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
 			bot.GetComponent<PlayerAttributes>().personalBest = -1f;
 			racers_backEnd.Add(bot);
@@ -337,25 +379,23 @@ public class GlobalController : MonoBehaviour
 			// -----------------
 			if(currentTask == TaskManager.SAVE_PLAYER){
 				Debug.Log("SAVE PLAYER");
-				string playerName = raceManager.player.GetComponent<PlayerAttributes>().racerName;
+				string id = raceManager.player.GetComponent<PlayerAttributes>().id;
 				GameObject b;
 				// -----------------
-				playerSelectButtonList.removeButton(playerName);
-				saveRacer(raceManager.player);
-				b = playerSelectButtonList.addButton(playerName);
+				playerSelectButtonList.removeButton(id);
+				saveRacer(raceManager.player, false);
+				b = playerSelectButtonList.addButton(id);
 				b.GetComponent<SelectionButtonScript>().toggle();
 				// -----------------
 				bool selected = false;
-				if(ghostSelectButtonList.getButton(playerName) != null){
-					selected = ghostSelectButtonList.getButton(playerName).GetComponent<SelectionButtonScript>().selected;
+				if(ghostSelectButtonList.getButton(id) != null){
+					selected = ghostSelectButtonList.getButton(id).GetComponent<SelectionButtonScript>().selected;
 				}
-				ghostSelectButtonList.removeButton(playerName);
-				b = ghostSelectButtonList.addButton(playerName);
+				ghostSelectButtonList.removeButton(id);
+				b = ghostSelectButtonList.addButton(id);
 				if(selected){
 					b.GetComponent<SelectionButtonScript>().toggle(true);
 				}
-				
-				
 			}
 			else if(currentTask == TaskManager.SAVE_SELECTED_RACERS){
 				Debug.Log("SAVE SELECTED RACERS");
@@ -366,8 +406,8 @@ public class GlobalController : MonoBehaviour
 					racerIndex = checkedRacerIndexes[j];
 					racer = racers[racerIndex];
 					att = racer.GetComponent<PlayerAttributes>();
-					saveRacer(racer);
-					ghostSelectButtonList.addButton(att.racerName);
+					saveRacer(racer, false);
+					ghostSelectButtonList.addButton(att.id);
 				}	
 			}
 			else if(currentTask == TaskManager.LOAD_SELECTED_PLAYER){
@@ -380,7 +420,7 @@ public class GlobalController : MonoBehaviour
 					b = child.gameObject;
 					s = b.GetComponent<SelectionButtonScript>();
 					if(s.selected){
-						player = loadRacer(s.name, "Player (Back End)");
+						player = loadRacer(s.id, "Player (Back End)", false);
 						player.GetComponent<PlayerAttributes>().setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 						player.SetActive(false);
 						player.transform.SetParent(raceManager.RacersBackEndParent.transform);
@@ -399,9 +439,33 @@ public class GlobalController : MonoBehaviour
 					b = child.gameObject;
 					s = b.GetComponent<SelectionButtonScript>();
 					if(s.selected){
-						racer = loadRacer(s.name, "Ghost (Back End)");
+						racer = loadRacer(s.id, "Ghost (Back End)", false);
 						racer.transform.SetParent(raceManager.RacersBackEndParent.transform);
 						racers_backEnd.Add(racer);
+					}
+				}
+			}
+			else if(currentTask == TaskManager.SETUP_REPLAY){
+				Debug.Log("SETUP REPLAY");
+				int numOfRacers = racers.Count;
+				playerIndex = 0;
+				// -----------------
+				clearRacersBackEnd();
+				GameObject racer;
+				GameObject racer_replay;
+				string id;
+				for(int j = 0; j < numOfRacers; j++){
+					racer = racers[j];
+					id = racer.GetComponent<PlayerAttributes>().id;
+					saveRacer(racer, true);
+					racer_replay = loadRacer(id, "Ghost (Back End)", true);
+					racer_replay.SetActive(false);
+					racer_replay.transform.SetParent(raceManager.RacersBackEndParent.transform);
+					racer_replay.GetComponent<PlayerAttributes>().lane = racers[j].GetComponent<PlayerAttributes>().lane;
+					racers_backEnd.Add(racer_replay);
+					forgetRacer(id, true);
+					if(racer.tag == "Player"){
+						playerIndex = j;
 					}
 				}
 			}
@@ -412,16 +476,18 @@ public class GlobalController : MonoBehaviour
 				newRacer.tag = "Player";
 				newRacer.SetActive(false);
 				PlayerAttributes att = newRacer.GetComponent<PlayerAttributes>();
-				att.racerName = nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text;
+				string name = nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text;
+				att.id = PlayerAttributes.generateID(name);
+				att.racerName = name;
 				att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 				att.randomizeStats();
 				att.finishTime = -1f;
 				att.personalBest = -1f;
 				// -----------------
-				saveRacer(newRacer);
+				saveRacer(newRacer, false);
 				Destroy(newRacer);
 				// -----------------
-				GameObject b = playerSelectButtonList.GetComponent<SelectionListScript>().addButton(att.racerName);
+				GameObject b = playerSelectButtonList.GetComponent<SelectionListScript>().addButton(att.id);
 				b.GetComponent<SelectionButtonScript>().toggle();
 			}
 			else if(currentTask == TaskManager.CLEAR_RACERS_FROM_SCENE){
@@ -441,7 +507,7 @@ public class GlobalController : MonoBehaviour
 	
 	
 	
-	void setCameraFocus(GameObject referenceObject, int cameraMode){
+	public void setCameraFocus(GameObject referenceObject, int cameraMode){
 		gameCamera.referenceObject = referenceObject;
 		gameCamera.mode = cameraMode;
 	}

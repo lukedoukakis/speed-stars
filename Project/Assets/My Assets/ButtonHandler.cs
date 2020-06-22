@@ -87,4 +87,21 @@ public class ButtonHandler : MonoBehaviour
 	public void clearRacersFromScene(){
 		taskManager.addTask(TaskManager.CLEAR_RACERS_FROM_SCENE);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

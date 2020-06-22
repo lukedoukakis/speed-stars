@@ -15,6 +15,7 @@ public class TaskManager : MonoBehaviour
 	public static int CREATE_RACER = 4;
 	public static int CLEAR_RACERS_FROM_SCENE = 5;
 	public static int SAVE_PLAYER = 6;
+	public static int SETUP_REPLAY = 7;
 	// -----------------
 	
 	

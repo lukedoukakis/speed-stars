@@ -12,8 +12,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Transform pushLeg;
 	public Quaternion pushRotation;
 	
-	public Transform spine;
-	
 	public int mode;
 		/* // -----------------
 			mode
@@ -40,14 +38,15 @@ public class PlayerAnimationV2 : MonoBehaviour
 	bool launchFlag;
 	Vector3 friction;
 	public float frictionMagnitude;
+	public float power;
 	float maxPower;
 	public float maxUpSpeed;
 	float topSpeed;
 	
 	public bool leans;
 	public float zTilt;
+	float leanThreshold;
 	public float quickness;
-	public Vector3 velocity;
 	
 	public bool upInSet;
 	public float setPositionWeight;
@@ -62,12 +61,12 @@ public class PlayerAnimationV2 : MonoBehaviour
     {
 		chestCollider = animator.GetBoneTransform(HumanBodyBones.UpperChest).gameObject.GetComponent<BoxCollider>();
 		pushLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
-		spine = animator.GetBoneTransform(HumanBodyBones.Spine);
 		
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
 		quickness = attributes.QUICKNESS_BASE;
 		maxPower = attributes.POWER_BASE;
 		topSpeed = 25 * attributes.BOUNCE_BASE;
+		leanThreshold = .825f * attributes.STRENGTH_BASE;
 		
 		if(tag.StartsWith("Ghost")){
 			rightFootScript.enabled = false;
@@ -87,34 +86,15 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
     void FixedUpdate()
     {
-		
-		tick = raceManager.raceTick;
-		
-		if(tag == "Player" || tag == "Bot"){
-			velocity = rb.velocity;
-			//Debug.Log(velocity.z);
+	
+		if (mode == 1){
+			setPositionMode();
 		}
-		else if(tag == "Ghost"){
-			if(tick < attributes.pathLength){
-				velocity = new Vector3(rb.velocity.x, attributes.velPathY[tick], attributes.velPathZ[tick]);
-				Vector3 targetPos = new Vector3(transform.position.x, attributes.posPathY[tick], attributes.posPathZ[tick]);
-				if(tick == 0){
-					transform.position = targetPos;
-				}
-				else{
-					transform.position = Vector3.Lerp(transform.position, targetPos, Time.fixedDeltaTime);
-				}
-			}
+		else if(mode == 2){
+			runMode();
 		}
 		//-----------------------------------------------------------------------------------------------------------
-		if (mode == 1){ setPositionMode(); }
-		else if	(mode == 2){ runMode(); }
-		//-----------------------------------------------------------------------------------------------------------
-		readInput();
-		//-----------------------------------------------------------------------------------------------------------
-		applyInput();
-		//-----------------------------------------------------------------------------------------------------------
-		updateRotation();
+		adjustRotation();
 		//-----------------------------------------------------------------------------------------------------------
 		updateLayerWeights();
 		
@@ -126,31 +106,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 				firstMoveFlag = true;
 			}
 		}
-		// friction -----------------------------------------------------------------------------------------------------------
-		friction = Vector3.back * velocity.z * frictionMagnitude * 100f;
-		if(rightFootScript.groundContact || leftFootScript.groundContact){
-			rb.AddForce(friction * Time.deltaTime);
-		}
+		//-----------------------------------------------------------------------------------------------------------
+		applyFriction();
+		//-----------------------------------------------------------------------------------------------------------
+		applyPowerModifiers();
+		//-----------------------------------------------------------------------------------------------------------
+		applySpeedModifiers();
 		
-		if(rightFootScript.input && leftFootScript.input){
-			attributes.POWER_BASE *= .2f;
-		}
-		else{
-			attributes.POWER_BASE = maxPower;
-		}
-		// speed limit -----------------------------------------------------------------------------------------------------------
-		float v = velocity.z;
-		if(v > 0f){
-		}
-		else{
-			v = 0f;
-		}
-		velocity.z = v;
-		
-		if(velocity.y > maxUpSpeed){
-			velocity.y = maxUpSpeed;
-		}
-		rb.velocity = velocity;
 		
 		
 
@@ -158,7 +120,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 	void runMode(){
 		// set quickness to increase with speed
-		quickness = attributes.QUICKNESS_BASE * (velocity.z)*.25f;
+		quickness = attributes.QUICKNESS_BASE * (rb.velocity.z)*.25f;
 		//Debug.Log(quickness);
 		if(quickness > attributes.QUICKNESS_BASE){
 			if(quickness > attributes.QUICKNESS_BASE * 1.35f){
@@ -179,7 +141,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
    }
 	
-	void setPositionMode(){
+	public void setPositionMode(){
 		animator.SetBool("upInSet", upInSet);
 		setPositionWeight = 1f;
 		runWeight = 0f;
@@ -188,7 +150,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	
 	
-	void readInput(){
+	public void readInput(int tick){
 		if(tag == "Player"){
 			rightInput = Input.GetKey(KeyCode.D);
 			leftInput = Input.GetKey(KeyCode.A);
@@ -201,14 +163,17 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 	}
 	
-	void applyInput(){
+	public void applyInput(int tick){
 		if(mode == 1){
 			if(rightInput || leftInput){
 				if(attributes.isRacing){
 					mode = 2;
 				}
 				else{
-					// false start
+					if(upInSet){
+						mode = 2;
+						StartCoroutine(raceManager.falseStart());
+					}
 				}
 			}
 		}
@@ -236,7 +201,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 	}
 	
-	void updateRotation(){
+	void adjustRotation(){
 		if(leans){
 			if(mode == 1){
 				leanWeight += .5f * Time.deltaTime;
@@ -275,10 +240,54 @@ public class PlayerAnimationV2 : MonoBehaviour
 				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt - attributes.ZTILT_MIN)));
 				zTilt = attributes.ZTILT_MIN;
 			}
-
 		}
 	}
 	
+	// for mapping ghost position and velocity from paths
+	public void setPositionAndVelocity(int tick){
+		if(tick < attributes.pathLength){
+			rb.velocity = new Vector3(rb.velocity.x, attributes.velPathY[tick], attributes.velPathZ[tick]);
+			Vector3 targetPos = new Vector3(transform.position.x, attributes.posPathY[tick], attributes.posPathZ[tick]);
+			transform.position = targetPos;
+		}
+	}
+	
+	
+	void applyFriction(){
+		friction = Vector3.back * rb.velocity.z * frictionMagnitude * 100f;
+		if(rightFootScript.groundContact || leftFootScript.groundContact){
+			rb.AddForce(friction * Time.deltaTime);
+		}
+	}
+	
+	void applyPowerModifiers(){
+		float modifiedPower = maxPower;
+		if(rightFootScript.groundContact && leftFootScript.groundContact){
+			modifiedPower *= .2f;
+		}
+		float leanMag = rightFootScript.leanMagnitude;
+		if(leanMag > leanThreshold){
+			float modifier = leanThreshold/leanMag;
+			modifier *= modifier * modifier * modifier * modifier * modifier;
+			modifiedPower *= modifier;
+		}
+		power = modifiedPower;
+	}
+	
+	void applySpeedModifiers(){
+		Vector3 vel = rb.velocity;
+		float vz = vel.z;
+		float vy = vel.y;
+		if(vz < 0f){
+			vz = 0f;
+		}
+		if(vy > maxUpSpeed){
+			vy = maxUpSpeed;
+		}
+		vel.z = vz;
+		vel.y = vy;
+		rb.velocity = vel;
+	}
 	
 	// set layer weight values to corresponding variables
 	void updateLayerWeights(){
@@ -299,7 +308,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				13	triple extension
 			*/ // -----------------
 			
-		driveWeight = leanWeight * (1-(velocity.z/(attributes.TRANSITION_PIVOT_SPEED*.19f))) * (attributes.STRENGTH_BASE * 1.4f);
+		driveWeight = leanWeight * (1-((rb.velocity.z)/(attributes.TRANSITION_PIVOT_SPEED*.19f))) * (attributes.STRENGTH_BASE * 1.4f);
 		if(driveWeight > 1f){
 			driveWeight = 1f;
 		}

@@ -16,7 +16,7 @@ public class RacerFootV2 : MonoBehaviour
 	float swingTimeBonusModifier;
 	float zTiltMinAbs;
 	float zTiltMaxAbs;
-	float leanMagnitude;
+	public float leanMagnitude;
 	float energyModifier;
 	
 	public string side;
@@ -55,7 +55,6 @@ public class RacerFootV2 : MonoBehaviour
 		zTiltMinAbs = Mathf.Abs(attributes.ZTILT_MIN);
 		zTiltMaxAbs = Mathf.Abs(attributes.ZTILT_MAX);
 		
-		power = attributes.POWER_BASE;
 		strength = attributes.STRENGTH_BASE;
 		bounce = attributes.BOUNCE_BASE;
 		turnoverFactor = 150f * (2f-attributes.TURNOVER);
@@ -68,6 +67,7 @@ public class RacerFootV2 : MonoBehaviour
 			swingTimeBonus = 1f;
 		}
 		else if(animation.mode == 2){
+			power = animation.power;
 			leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
 			transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
 			zSpeed = rb.velocity.z;
@@ -143,20 +143,16 @@ public class RacerFootV2 : MonoBehaviour
 		if(animation.mode == 2){
 			if(collision.gameObject.tag == "Ground"){
 				strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * groundFrames;
-				/*
-				if(strengthBonus > 1f){
-					strengthBonus = 1f;
-				}
-				*/
 				// -----------------
 				forceHoriz = 350f * (1f-(zSpeed/(transitionPivotSpeed + 120f)));
 				if(forceHoriz > 200f){ forceHoriz = 200f; }
 				forceHoriz *= strengthBonus;
-				//forceHoriz *= swingTimeBonus;
 				StartCoroutine(applyForce(forceHoriz));
 				// -----------------
 				groundFrames = 0f;
 				groundContact = false;
+				
+				
 			}
 		}
 	}

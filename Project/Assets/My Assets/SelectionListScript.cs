@@ -8,7 +8,7 @@ public class SelectionListScript : MonoBehaviour
 	public GlobalController gc;
 	public GameObject selectionButtonPrefab;
 	public GameObject grid;
-	public List<string> buttonNames;
+	public List<string> buttonIDs;
 	
 	public bool canSelectMultiple;
 	
@@ -24,13 +24,13 @@ public class SelectionListScript : MonoBehaviour
 
     }
 	
-	public GameObject getButton(string racerName){
+	public GameObject getButton(string id){
 		GameObject b;
 		SelectionButtonScript s;
 		foreach(Transform child in grid.transform){
 			b = child.gameObject;
 			s = b.GetComponent<SelectionButtonScript>();
-			if(s.name == racerName){
+			if(s.id == id){
 				return b;
 			}
 		}
@@ -39,28 +39,28 @@ public class SelectionListScript : MonoBehaviour
 	
 	
 	
-	public GameObject addButton(string racerName){
+	public GameObject addButton(string id){
 		GameObject button = Instantiate(selectionButtonPrefab);
 		SelectionButtonScript buttonScript = button.GetComponent<SelectionButtonScript>();
 		buttonScript.init();
 		button.transform.SetParent(grid.transform, false);
 		buttonScript.list = this;
-		buttonScript.setFromRacer(racerName);
+		buttonScript.setFromRacer(id);
 		// -----------------
-		buttonNames.Add(racerName);
+		buttonIDs.Add(id.Split('_')[0]);
 		
 		return button;
 	}
 	
-	public void removeButton(string racerName){
+	public void removeButton(string id){
 		GameObject b;
 		SelectionButtonScript s;
 		foreach(Transform child in grid.transform){
 			b = child.gameObject;
 			s = b.GetComponent<SelectionButtonScript>();
-			if(s.name == racerName){
+			if(s.id == id){
 				Destroy(b);
-				buttonNames.Remove(racerName);
+				buttonIDs.Remove(id.Split('_')[0]);
 				break;
 			}	
 		}
@@ -82,11 +82,11 @@ public class SelectionListScript : MonoBehaviour
 		foreach(Transform child in grid.transform){
 			Destroy(child.gameObject);
 		}
-		buttonNames.Clear();
+		buttonIDs.Clear();
 	}
 	
 	public void init(bool canSelectMultiple){
-		buttonNames = new List<string>();
+		buttonIDs = new List<string>();
 		// -----------------
 		this.canSelectMultiple = canSelectMultiple;
 		// -----------------

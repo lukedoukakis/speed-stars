@@ -20565,7 +20565,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.44255075, g: 0.5822925, b: 0.8018868, a: 0}
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
@@ -27679,6 +27679,7 @@ GameObject:
   - component: {fileID: 1738763325}
   - component: {fileID: 1738763328}
   - component: {fileID: 1738763326}
+  - component: {fileID: 1738763329}
   m_Layer: 0
   m_Name: Global Controller
   m_TagString: Untagged
@@ -27732,7 +27733,7 @@ MonoBehaviour:
   countdowner: {fileID: 1738763325}
   countdownText: {fileID: 626691810}
   raceManager: {fileID: 1738763328}
-  racerPrefab: {fileID: 2136866845376905259, guid: 2425a9bb872ab4d40bf2605528694255,
+  racerPrefab: {fileID: 1930587311104446540, guid: 6230162842fa4ed44bc511b4f54f92b4,
     type: 3}
   player_backEnd: {fileID: 0}
   playerIndex: 0
@@ -27831,6 +27832,18 @@ MonoBehaviour:
   botCount: 0
   ghostCount: 0
   racersFinished: 0
+--- !u!114 &1738763329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738763322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac1702235e317c4a818117cec50dbcb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1742820180
 GameObject:
   m_ObjectHideFlags: 0

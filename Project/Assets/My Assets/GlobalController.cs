@@ -285,7 +285,27 @@ public class GlobalController : MonoBehaviour
 		+ ":" + pZ
 		+ ":" + r
 		+ ":" + l
+		+ ":" + att.topNumber
+		+ ":" + att.bottomsNumber
+		+ ":" + att.shoesNumber
+		+ ":" + att.dummyV
+		+ ":" + att.headX
+		+ ":" + att.headY
+		+ ":" + att.headZ
+		+ ":" + att.neckX
+		+ ":" + att.neckY
+		+ ":" + att.neckZ
+		+ ":" + att.torsoX
+		+ ":" + att.torsoY
+		+ ":" + att.torsoZ
+		+ ":" + att.armX
+		+ ":" + att.armY
+		+ ":" + att.armZ
+		+ ":" + att.legX
+		+ ":" + att.legY
+		+ ":" + att.legZ
 		);
+		//Debug.Log(att.headX);
 	}
 	
 	
@@ -304,12 +324,6 @@ public class GlobalController : MonoBehaviour
 			Debug.Log("racerInfo[" + i + "]: " + racerInfo[i]);
 		}
 		*/
-		string[] vY = racerInfo[17].Split(',');
-		string[] vZ = racerInfo[18].Split(',');
-		string[] pY = racerInfo[19].Split(',');
-		string[] pZ = racerInfo[20].Split(',');
-		string[] r = racerInfo[21].Split(',');
-		string[] l = racerInfo[22].Split(',');
 		// -----------------
 		att.id = racerInfo[0];
 		att.racerName = racerInfo[1];
@@ -328,9 +342,33 @@ public class GlobalController : MonoBehaviour
 		att.TURNOVER = float.Parse(racerInfo[14]);
 		att.TILT_SPEED = float.Parse(racerInfo[15]);
 		att.pathLength = int.Parse(racerInfo[16]);
+		string[] vY = racerInfo[17].Split(',');
+		string[] vZ = racerInfo[18].Split(',');
+		string[] pY = racerInfo[19].Split(',');
+		string[] pZ = racerInfo[20].Split(',');
+		string[] r = racerInfo[21].Split(',');
+		string[] l = racerInfo[22].Split(',');
+		att.topNumber = int.Parse(racerInfo[23]);
+		att.bottomsNumber = int.Parse(racerInfo[24]);
+		att.shoesNumber = int.Parse(racerInfo[25]);
+		att.dummyV = float.Parse(racerInfo[26]);
+		att.headX = float.Parse(racerInfo[27]);
+		att.headY = float.Parse(racerInfo[28]);
+		att.headZ = float.Parse(racerInfo[29]);
+		att.neckX = float.Parse(racerInfo[30]);
+		att.neckY = float.Parse(racerInfo[31]);
+		att.neckZ = float.Parse(racerInfo[32]);
+		att.torsoX = float.Parse(racerInfo[33]);
+		att.torsoY = float.Parse(racerInfo[34]);
+		att.torsoZ = float.Parse(racerInfo[35]);
+		att.armX = float.Parse(racerInfo[36]);
+		att.armY = float.Parse(racerInfo[37]);
+		att.armZ = float.Parse(racerInfo[38]);
+		att.legX = float.Parse(racerInfo[39]);
+		att.legY = float.Parse(racerInfo[40]);
+		att.legZ = float.Parse(racerInfo[41]);
 		// --
 		att.setPaths(att.pathLength + 500);
-		// --
 		for(int i = 0; i < att.pathLength; i++){
 			att.velPathY[i] = float.Parse(vY[i]);
 			att.velPathZ[i] = float.Parse(vZ[i]);
@@ -339,6 +377,10 @@ public class GlobalController : MonoBehaviour
 			att.rightInputPath[i] = int.Parse(r[i]);
 			att.leftInputPath[i] = int.Parse(l[i]);
 		}
+		// -----------------
+		att.setMaterials(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setStats(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		// -----------------
 		return racer;
 	}
@@ -354,7 +396,9 @@ public class GlobalController : MonoBehaviour
 		att.racerName = racerName;
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
-		att.randomizeStats();
+		att.setMaterials(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
 		bot.AddComponent<Bot_AI>();
 		
 		return bot;
@@ -480,7 +524,9 @@ public class GlobalController : MonoBehaviour
 				att.id = PlayerAttributes.generateID(name);
 				att.racerName = name;
 				att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
-				att.randomizeStats();
+				att.setMaterials(PlayerAttributes.ATTRIBUTES_RANDOM);
+				att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+				att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
 				att.finishTime = -1f;
 				att.personalBest = -1f;
 				// -----------------

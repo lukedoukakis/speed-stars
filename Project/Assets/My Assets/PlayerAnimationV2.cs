@@ -59,7 +59,7 @@ public class PlayerAnimationV2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		chestCollider = animator.GetBoneTransform(HumanBodyBones.UpperChest).gameObject.GetComponent<BoxCollider>();
+		//chestCollider = animator.GetBoneTransform(HumanBodyBones.UpperChest).gameObject.GetComponent<BoxCollider>();
 		pushLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
 		
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
@@ -172,6 +172,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				else{
 					if(upInSet){
 						mode = 2;
+						Debug.Log("false start");
 						StartCoroutine(raceManager.falseStart());
 					}
 				}
@@ -340,7 +341,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public IEnumerator launchAnimation(){
 		pushRotation = pushLeg.rotation;
-		for(int i = 0; i < 15; i++){
+		for(int i = 0; i < 12; i++){
 			yield return null;
 		}
 		launchFlag = false;
@@ -348,9 +349,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	void LateUpdate(){
 		if(launchFlag){
-			pushLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
 			pushLeg.rotation = pushRotation;
-			pushLeg.Rotate(Vector3.up * 3.25f * attributes.STRENGTH_BASE);
+			pushLeg.Rotate(Vector3.up * .5f * attributes.STRENGTH_BASE);
 			pushRotation = pushLeg.rotation;
 		}
 	}

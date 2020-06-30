@@ -163,20 +163,20 @@ public class Bot_AI : MonoBehaviour
 		rightInputPath = att.rightInputPath;
 		// -----------------
 		reaction = false;
-		reactionTime = Random.Range(.19f, .21f);
+		reactionTime = Random.Range(.17f, .21f);
 		randomRange = 0f + ((1f-difficulty) * 10f);
 		// -----------------
-		freeTicks = (int)((2625f * driveModifier) * (2f-cadenceModifier));
-		downTicks = (int)((1125f * (2f-driveModifier)) * (2f-cadenceModifier));
+		freeTicks = (int)((2625f * driveModifier) * (2f-cadenceModifier) * (2f-att.TURNOVER));
+		downTicks = (int)((1125f * (2f-driveModifier)) * (2f-cadenceModifier) * (2f-att.TURNOVER));
 		ticksPassedLeft = 0;
-		ticksPassedRight = downTicks / 2 + (int)(310f*(2f-cadenceModifier));
+		ticksPassedRight = downTicks / 2 + (int)(310f*(2f-cadenceModifier)*(2f-att.TURNOVER));
 		frequencyLeft = downTicks;
 		frequencyRight = freeTicks;
 		inputLeft = 1;
 		inputRight = 0;
 		tickRate = 100;
 		// -----------------
-		minLean = -20f - (1f - att.STRENGTH_BASE);
+		minLean = (-20f - (1f - att.STRENGTH_BASE)) * Random.Range(.95f, 1.05f);
 		maxLean = minLean + .25f;
 		fullUpright = false;
 		forward = false;

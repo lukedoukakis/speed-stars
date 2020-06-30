@@ -65,6 +65,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 292f8d36e885ca4419a34a0eb34fa685, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  id: 
   racerName: 
   personalBest: 0
   lane: 0
@@ -105,11 +106,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   root: {fileID: 2136866846265811629}
   rb: {fileID: 4110913352938438081}
-  chestCollider: {fileID: 0}
+  chestCollider: {fileID: 4411053598173383354}
   animator: {fileID: 2136866846256483637}
-  pushLeg: {fileID: 0}
+  pushLeg: {fileID: 2136866846265811595}
   pushRotation: {x: 0, y: 0, z: 0, w: 0}
-  spine: {fileID: 0}
   mode: 0
   transitionSpeed: 3
   globalController: {fileID: 0}
@@ -123,11 +123,11 @@ MonoBehaviour:
   leftInput: 0
   firstMove: 0
   frictionMagnitude: 1
+  power: 0
   maxUpSpeed: 1000
   leans: 1
   zTilt: 0
   quickness: 0
-  velocity: {x: 0, y: 0, z: 0}
   upInSet: 0
   setPositionWeight: 0
   leanWeight: 0
@@ -149,6 +149,7 @@ MonoBehaviour:
   bc: {fileID: 2136866846079661238}
   rb: {fileID: 4110913352938438081}
   animation: {fileID: 3685777461851186769}
+  leanMagnitude: 0
   side: right
   input: 0
   groundContact: 0
@@ -169,6 +170,7 @@ MonoBehaviour:
   bc: {fileID: 2136866847188074845}
   rb: {fileID: 4110913352938438081}
   animation: {fileID: 3685777461851186769}
+  leanMagnitude: 0
   side: left
   input: 0
   groundContact: 0
@@ -806,6 +808,12 @@ Animator:
 --- !u!1 &2136866846265851715 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100118, guid: 5917c0e93d180a842b61d1ebc62a195c,
+    type: 3}
+  m_PrefabInstance: {fileID: 2136866846265948245}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2136866846265811595 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400094, guid: 5917c0e93d180a842b61d1ebc62a195c,
     type: 3}
   m_PrefabInstance: {fileID: 2136866846265948245}
   m_PrefabAsset: {fileID: 0}

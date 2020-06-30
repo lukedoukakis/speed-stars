@@ -64,6 +64,42 @@ public class RaceManager : MonoBehaviour
 			raceTime += 1f * Time.deltaTime;
 		}
 		
+		GameObject bot;
+		for(int i = 0; i < botCount; i++){
+			/*
+			bot = bots[i];
+			PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
+			Color color = att.smr_top.material.color;
+			float alpha;
+			if(Mathf.Abs(bot.transform.position.z - focusRacer.transform.position.z) < 3f){
+				alpha = .3f;
+			}
+			else{
+				alpha = 1f;
+			}
+			color.a = alpha;
+			att.smr_top.material.color = color;
+			*/
+		}
+		
+		/*
+		PlayerAttributes att = focusRacer.GetComponent<PlayerAttributes>();
+		Color colorTop = att.smr_top.material.color;
+		Color colorBottoms = att.smr_bottoms.material.color;
+		Color colorShoes = att.smr_shoes.material.color;
+		Color colorDummy = att.smr_dummy.material.color;
+		float alpha;
+		alpha = .3f;
+		colorTop.a = alpha;
+		colorBottoms.a = alpha;
+		colorShoes.a = alpha;
+		colorDummy.a = alpha;
+		att.smr_top.material.color = colorTop;
+		att.smr_bottoms.material.color = colorBottoms;
+		att.smr_shoes.material.color = colorShoes;
+		att.smr_dummy.material.color = colorDummy;
+		*/
+		
 	}
 
     void FixedUpdate()
@@ -122,7 +158,7 @@ public class RaceManager : MonoBehaviour
 			racers_backEnd[i].SetActive(false);
 			racer = Instantiate(racers_backEnd[i]);
 			racer.tag = (racers_backEnd[i].tag).Split(' ')[0];
-			Debug.Log("raceManager: racer tag is: " + racer.tag);
+			//Debug.Log("raceManager: racer tag is: " + racer.tag);
 			racer.transform.SetParent(RacersFieldParent.transform);
 			racer.SetActive(true);
 			// --
@@ -131,7 +167,7 @@ public class RaceManager : MonoBehaviour
 			// --
 			att = racer.GetComponent<PlayerAttributes>();
 			att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
-			att.setAttributesFromOther(racers_backEnd[i]);
+			att.copyAttributesFromOther(racers_backEnd[i]);
 			att.isRacing = false;
 			// --
 			anim = racer.GetComponent<PlayerAnimationV2>();
@@ -156,6 +192,11 @@ public class RaceManager : MonoBehaviour
 				botCount++;
 			}
 			else if(racer.tag == "Ghost"){
+				/*
+				Color color = att.smr_top.material.color;
+				color.a = .3f;
+				att.smr_top.material.color = color;
+				*/
 				racer.GetComponent<PlayerAnimationV2>().setPositionAndVelocity(raceTick);
 				ghosts.Add(racer);
 				ghostCount++;

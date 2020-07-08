@@ -52,11 +52,9 @@ public class RacerFootV2 : MonoBehaviour
 		swingFrames = 0f;
 		groundFrames = 0f;
 		
-		zTiltMinAbs = Mathf.Abs(attributes.ZTILT_MIN);
-		zTiltMaxAbs = Mathf.Abs(attributes.ZTILT_MAX);
+		zTiltMinAbs = Mathf.Abs(-45f);
+		zTiltMaxAbs = Mathf.Abs(45f);
 		
-		strength = attributes.STRENGTH_BASE;
-		bounce = attributes.BOUNCE_BASE;
 		turnoverFactor = 150f * (2f-attributes.TURNOVER);
     }
 
@@ -105,10 +103,13 @@ public class RacerFootV2 : MonoBehaviour
 				// -----------------
 				strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * 4.0f;
 				bounceBonus = (1f - leanMagnitude) * (zSpeedOverTransitionPivotSpeed) * 3.0f;
-				if(strengthBonus < 1f){ strengthBonus = 1f; }
-				if(strengthBonus > 3f * strength){ strengthBonus = 3f * strength; }
-				if(bounceBonus < .75f){ bounceBonus = .75f; }
-				if(bounceBonus > 1.5f * (bounce*bounce)){ bounceBonus = 1.5f * (bounce*bounce); }
+				
+				if(strengthBonus > 1f){
+					if(strengthBonus > 3f){ strengthBonus = 3f; }
+				}else{ strengthBonus = 1f; }
+				if(bounceBonus > .75f){
+					if(bounceBonus > 1.5f){ bounceBonus = 1.5f; }
+				}else{ bounceBonus = .75f; }
 				// -----------------
 				forceDirHoriz = Vector3.forward;
 				forceDirVert = Vector3.up;
@@ -142,13 +143,6 @@ public class RacerFootV2 : MonoBehaviour
 	void OnCollisionExit(Collision collision){
 		if(animation.mode == 2){
 			if(collision.gameObject.tag == "Ground"){
-				strengthBonus = leanMagnitude * (1f - (zSpeedOverTransitionPivotSpeed)) * groundFrames;
-				// -----------------
-				forceHoriz = 350f * (1f-(zSpeed/(transitionPivotSpeed + 120f)));
-				if(forceHoriz > 200f){ forceHoriz = 200f; }
-				forceHoriz *= strengthBonus;
-				StartCoroutine(applyForce(forceHoriz));
-				// -----------------
 				groundFrames = 0f;
 				groundContact = false;
 				
@@ -158,7 +152,7 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	public IEnumerator applyForce(float forceMagnitude){
-		for(int i = 0; i < 2; i++){
+		for(int i = 0; i < 5; i++){
 			rb.AddForce(forceDirHoriz * forceMagnitude * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}

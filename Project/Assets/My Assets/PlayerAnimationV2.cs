@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class PlayerAnimationV2 : MonoBehaviour
 {
 	public Transform root;
@@ -9,6 +10,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public BoxCollider chestCollider;
 	public Animator animator;
 	
+	public Transform rightFoot;
+	public Transform leftFoot;
+	public Transform rightUpperArm;
+	public Transform leftUpperArm;
 	public Transform pushLeg;
 	public Quaternion pushRotation;
 	
@@ -38,10 +43,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 	bool launchFlag;
 	Vector3 friction;
 	public float frictionMagnitude;
+	float torsoAngle_ideal;
+	public float torsoAngle_neutral;
 	public float power;
 	float maxPower;
 	public float maxUpSpeed;
 	float topSpeed;
+	Vector3 velocityLastFrame;
 	
 	public bool leans;
 	public float zTilt;
@@ -59,14 +67,13 @@ public class PlayerAnimationV2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		//chestCollider = animator.GetBoneTransform(HumanBodyBones.UpperChest).gameObject.GetComponent<BoxCollider>();
-		pushLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
+	
 		
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
-		quickness = attributes.QUICKNESS_BASE;
-		maxPower = attributes.POWER_BASE;
-		topSpeed = 25 * attributes.BOUNCE_BASE;
-		leanThreshold = .825f * attributes.STRENGTH_BASE;
+		quickness = attributes.QUICKNESS;
+		maxPower = attributes.POWER;
+		leanThreshold = .825f * attributes.KNEE_DOMINANCE;
+		torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 40f);
 		
 		if(tag.StartsWith("Ghost")){
 			rightFootScript.enabled = false;
@@ -78,7 +85,7 @@ public class PlayerAnimationV2 : MonoBehaviour
     // Update is called once per frame
 	void Update()
 	{
-		
+		//Debug.Log(root.rotation.eulerAngles.x);
 		
 	}
 	
@@ -91,6 +98,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			setPositionMode();
 		}
 		else if(mode == 2){
+			//Debug.Log("RUNMODE");
 			runMode();
 		}
 		//-----------------------------------------------------------------------------------------------------------
@@ -115,27 +123,27 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 		
 		
-
+		velocityLastFrame = rb.velocity;
 	}	
 		
 	void runMode(){
 		// set quickness to increase with speed
-		quickness = attributes.QUICKNESS_BASE * (rb.velocity.z)*.25f;
+		quickness = attributes.QUICKNESS * (rb.velocity.z)*.25f;
 		//Debug.Log(quickness);
-		if(quickness > attributes.QUICKNESS_BASE){
-			if(quickness > attributes.QUICKNESS_BASE * 1.35f){
-				quickness = attributes.QUICKNESS_BASE * 1.35f;
+		if(quickness > attributes.QUICKNESS){
+			if(quickness > attributes.QUICKNESS * 1.35f){
+				quickness = attributes.QUICKNESS * 1.35f;
 			}
 		}
 		else{
-			quickness = attributes.QUICKNESS_BASE;
+			quickness = attributes.QUICKNESS;
 		}
 		animator.SetFloat("limbSpeed", quickness);
 		//-----------------------------------------------------------------------------------------------------------
 		if(setPositionWeight >= 0f){
-			setPositionWeight -= transitionSpeed * attributes.QUICKNESS_BASE * Time.deltaTime;
+			setPositionWeight -= transitionSpeed * attributes.QUICKNESS * Time.deltaTime;
 		}else{ setPositionWeight = 0f;}
-		runWeight += transitionSpeed * attributes.QUICKNESS_BASE * Time.deltaTime;
+		runWeight += transitionSpeed * attributes.QUICKNESS * Time.deltaTime;
 		if(runWeight > 1f){
 			runWeight = 1f;
 		}
@@ -152,6 +160,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public void readInput(int tick){
 		if(tag == "Player"){
+			//Debug.Log(torsoAngle_ideal);
 			rightInput = Input.GetKey(KeyCode.D);
 			leftInput = Input.GetKey(KeyCode.A);
 		}
@@ -179,6 +188,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 		}
 		else if(mode == 2){
+			if(rightInput || leftInput){
+				animator.SetBool("input", true);
+			}
+			else{
+				animator.SetBool("input", false);
+			}
+			
 			if(rightInput){
 				if(tag == "Player" || tag == "Bot"){
 					rightFootScript.input = true;
@@ -214,15 +230,15 @@ public class PlayerAnimationV2 : MonoBehaviour
 				foreach(bool input in inputs){
 					if(input){
 						pushing = true;
-						leanWeight += .58f * attributes.TILT_SPEED * Time.deltaTime;
-						root.Rotate(transform.TransformDirection(Vector3.right * 23f * attributes.TILT_SPEED * Time.deltaTime));
-						zTilt += 23f * attributes.TILT_SPEED * Time.deltaTime;
+						leanWeight += .58f * Time.deltaTime;
+						root.Rotate(transform.TransformDirection(Vector3.right * 23f * Time.deltaTime));
+						zTilt += 23f * Time.deltaTime;
 					}
 				}
 				if(!pushing){
-					leanWeight -= 1.2f * attributes.TILT_SPEED * Time.deltaTime;
-					root.Rotate(transform.TransformDirection(Vector3.left * 47f * attributes.TILT_SPEED * Time.deltaTime));
-					zTilt -= 47f * attributes.TILT_SPEED * Time.deltaTime;
+					leanWeight -= 1.2f * Time.deltaTime;
+					root.Rotate(transform.TransformDirection(Vector3.left * 47f * Time.deltaTime));
+					zTilt -= 47f * Time.deltaTime;
 				}
 			}
 			if(leanWeight > 0f){
@@ -233,13 +249,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 				leanWeight = 0f;	
 			}
 			
-			if(zTilt > attributes.ZTILT_MAX){
-				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt - attributes.ZTILT_MAX)));
-				zTilt = attributes.ZTILT_MAX;
+			if(zTilt > 45f){
+				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt - 45f)));
+				zTilt = 45f;
 			}
-			else if(zTilt < attributes.ZTILT_MIN){
-				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt - attributes.ZTILT_MIN)));
-				zTilt = attributes.ZTILT_MIN;
+			else if(zTilt < -45f){
+				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt + 45f)));
+				zTilt = -45f;
 			}
 		}
 	}
@@ -262,16 +278,41 @@ public class PlayerAnimationV2 : MonoBehaviour
 	}
 	
 	void applyPowerModifiers(){
+		
+		// reduce power if both feet on ground
 		float modifiedPower = maxPower;
 		if(rightFootScript.groundContact && leftFootScript.groundContact){
 			modifiedPower *= .2f;
 		}
+		
+		/*
+		// reduce power based on deviance from torsoAngle_ideal
+		float torsoAngle = root.rotation.eulerAngles.x;
+		if(torsoAngle < torsoAngle_ideal){
+			float modifier = torsoAngle / torsoAngle_ideal;
+			modifiedPower *= modifier;
+		}
+		*/
+		
 		float leanMag = rightFootScript.leanMagnitude;
 		if(leanMag > leanThreshold){
 			float modifier = leanThreshold/leanMag;
 			modifier *= modifier * modifier * modifier * modifier * modifier;
 			modifiedPower *= modifier;
 		}
+		
+		// reduce power if torso angle too low
+		/*
+		float f = 0;
+		if(root.rotation.eulerAngles.x > 350f){
+			f += root.rotation.eulerAngles.x - 350f;
+		}
+		else if(root.rotation.eulerAngles.x < 290f){
+			f += root.rotation.eulerAngles.x;
+		}
+		modifiedPower -= (modifiedPower*.025f) * f;
+		*/
+		
 		power = modifiedPower;
 	}
 	
@@ -285,6 +326,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 		if(vy > maxUpSpeed){
 			vy = maxUpSpeed;
 		}
+		if(vz > velocityLastFrame.z + .5f){
+			vz = velocityLastFrame.z + .5f;
+		}
+		
 		vel.z = vz;
 		vel.y = vy;
 		rb.velocity = vel;
@@ -309,7 +354,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				13	triple extension
 			*/ // -----------------
 			
-		driveWeight = leanWeight * (1-((rb.velocity.z)/(attributes.TRANSITION_PIVOT_SPEED*.19f))) * (attributes.STRENGTH_BASE * 1.4f);
+		driveWeight = leanWeight * (1-((rb.velocity.z)/(attributes.TRANSITION_PIVOT_SPEED*.1425f))) * (attributes.KNEE_DOMINANCE * 1.4f);
 		if(driveWeight > 1f){
 			driveWeight = 1f;
 		}
@@ -332,8 +377,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public IEnumerator launch(){
 		StartCoroutine(launchAnimation());
-		for(int i = 0; i < 2; i++){
-			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (6000f) * attributes.STRENGTH_BASE * Time.deltaTime, ForceMode.Force);
+		for(int i = 0; i < 8; i++){
+			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (1500f) * attributes.KNEE_DOMINANCE * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}
 		
@@ -350,7 +395,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	void LateUpdate(){
 		if(launchFlag){
 			pushLeg.rotation = pushRotation;
-			pushLeg.Rotate(Vector3.up * .5f * attributes.STRENGTH_BASE);
+			pushLeg.Rotate(Vector3.up * .5f * attributes.KNEE_DOMINANCE);
 			pushRotation = pushLeg.rotation;
 		}
 	}

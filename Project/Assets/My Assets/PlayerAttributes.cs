@@ -44,11 +44,20 @@ public class PlayerAttributes : MonoBehaviour
 	public Material[] topMaterials;
 	public Material[] bottomsMaterials;
 	public Material[] shoesMaterials;
-	public Material dummyMaterial;
+	public Material[] dummyMaterials;
 	public int topNumber;
 	public int bottomsNumber;
 	public int shoesNumber;
 	public float dummyV;
+	public float topR;
+	public float topG;
+	public float topB;
+	public float bottomsR;
+	public float bottomsG;
+	public float bottomsB;
+	public float shoesR;
+	public float shoesG;
+	public float shoesB;
 	// -----------------
 	
 	
@@ -84,19 +93,22 @@ public class PlayerAttributes : MonoBehaviour
 	
 	// -----------------
 	
-	// physics stats
-	public float POWER_BASE;											
-	public float TRANSITION_PIVOT_SPEED;			// base 20
-	public float QUICKNESS_BASE;					// base 1
-	public float STRENGTH_BASE;						// base 1
-	public float BOUNCE_BASE;						// base 1
-	public float ENDURANCE_BASE;
-	public float ZTILT_MIN;							// [-45,45]
-	public float ZTILT_MAX;							// [-45,45]
-	public float HORIZ_BONUS;						// [.45, .65]
+	// stats info
+	public float POWER;											
+	public float TRANSITION_PIVOT_SPEED;			
+	public float QUICKNESS;							// base 1
+	public float KNEE_DOMINANCE;					// base 1
 	public float TURNOVER;							// base 1
-	public float TILT_SPEED;						// base 1
+	
 	// -----------------
+	
+	// animation info
+	public Animator animator;
+	public RuntimeAnimatorController[] animatorControllers;
+	public int animatorNum;
+	
+	
+	
 	
 	// Start is called before the first frame update
     void Start()
@@ -129,26 +141,29 @@ public class PlayerAttributes : MonoBehaviour
 	
 	public void setMaterials(int setting){
 		float h,s,v;
-		Color.RGBToHSV(dummyMaterial.color, out h, out s, out v);
+		Color.RGBToHSV(dummyMaterials[0].color, out h, out s, out v);
 		// --
-		/*
-		for(int i = 0; i < topMaterials.Length; i++){
-			topMaterials[i] = Instantiate(topMaterials[i]);
-		}
-		*/
 		Material material;
 		int top = -1;
 		int bottoms = -1;
 		int shoes = -1;
+		Color topColor = Color.white;
+		Color bottomsColor = Color.white;
+		Color shoesColor = Color.white;
 		// -----------------
 		if(setting == ATTRIBUTES_FROM_THIS){
+			// get values for dummy and clothing materials/colors from self
 			v = this.dummyV;
-			// -----------------
 			top = this.topNumber;
 			bottoms = this.bottomsNumber;
 			shoes = this.shoesNumber;
+			topColor = new Color(this.topR, this.topG, this.topB);
+			bottomsColor = new Color(this.bottomsR, this.bottomsG, this.bottomsB);
+			shoesColor = new Color(this.shoesR, this.shoesG, this.shoesB);
 		}
 		else if(setting == ATTRIBUTES_RANDOM){
+			
+			// random skin color for dummy
 			v = Random.Range(0f, 1.2f);
 			if(v > .3f){
 				if(v > .9f){
@@ -158,34 +173,61 @@ public class PlayerAttributes : MonoBehaviour
 			else{
 				v = Random.Range(.2f, .4f);
 			}
-			// --
+			
+			// random materials for top, bottoms, shoes
 			top = Random.Range(0, topMaterials.Length);
 			bottoms = Random.Range(0, bottomsMaterials.Length);
 			shoes = Random.Range(0, shoesMaterials.Length);
+			
+			// random colors for top, bottoms, shoes
+			topColor = new Color(Random.Range(0f,1f),Random.Range(0f,1f),Random.Range(0f,1f));
+			int random;
+			random = Random.Range(0,3);
+			switch (random){
+				case 0 :
+					bottomsColor = topColor;
+					break;
+				case 1 :
+					bottomsColor = Color.black;
+					break;
+				case 2 :
+					bottomsColor = Color.white;
+					break;
+			}
+			random = Random.Range(0,3);
+			switch (random){
+				case 0 :
+					shoesColor = topColor;
+					break;
+				case 1 :
+					shoesColor = bottomsColor;
+					break;
+				case 2 :
+					shoesColor = Color.white;
+					break;
+			}
 		}
 		
 		// set skin material
-		smr_dummy.material.color = Color.HSVToRGB(h, s, v);
+		material = dummyMaterials[0];
+		material.color = Color.HSVToRGB(h, s, v);
+		dummyMaterials[0] = Instantiate(material);
+		smr_dummy.materials = dummyMaterials;
 		
-		// set clothing materials
+		// set clothing materials and colors
 		material = topMaterials[top];
-		material.color = new Color(Random.Range(0f,1f),Random.Range(0f,1f),Random.Range(0f,1f));
-		for(int i = 0; i < topMaterials.Length; i++){
-			topMaterials[i] = Instantiate(material);
-		}
+		material.color = topColor;
+		topMaterials[0] = Instantiate(material);
 		smr_top.materials = topMaterials;
 		// --
 		material = bottomsMaterials[bottoms];
-		material.color = smr_top.materials[0].color;
-		for(int i = 0; i < bottomsMaterials.Length; i++){
-			bottomsMaterials[i] = Instantiate(material);
-		}
+		material.color = bottomsColor;
+		bottomsMaterials[0] = Instantiate(material);
 		smr_bottoms.materials = bottomsMaterials;
 		// --
 		material = shoesMaterials[shoes];
-		for(int i = 0; i < shoesMaterials.Length; i++){
-			shoesMaterials[i] = Instantiate(material);
-		}
+		material.color = shoesColor;
+		shoesMaterials[0] = Instantiate(material);
 		smr_shoes.materials = shoesMaterials;
 		
 		// update attributes
@@ -193,9 +235,15 @@ public class PlayerAttributes : MonoBehaviour
 		this.topNumber = top;
 		this.bottomsNumber = bottoms;
 		this.shoesNumber = shoes;
-		
-	
-
+		this.topR = smr_top.material.color.r;
+		this.topG = smr_top.material.color.g;
+		this.topB = smr_top.material.color.b;
+		this.bottomsR = smr_bottoms.material.color.r;
+		this.bottomsG = smr_bottoms.material.color.g;
+		this.bottomsB = smr_bottoms.material.color.b;
+		this.shoesR = smr_shoes.material.color.r;
+		this.shoesG = smr_shoes.material.color.g;
+		this.shoesB = smr_shoes.material.color.b;
 	}
 	
 	// x: length
@@ -211,8 +259,6 @@ public class PlayerAttributes : MonoBehaviour
 			setLegProportions(legX, legY, legZ);
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-			
-			
 			float headScaleX = 1f;
 			float neckScaleX = 1f;
 			float torsoScaleX = 1f;
@@ -230,7 +276,7 @@ public class PlayerAttributes : MonoBehaviour
 			float legScaleZ = 1f;
 		
 			// randomize torso proportions
-			float torsoLength = Random.Range(.98f, 1.02f);
+			float torsoLength = Random.Range(.95f, 1.05f);
 			float torsoWidth = Random.Range(.8f, 1.2f) * torsoLength;
 			float torsoDepth = Random.Range(.95f, 1.05f) * torsoWidth;
 			setTorsoProportions(torsoLength, torsoWidth, torsoDepth);
@@ -259,8 +305,8 @@ public class PlayerAttributes : MonoBehaviour
 		
 			// randomize neck, arm and leg proportions
 			setNeckProportions(Random.Range(.5f, 1.5f), Random.Range(.7f, 1.8f)*torsoWidth, torsoDepth);
-			setArmProportions(Random.Range(.98f, 1.02f) * torsoLength, 1f, 1f);
-			setLegProportions(Random.Range(.99f, 1.01f) * upperArmRight.localScale.x, 1f, 1f);
+			setArmProportions(Random.Range(.985f, 1.015f) * torsoLength, 1f, 1f);
+			setLegProportions(Random.Range(1f, 1.02f) * torsoLength, 1f, 1f);
 			
 			// adjust head proportion for neck
 			headScaleX = 1f / neck.localScale.x;
@@ -335,13 +381,25 @@ public class PlayerAttributes : MonoBehaviour
 			// TODO
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-			// TODO
+			
+			
+			// modify stats from leg length
+			TURNOVER += (1f - thighRight.localScale.x) * .1f;
+			KNEE_DOMINANCE *= (2f - thighRight.localScale.x);
 		}	
 		
-		// modify stats from leg length
-		TURNOVER += (1f - thighRight.localScale.x) * .2f;
-		//STRENGTH_BASE += (1f - thighRight.localScale.x) * 5f;
-		//BOUNCE_BASE -= (1f - thighRight.localScale.x) * 5f;
+		
+	}
+	
+	public void setAnimatorController(int setting){
+		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
+			animator.runtimeAnimatorController = animatorControllers[animatorNum];
+		}
+		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
+			int random = Random.Range(0, animatorControllers.Length);
+			animator.runtimeAnimatorController = animatorControllers[random];
+			this.animatorNum = random;
+		}	
 	}
 	
 	public void copyAttributesFromOther(GameObject other){
@@ -352,17 +410,10 @@ public class PlayerAttributes : MonoBehaviour
 		personalBest = otherAttributes.personalBest;
 		resultString = otherAttributes.resultString;
 		// -----------------
-		POWER_BASE = otherAttributes.POWER_BASE;
+		POWER = otherAttributes.POWER;
 		TRANSITION_PIVOT_SPEED = otherAttributes.TRANSITION_PIVOT_SPEED;
-		QUICKNESS_BASE = otherAttributes.QUICKNESS_BASE;
-		STRENGTH_BASE = otherAttributes.STRENGTH_BASE;
-		BOUNCE_BASE = otherAttributes.BOUNCE_BASE;
-		ENDURANCE_BASE = otherAttributes.ENDURANCE_BASE;
-		ZTILT_MIN = otherAttributes.ZTILT_MIN;
-		ZTILT_MAX = otherAttributes.ZTILT_MAX;
-		HORIZ_BONUS = otherAttributes.HORIZ_BONUS;
+		KNEE_DOMINANCE = otherAttributes.KNEE_DOMINANCE;
 		TURNOVER = otherAttributes.TURNOVER;
-		TILT_SPEED = otherAttributes.TILT_SPEED;
 		// -----------------
 		pathLength = otherAttributes.pathLength;
 		velPathY = otherAttributes.velPathY;
@@ -376,6 +427,15 @@ public class PlayerAttributes : MonoBehaviour
 		bottomsNumber = otherAttributes.bottomsNumber;
 		shoesNumber = otherAttributes.shoesNumber;
 		dummyV = otherAttributes.dummyV;
+		topR = otherAttributes.topR;
+		topG = otherAttributes.topG;
+		topB = otherAttributes.topB;
+		bottomsR = otherAttributes.bottomsR;
+		bottomsG = otherAttributes.bottomsG;
+		bottomsB = otherAttributes.bottomsB;
+		shoesR = otherAttributes.shoesR;
+		shoesG = otherAttributes.shoesG;
+		shoesB = otherAttributes.shoesB;
 		// -----------------
 		headX = otherAttributes.headX;
 		headY = otherAttributes.headY;
@@ -392,6 +452,8 @@ public class PlayerAttributes : MonoBehaviour
 		legX = otherAttributes.legX;
 		legY = otherAttributes.legY;
 		legZ = otherAttributes.legZ;
+		// -----------------
+		animatorNum = otherAttributes.animatorNum;
 	}
 	
 

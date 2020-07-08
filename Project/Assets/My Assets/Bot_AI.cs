@@ -90,7 +90,7 @@ public class Bot_AI : MonoBehaviour
 	public void adjustStride(){
 		float zTilt = anim.zTilt;
 		zSpeed = anim.rb.velocity.z;
-		zSpeedOverTransitionPivotSpeed = (zSpeed / (transitionPivotSpeed-70f)) + .55f;
+		zSpeedOverTransitionPivotSpeed = (zSpeed / (transitionPivotSpeed-110f)) + .55f;
 		if(zSpeedOverTransitionPivotSpeed > 1f){
 			if(zSpeedOverTransitionPivotSpeed > 1.2f){
 				zSpeedOverTransitionPivotSpeed = 1.2f;
@@ -158,7 +158,7 @@ public class Bot_AI : MonoBehaviour
 		att = anim.attributes;
 		//att = gameObject.GetComponent<PlayerAttributes>();
 		// -----------------
-		att.QUICKNESS_BASE = quicknessModifier;
+		att.QUICKNESS = quicknessModifier;
 		leftInputPath = att.leftInputPath;
 		rightInputPath = att.rightInputPath;
 		// -----------------
@@ -167,7 +167,7 @@ public class Bot_AI : MonoBehaviour
 		randomRange = 0f + ((1f-difficulty) * 10f);
 		// -----------------
 		freeTicks = (int)((2625f * driveModifier) * (2f-cadenceModifier) * (2f-att.TURNOVER));
-		downTicks = (int)((1125f * (2f-driveModifier)) * (2f-cadenceModifier) * (2f-att.TURNOVER));
+		downTicks = (int)((1025f * (2f-driveModifier)) * (2f-cadenceModifier) * (2f-att.TURNOVER));
 		ticksPassedLeft = 0;
 		ticksPassedRight = downTicks / 2 + (int)(310f*(2f-cadenceModifier)*(2f-att.TURNOVER));
 		frequencyLeft = downTicks;
@@ -176,7 +176,7 @@ public class Bot_AI : MonoBehaviour
 		inputRight = 0;
 		tickRate = 100;
 		// -----------------
-		minLean = (-20f - (1f - att.STRENGTH_BASE)) * Random.Range(.95f, 1.05f);
+		minLean = (-15f - (1f - att.KNEE_DOMINANCE)) * Random.Range(.95f, 1.05f);
 		maxLean = minLean + .25f;
 		fullUpright = false;
 		forward = false;

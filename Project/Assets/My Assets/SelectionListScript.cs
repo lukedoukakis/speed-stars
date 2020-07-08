@@ -47,7 +47,7 @@ public class SelectionListScript : MonoBehaviour
 		buttonScript.list = this;
 		buttonScript.setFromRacer(id);
 		// -----------------
-		buttonIDs.Add(id.Split('_')[0]);
+		buttonIDs.Add(id);
 		
 		return button;
 	}
@@ -60,7 +60,7 @@ public class SelectionListScript : MonoBehaviour
 			s = b.GetComponent<SelectionButtonScript>();
 			if(s.id == id){
 				Destroy(b);
-				buttonIDs.Remove(id.Split('_')[0]);
+				buttonIDs.Remove(id);
 				break;
 			}	
 		}
@@ -85,17 +85,24 @@ public class SelectionListScript : MonoBehaviour
 		buttonIDs.Clear();
 	}
 	
-	public void init(bool canSelectMultiple){
+	public void init(bool loadFromMemory, bool canSelectMultiple){
 		buttonIDs = new List<string>();
 		// -----------------
 		this.canSelectMultiple = canSelectMultiple;
 		// -----------------
-		/*
-		string[] playerNames = PlayerPrefs.GetString("PLAYER NAMES").Split(':');
-		foreach(string p in playerNames){
-			
+		if(loadFromMemory){
+			string[] playerIDs = PlayerPrefs.GetString("PLAYER IDS").Split(':');
+			if(playerIDs.Length > 0){
+				foreach(string playerID in playerIDs){
+					if(playerID != ""){
+						//Debug.Log(playerID);
+						addButton(playerID);
+					}
+				}
+			}
 		}
-		*/
+		
+		
 	}
 	
 	

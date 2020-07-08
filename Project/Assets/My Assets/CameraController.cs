@@ -7,8 +7,9 @@ public class CameraController : MonoBehaviour
 	
 	public int mode;
 	public static int CAMERA_MODE_SIDESCROLL = 1;
-	public static int CAMERA_MODE_TV100M = 2;
-	public static int CAMERA_MODE_THIRDPERSON = 3;
+	public static int CAMERA_MODE_CINEMATIC = 2;
+	public static int CAMERA_MODE_TV = 3;
+	public static int CAMERA_MODE_THIRDPERSON = 4;
 	// -----------------
 	public GlobalController gc;
 	public GameObject referenceObject;
@@ -18,9 +19,12 @@ public class CameraController : MonoBehaviour
 	// -----------------
 	Vector3 referenceObjectPos;
 	Vector3 referenceObjectVelocity;
+	bool referenceObjectFinished;
 	// -----------------
-	Vector3 cameraStartPos_100m;
-	Vector3 cameraFinishPos_100m;
+	Vector3 cameraStartPos_cinematic;
+	Vector3 cameraFinishPos_cinematic;
+	Vector3 cameraStartPos_tv;
+	Vector3 cameraFinishPos_tv;
 	Vector3 startLinePos_100m;
 	Vector3 finishLinePos;
 	
@@ -29,8 +33,11 @@ public class CameraController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		cameraStartPos_100m = new Vector3(14.9f, 3.2f, -65f);
-		cameraFinishPos_100m = new Vector3(14.9f, 1.6f, 130.5f);
+		cameraStartPos_cinematic = new Vector3(10.5f, 2.1f, -70f);
+		cameraFinishPos_cinematic = new Vector3(10.5f, 1.6f, 128f);
+		cameraStartPos_tv = new Vector3(12f, 4f, -70f);
+		cameraFinishPos_tv = new Vector3(12f, 4f, 128f);
+		
 		startLinePos_100m = startLine_100m.transform.position;
 		finishLinePos = finishLine.transform.position;
     }
@@ -44,8 +51,11 @@ public class CameraController : MonoBehaviour
 		if(mode == CAMERA_MODE_SIDESCROLL){
 			lockOn();
 		}
-		else if(mode == CAMERA_MODE_TV100M){
-			tv_100m();
+		else if(mode == CAMERA_MODE_CINEMATIC){
+			cinematic();
+		}
+		else if(mode == CAMERA_MODE_TV){
+			tv();
 		}
 		else if(mode == CAMERA_MODE_THIRDPERSON){
 			thirdPerson();
@@ -54,20 +64,47 @@ public class CameraController : MonoBehaviour
     }
 	
 	void lockOn(){
-		transform.position = Vector3.Lerp(transform.position, referenceObjectPos + new Vector3(cameraDistance + referenceObjectVelocity.z*.15f, 1.25f, cameraDistance*.2f), .2f);
+		transform.position = Vector3.Lerp(transform.position, referenceObjectPos + new Vector3(cameraDistance + referenceObjectVelocity.z*.15f, 1.25f, cameraDistance*.2f), .15f);
+		//transform.position = Vector3.Lerp(transform.position, referenceObjectPos + new Vector3(cameraDistance, 1.25f, cameraDistance*.2f), .2f);
 		transform.rotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
 	}
+
+	void cinematic(){
+		float pathProgress = (referenceObjectPos.z - startLinePos_100m.z) / ((finishLinePos.z - startLinePos_100m.z) + 0f);
+		float x,y,z;
+		// -----------------
+		x = cameraStartPos_cinematic.x + (referenceObjectPos.x*.2f) + ((cameraFinishPos_cinematic.x - cameraStartPos_cinematic.x) * pathProgress);
+		y = cameraStartPos_cinematic.y + ((cameraFinishPos_cinematic.y - cameraStartPos_cinematic.y) * pathProgress);
+		z = cameraStartPos_cinematic.z + ((cameraFinishPos_cinematic.z - cameraStartPos_cinematic.z) * pathProgress);
+		transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .12f);
+		// -----------------
+		
+		Quaternion targetRot = Quaternion.LookRotation((referenceObject.transform.position - transform.position) + (Vector3.forward*1f));
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, .012f);
+		
+		referenceObjectFinished = pathProgress >= 1f;
+		if(referenceObjectFinished){
+			referenceObject = finishLine;
+		}
+	}
 	
-	void tv_100m(){
-		float pathProgress = (referenceObjectPos.z - startLinePos_100m.z) / (finishLinePos.z - startLinePos_100m.z);
+	void tv(){
+		float pathProgress = (referenceObjectPos.z - startLinePos_100m.z) / ((finishLinePos.z - startLinePos_100m.z) + 0f);
+		float x,y,z;
 		// -----------------
-		float x = cameraStartPos_100m.x + ((cameraFinishPos_100m.x - cameraStartPos_100m.x) * pathProgress);
-		float y = cameraStartPos_100m.y + ((cameraFinishPos_100m.y - cameraStartPos_100m.y) * pathProgress);
-		float z = cameraStartPos_100m.z + ((cameraFinishPos_100m.z - cameraStartPos_100m.z) * pathProgress);
-		transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .08f);
+		x = cameraStartPos_tv.x + (referenceObjectPos.x*.2f) + ((cameraFinishPos_cinematic.x - cameraStartPos_cinematic.x) * pathProgress);
+		y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
+		z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
+		transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);
 		// -----------------
-		Vector3 lookAtPos = new Vector3(referenceObjectPos.x, finishLinePos.y + 1.5f, referenceObjectPos.z);
-		transform.LookAt(lookAtPos);
+		
+		Quaternion targetRot = Quaternion.LookRotation((referenceObject.transform.position - transform.position) + (Vector3.forward*1f));
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, .012f);
+		
+		referenceObjectFinished = pathProgress >= 1f;
+		if(referenceObjectFinished){
+			referenceObject = finishLine;
+		}
 	}
 	
 	void thirdPerson(){

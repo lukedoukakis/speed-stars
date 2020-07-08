@@ -13,6 +13,9 @@ public class RaceManager : MonoBehaviour
 	public Countdowner countdowner;
 	public Text resultsText;
 	// -----------------
+	public GameObject startingBlockPrefab;
+	public List<GameObject> startingBlocks;
+	// -----------------
 	public int raceMode;
 	public int raceStatus;
 		public static int STATUS_MARKS = 1;
@@ -47,6 +50,9 @@ public class RaceManager : MonoBehaviour
 	// -----------------
 	float botDifficulty;
 	// -----------------
+	public float transparency_ghost_base;
+	public float transparency_ghost_min;
+	// -----------------
 	PlayerAttributes att;
 	PlayerAnimationV2 anim;
 	Rigidbody rb;
@@ -58,47 +64,33 @@ public class RaceManager : MonoBehaviour
         
     }
 	
+	
 	void Update(){
 		
 		if(raceStatus == STATUS_GO){
 			raceTime += 1f * Time.deltaTime;
 		}
 		
-		GameObject bot;
-		for(int i = 0; i < botCount; i++){
-			/*
-			bot = bots[i];
-			PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
-			Color color = att.smr_top.material.color;
-			float alpha;
-			if(Mathf.Abs(bot.transform.position.z - focusRacer.transform.position.z) < 3f){
-				alpha = .3f;
+		if(raceTick % 5 == 0){
+			GameObject racer;
+			Vector3 racerPos;
+			if(raceMode == RaceManager.LIVE_MODE){
+				for(int i = 0; i < ghostCount; i++){
+					racer = ghosts[i];
+					racerPos = racer.transform.position;
+					if(racerPos.x > focusRacer.transform.position.x){
+						float a;
+						float zDistance = Mathf.Abs((racerPos.z-.4f) - focusRacer.transform.position.z);
+						if(zDistance < .4f){
+							a = transparency_ghost_base *  (zDistance/.4f);
+							if(a < transparency_ghost_min){ a = transparency_ghost_min; }
+							setTransparency(racer, a);
+						}
+					}
+				}
 			}
-			else{
-				alpha = 1f;
-			}
-			color.a = alpha;
-			att.smr_top.material.color = color;
-			*/
-		}
+		}	
 		
-		/*
-		PlayerAttributes att = focusRacer.GetComponent<PlayerAttributes>();
-		Color colorTop = att.smr_top.material.color;
-		Color colorBottoms = att.smr_bottoms.material.color;
-		Color colorShoes = att.smr_shoes.material.color;
-		Color colorDummy = att.smr_dummy.material.color;
-		float alpha;
-		alpha = .3f;
-		colorTop.a = alpha;
-		colorBottoms.a = alpha;
-		colorShoes.a = alpha;
-		colorDummy.a = alpha;
-		att.smr_top.material.color = colorTop;
-		att.smr_bottoms.material.color = colorBottoms;
-		att.smr_shoes.material.color = colorShoes;
-		att.smr_dummy.material.color = colorDummy;
-		*/
 		
 	}
 
@@ -140,7 +132,9 @@ public class RaceManager : MonoBehaviour
 		racersFinished = 0;
 		// -----------------
 		GameObject racer;
+
 		if(raceMode == LIVE_MODE){
+			// calculate bot difficulty and set player
 			for(int i = 0; i < racers_backEnd.Count; i++){
 				racer = racers_backEnd[i];
 				if(racer.tag == "Player (Back End)"){
@@ -153,7 +147,7 @@ public class RaceManager : MonoBehaviour
 		else if(raceMode == REPLAY_MODE){
 			
 		}
-		// -----------------
+		// -- set up racers field
 		for(int i = 0; i < racers_backEnd.Count; i++){
 			racers_backEnd[i].SetActive(false);
 			racer = Instantiate(racers_backEnd[i]);
@@ -192,15 +186,14 @@ public class RaceManager : MonoBehaviour
 				botCount++;
 			}
 			else if(racer.tag == "Ghost"){
-				/*
-				Color color = att.smr_top.material.color;
-				color.a = .3f;
-				att.smr_top.material.color = color;
-				*/
+				if(raceMode == LIVE_MODE){
+					setTransparency(racer, transparency_ghost_base);
+				}
 				racer.GetComponent<PlayerAnimationV2>().setPositionAndVelocity(raceTick);
 				ghosts.Add(racer);
 				ghostCount++;
 			}
+				
 			racers.Add(racer);
 		}
 		// -----------------
@@ -242,6 +235,7 @@ public class RaceManager : MonoBehaviour
 	void assignLanes(List<GameObject> racers){
 		if(raceMode == LIVE_MODE){
 			PlayerAttributes att;
+			PlayerAnimationV2 anim;
 			for(int i = 0; i < racers.Count; i++){
 				att = racers[i].GetComponent<PlayerAttributes>();
 				if(att.personalBest == -1f){
@@ -253,12 +247,19 @@ public class RaceManager : MonoBehaviour
 			GameObject racer;
 			for(int i = 0; i < racers.Count; i++){
 				racer = racers[i];
-				att = racers[i].GetComponent<PlayerAttributes>();
-				att.lane = lanes[i];
-				racer.transform.position = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
+				att = racer.GetComponent<PlayerAttributes>();
+				anim = racer.GetComponent<PlayerAnimationV2>();
 				if(att.personalBest == float.MaxValue){
 					att.personalBest = -1f;
 				}
+				att.lane = lanes[i];
+				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
+				racer.transform.position = racerPos;
+				
+				Vector3 blockPos = racerPos + new Vector3(0f,-.8f,-.8f);
+				Vector3 rightPedalPos = anim.rightFoot.transform.position;
+				Vector3 leftPedalPos = anim.leftFoot.transform.position;
+				placeStartingBlock(blockPos, rightPedalPos, leftPedalPos);
 			}
 		}
 		else if(raceMode == REPLAY_MODE){
@@ -266,9 +267,33 @@ public class RaceManager : MonoBehaviour
 			for(int i = 0; i < racers.Count; i++){
 				racer = racers[i];
 				racer.GetComponent<PlayerAttributes>().lane = racers_backEnd[i].GetComponent<PlayerAttributes>().lane;
-				racer.transform.position = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
+				
+				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
+				racer.transform.position = racerPos;
+				
+				Vector3 blockPos = racerPos + new Vector3(0f,-.8f,-.8f);
+				Vector3 rightPedalPos = anim.rightFoot.transform.position;
+				Vector3 leftPedalPos = anim.leftFoot.transform.position;
+				placeStartingBlock(blockPos, rightPedalPos, leftPedalPos);
 			}
 		}
+	}
+	
+	void placeStartingBlock(Vector3 blockPos, Vector3 rightFootPos, Vector3 leftFootPos){
+		GameObject startingBlock = Instantiate(startingBlockPrefab);
+		startingBlock.transform.position = blockPos;
+		GameObject rightPedal = startingBlock.transform.Find("Block Pedal Right").gameObject;
+		GameObject leftPedal = startingBlock.transform.Find("Block Pedal Left").gameObject;
+		
+		//rightPedal.transform.position = rightPedalPos;
+		//leftPedal.transform.position = leftPedalPos;
+		
+		rightPedal.transform.position += Vector3.back * .09f;
+		leftPedal.transform.position += Vector3.forward * .213f;
+				
+					
+		startingBlocks.Add(startingBlock);
+		
 	}
 	
 	public void setOffRacers(){
@@ -386,6 +411,39 @@ public class RaceManager : MonoBehaviour
 			else if(mode == STATUS_GO){
 				racer.GetComponent<PlayerAttributes>().isRacing = true;
 			}	
+		}
+	}
+	
+	void setTransparency(GameObject racer, float alpha){
+		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
+		SkinnedMeshRenderer[] renderers = new SkinnedMeshRenderer[]{att.smr_top, att.smr_bottoms, att.smr_shoes, att.smr_dummy};
+		Material[] newMaterials;
+		// -----------------
+		Material newMaterial;
+		Color color;
+		SkinnedMeshRenderer renderer;
+		for(int i = 0; i < renderers.Length; i++){
+			renderer = renderers[i];
+			newMaterial = Instantiate(renderer.materials[0]);
+			if(newMaterial.GetFloat("_Mode") != 2){
+				newMaterial.SetFloat("_Mode", 2);
+				newMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+				newMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+				newMaterial.SetInt("_ZWrite", 0);
+				newMaterial.DisableKeyword("_ALPHATEST_ON");
+				newMaterial.EnableKeyword("_ALPHABLEND_ON");
+				newMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+				newMaterial.renderQueue = 3000;
+			}
+			color = newMaterial.color;
+			color.a = alpha;
+			newMaterial.color = color;
+			// -----------------
+			newMaterials = new Material[renderer.materials.Length];
+			newMaterials[0] = Instantiate(newMaterial);
+			Material oldMaterial = renderer.materials[0];
+			renderer.materials = newMaterials;
+			Destroy(oldMaterial);
 		}
 	}
 	

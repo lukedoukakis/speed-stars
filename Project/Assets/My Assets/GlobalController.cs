@@ -8,6 +8,10 @@ using UnityEngine.UI;
 public class GlobalController : MonoBehaviour
 {
 	
+	public static string PLAYABLE_RACER_MEMORY = "PLAYABLE RACER IDS";
+	public static string SAVED_RACER_MEMORY = "SAVED RACER IDS";
+	
+	
 	public CameraController gameCamera;
 	
 	// UI
@@ -23,7 +27,8 @@ public class GlobalController : MonoBehaviour
 	public ButtonHandler buttonHandler;
 	public SelectionListScript ghostSelectButtonList;
 	public SelectionListScript playerSelectButtonList;
-	public List<string> savedPlayerIDs;
+	public List<string> playableRacerIDs;
+	public List<string> savedRacerIDs;
 	
 	// countdown
 	public TaskManager taskManager;
@@ -57,10 +62,11 @@ public class GlobalController : MonoBehaviour
 		racers = new List<GameObject>();
 		// -----------------
 		
-		playerSelectButtonList.init(true, false);
-		savedPlayerIDs = PlayerPrefs.GetString("PLAYER IDS").Split(':').ToList();
+		playerSelectButtonList.init(PLAYABLE_RACER_MEMORY, 1, true);
+		playableRacerIDs = PlayerPrefs.GetString("PLAYABLE RACER IDS").Split(':').ToList();
 		
-		ghostSelectButtonList.init(true, true);
+		ghostSelectButtonList.init(SAVED_RACER_MEMORY, 7, false);
+		savedRacerIDs = PlayerPrefs.GetString("SAVED RACER IDS").Split(':').ToList();
 		// -----------------
 
 		// -----------------
@@ -194,7 +200,7 @@ public class GlobalController : MonoBehaviour
 	}
 	public void startRace(int mode){
 		if(mode == RaceManager.LIVE_MODE){
-			fillRemainingSpotsWithBots();
+			//fillRemainingSpotsWithBots();
 		}
 		else if(mode == RaceManager.REPLAY_MODE){
 			
@@ -238,23 +244,60 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void forgetRacer(string id, bool forReplay){
+	public void forgetRacer(string id, string[] sourceMemoryLocations, bool forReplay){
+		
+		// remove from memory
 		if(forReplay){
 			id += "_REPLAY";
+			PlayerPrefs.DeleteKey(id);
 		}
-		PlayerPrefs.DeleteKey(id);
+		
+		// remove from remembered IDs list
+		string MEM_LOC = "";
+		for(int i = 0; i < sourceMemoryLocations.Length; i++){
+			MEM_LOC = sourceMemoryLocations[i];
+			if(MEM_LOC == PLAYABLE_RACER_MEMORY){
+				playableRacerIDs.Remove(id);
+				string s = PlayerPrefs.GetString(PLAYABLE_RACER_MEMORY).Replace(id + ":", "");
+				PlayerPrefs.SetString(PLAYABLE_RACER_MEMORY, s);
+				if(!PlayerPrefs.GetString(SAVED_RACER_MEMORY).Contains(id)){
+					PlayerPrefs.DeleteKey(id);
+				}
+			}
+			else if(MEM_LOC == SAVED_RACER_MEMORY){
+				savedRacerIDs.Remove(id);
+				string s = PlayerPrefs.GetString(SAVED_RACER_MEMORY).Replace(id + ":", "");
+				PlayerPrefs.SetString(SAVED_RACER_MEMORY, s);
+				if(!PlayerPrefs.GetString(PLAYABLE_RACER_MEMORY).Contains(id)){
+					PlayerPrefs.DeleteKey(id);
+				}
+			}
+		}
 	}
 	
-	public void saveRacer(GameObject racer, bool forReplay){
+	public void saveRacer(GameObject racer, string[] targetMemoryLocations, bool forReplay){
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		string id = att.id;
 		if(forReplay){
 			id += "_REPLAY";
 		}
 		else{
-			if(Array.IndexOf(savedPlayerIDs.ToArray(), id) == -1f){
-				PlayerPrefs.SetString("PLAYER IDS", PlayerPrefs.GetString("PLAYER IDS") + id + ":");
-				savedPlayerIDs.Add(id);
+			string MEM_LOC = "";
+			for(int i = 0; i < targetMemoryLocations.Length; i++){
+				MEM_LOC = targetMemoryLocations[i];
+				// -----------------
+				if(MEM_LOC == PLAYABLE_RACER_MEMORY){
+					if(Array.IndexOf(playableRacerIDs.ToArray(), id) == -1f){
+						PlayerPrefs.SetString(PLAYABLE_RACER_MEMORY, PlayerPrefs.GetString(PLAYABLE_RACER_MEMORY) + id + ":");
+						playableRacerIDs.Add(id);
+					}
+				}
+				else if(MEM_LOC == SAVED_RACER_MEMORY){
+					if(Array.IndexOf(savedRacerIDs.ToArray(), id) == -1f){
+						PlayerPrefs.SetString(SAVED_RACER_MEMORY, PlayerPrefs.GetString(SAVED_RACER_MEMORY) + id + ":");
+						savedRacerIDs.Add(id);
+					}
+				}
 			}
 		}
 		// -----------------
@@ -453,7 +496,7 @@ public class GlobalController : MonoBehaviour
 				GameObject b;
 				// -----------------
 				playerSelectButtonList.removeButton(id);
-				saveRacer(raceManager.player, false);
+				saveRacer(raceManager.player, new string[]{PLAYABLE_RACER_MEMORY, SAVED_RACER_MEMORY}, false);
 				b = playerSelectButtonList.addButton(id);
 				b.GetComponent<SelectionButtonScript>().toggle();
 				// -----------------
@@ -476,7 +519,7 @@ public class GlobalController : MonoBehaviour
 					racerIndex = checkedRacerIndexes[j];
 					racer = racers[racerIndex];
 					att = racer.GetComponent<PlayerAttributes>();
-					saveRacer(racer, false);
+					saveRacer(racer, new string[]{SAVED_RACER_MEMORY}, false);
 					ghostSelectButtonList.addButton(att.id);
 				}	
 			}
@@ -527,13 +570,13 @@ public class GlobalController : MonoBehaviour
 				for(int j = 0; j < numOfRacers; j++){
 					racer = racers[j];
 					id = racer.GetComponent<PlayerAttributes>().id;
-					saveRacer(racer, true);
+					saveRacer(racer, new string[]{PLAYABLE_RACER_MEMORY}, true);
 					racer_replay = loadRacer(id, "Ghost (Back End)", true);
 					racer_replay.SetActive(false);
 					racer_replay.transform.SetParent(raceManager.RacersBackEndParent.transform);
 					racer_replay.GetComponent<PlayerAttributes>().lane = racers[j].GetComponent<PlayerAttributes>().lane;
 					racers_backEnd_replay.Add(racer_replay);
-					forgetRacer(id, true);
+					forgetRacer(id, new string[]{PLAYABLE_RACER_MEMORY}, true);
 					if(racer.tag == "Player"){
 						playerIndex = j;
 					}
@@ -557,7 +600,7 @@ public class GlobalController : MonoBehaviour
 				att.finishTime = -1f;
 				att.personalBest = -1f;
 				// -----------------
-				saveRacer(newRacer, false);
+				saveRacer(newRacer, new string[]{PLAYABLE_RACER_MEMORY}, false);
 				Destroy(newRacer);
 				// -----------------
 				GameObject b = playerSelectButtonList.GetComponent<SelectionListScript>().addButton(att.id);

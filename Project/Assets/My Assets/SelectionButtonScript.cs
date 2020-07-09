@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class SelectionButtonScript : MonoBehaviour
 {
-	
 	public SelectionListScript list;
 
 	public bool selected;
@@ -41,30 +41,48 @@ public class SelectionButtonScript : MonoBehaviour
 		}	
 	}
 	
-	public void toggle(){
-		if(!(list.canSelectMultiple)){
-			list.toggleAllOff();
+	public void removeThisButtonAndForgetAssociatedRacer(){
+		if(selected){
+			list.numSelected--;
+			list.selectedButtonIDs.Remove(id);
 		}
+		list.gc.forgetRacer(id, new string[]{list.sourceMemory}, false);
+		list.removeButton(id);
+		
+	}
+	
+	
+	public void toggle(){
 		selected = !selected;
 		if(selected){
-			setColor(selectedColorCode);
+			if(list.numSelected < list.maxSelectable){
+				setColor(selectedColorCode);
+				list.numSelected++;
+				list.selectedButtonIDs.Add(id);
+			}
+			else{
+				// max selectable message
+				if(list.replaceLastSelection){
+					list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().toggle();
+					setColor(selectedColorCode);
+					list.numSelected++;
+					list.selectedButtonIDs.Add(id);
+				}
+				else{
+					selected = false;
+				}
+			}
 		}
 		else{
 			setColor(unselectedColorCode);
+			list.numSelected--;
+			list.selectedButtonIDs.Remove(id);
 		}
 	}
 	
 	public void toggle(bool setting){
-		if(!(list.canSelectMultiple)){
-			list.toggleAllOff();
-		}
-		selected = setting;
-		if(selected){
-			setColor(selectedColorCode);
-		}
-		else{
-			setColor(unselectedColorCode);
-		}
+		selected = !setting;
+		toggle();
 	}
 	
 	
@@ -73,6 +91,7 @@ public class SelectionButtonScript : MonoBehaviour
 		Color color;
 		if(ColorUtility.TryParseHtmlString(colorCode, out color)){
 			GetComponent<Image>().color = color;
+			transform.Find("Delete Button").gameObject.GetComponent<Image>().color = color;
 		}
 	}
 	

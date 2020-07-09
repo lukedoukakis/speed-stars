@@ -395,7 +395,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	void LateUpdate(){
 		if(launchFlag){
 			pushLeg.rotation = pushRotation;
-			pushLeg.Rotate(Vector3.up * .5f * attributes.KNEE_DOMINANCE);
+			pushLeg.Rotate(Vector3.up * 60f * attributes.KNEE_DOMINANCE * Time.deltaTime);
 			pushRotation = pushLeg.rotation;
 		}
 	}

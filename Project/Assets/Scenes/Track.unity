@@ -1625,7 +1625,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 167193240}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 117.4615}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 611766210}
@@ -5462,6 +5462,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 908741073}
     m_Modifications:
+    - target: {fileID: 5418564640266762370, guid: 483d1d46b8390054885ad3ad3cc07383,
+        type: 3}
+      propertyPath: gc
+      value: 
+      objectReference: {fileID: 1738763324}
     - target: {fileID: 6448565068452312420, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -15508,6 +15513,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 908741073}
     m_Modifications:
+    - target: {fileID: 5418564640266762370, guid: 483d1d46b8390054885ad3ad3cc07383,
+        type: 3}
+      propertyPath: gc
+      value: 
+      objectReference: {fileID: 1738763324}
     - target: {fileID: 6448565068452312420, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -27628,7 +27638,8 @@ MonoBehaviour:
   buttonHandler: {fileID: 1738763326}
   ghostSelectButtonList: {fileID: 2000598471}
   playerSelectButtonList: {fileID: 488570624}
-  savedPlayerIDs: []
+  playableRacerIDs: []
+  savedRacerIDs: []
   taskManager: {fileID: 1738763327}
   countdowner: {fileID: 1738763325}
   countdownText: {fileID: 626691810}

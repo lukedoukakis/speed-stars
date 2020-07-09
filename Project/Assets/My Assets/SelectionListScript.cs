@@ -9,13 +9,21 @@ public class SelectionListScript : MonoBehaviour
 	public GameObject selectionButtonPrefab;
 	public GameObject grid;
 	public List<string> buttonIDs;
+	public List<string> selectedButtonIDs;
 	
-	public bool canSelectMultiple;
+	public int maxSelectable;
+	public int numSelected;
+	
+	public bool replaceLastSelection;	// if true, last selection will be replaced with new if maxSelectable has been reached
+	
+	public string sourceMemory;
+	
 	
 	
     // Start is called before the first frame update
     void Start()
     {
+		numSelected = 0;
     }
 
     // Update is called once per frame
@@ -71,8 +79,7 @@ public class SelectionListScript : MonoBehaviour
 		foreach(Transform child in grid.transform){
 			s = child.gameObject.GetComponent<SelectionButtonScript>();
 			if(s.selected){
-				s.selected = false;
-				s.setColor(s.unselectedColorCode);
+				s.toggle(false);
 			}
 		}
 	}
@@ -85,24 +92,23 @@ public class SelectionListScript : MonoBehaviour
 		buttonIDs.Clear();
 	}
 	
-	public void init(bool loadFromMemory, bool canSelectMultiple){
+	public void init(string sourceMemory, int maxSelectable, bool replaceLastSelection){
 		buttonIDs = new List<string>();
 		// -----------------
-		this.canSelectMultiple = canSelectMultiple;
+		this.maxSelectable = maxSelectable;
+		this.replaceLastSelection = replaceLastSelection;
+		this.sourceMemory = sourceMemory;
 		// -----------------
-		if(loadFromMemory){
-			string[] playerIDs = PlayerPrefs.GetString("PLAYER IDS").Split(':');
-			if(playerIDs.Length > 0){
-				foreach(string playerID in playerIDs){
-					if(playerID != ""){
-						//Debug.Log(playerID);
-						addButton(playerID);
-					}
+		
+		string[] playerIDs = PlayerPrefs.GetString(sourceMemory).Split(':');
+		if(playerIDs.Length > 0){
+			foreach(string playerID in playerIDs){
+				if(playerID != ""){
+					//Debug.Log(sourceMemory + ": " + playerID);
+					addButton(playerID);
 				}
 			}
 		}
-		
-		
 	}
 	
 	

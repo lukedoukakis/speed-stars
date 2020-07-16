@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: bcae6c856fc16f34bb027daa2d7d2582
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - dummy: {fileID: 4300000, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - top_short: {fileID: 4300002, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - top_long: {fileID: 4300012, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - bottoms_short: {fileID: 4300004, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - bottoms_long: {fileID: 4300010, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - shoes: {fileID: 4300008, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - socks_short: {fileID: 4300006, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - socks_long: {fileID: 4300014, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - socks_none: {instanceID: 0}
+  - headband: {fileID: 4300016, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - headband_none: {instanceID: 0}
+  - sleeve_single: {fileID: 4300020, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - sleeve_double: {fileID: 4300018, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - sleeve_none: {instanceID: 0}
+  - plain_material: {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

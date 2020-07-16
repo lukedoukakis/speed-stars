@@ -27589,7 +27589,7 @@ GameObject:
   - component: {fileID: 1738763325}
   - component: {fileID: 1738763328}
   - component: {fileID: 1738763326}
-  - component: {fileID: 1738763329}
+  - component: {fileID: 1738763330}
   m_Layer: 0
   m_Name: Global Controller
   m_TagString: Untagged
@@ -27644,6 +27644,7 @@ MonoBehaviour:
   countdowner: {fileID: 1738763325}
   countdownText: {fileID: 626691810}
   raceManager: {fileID: 1738763328}
+  clothingManager: {fileID: 1738763330}
   racerPrefab: {fileID: 1930587311104446540, guid: 6230162842fa4ed44bc511b4f54f92b4,
     type: 3}
   player_backEnd: {fileID: 0}
@@ -27749,7 +27750,9 @@ MonoBehaviour:
   racersFinished: 0
   transparency_ghost_base: 0.45
   transparency_ghost_min: 0.1
---- !u!114 &1738763329
+  transparency_bot_base: 1
+  transparency_bot_min: 0.1
+--- !u!114 &1738763330
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -27758,9 +27761,45 @@ MonoBehaviour:
   m_GameObject: {fileID: 1738763322}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ac1702235e317c4a818117cec50dbcb, type: 3}
+  m_Script: {fileID: 11500000, guid: bcae6c856fc16f34bb027daa2d7d2582, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  numberOfArticles: 7
+  dummyMeshes:
+  - {fileID: 4300000, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  topMeshes:
+  - {fileID: 4300002, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300012, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  bottomsMeshes:
+  - {fileID: 4300004, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300010, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  shoesMeshes:
+  - {fileID: 4300008, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  socksMeshes:
+  - {fileID: 4300006, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300014, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  headbandMeshes:
+  - {fileID: 4300016, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  sleeveMeshes:
+  - {fileID: 4300020, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300018, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  dummyMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  topMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  bottomsMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  shoesMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  socksMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  headbandMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  sleeveMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
 --- !u!1 &1742820180
 GameObject:
   m_ObjectHideFlags: 0

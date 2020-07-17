@@ -41,6 +41,8 @@ public class RaceManager : MonoBehaviour
 	public GameObject focusRacer;
 	// -----------------
 	public GameObject startingLine;
+	public Text speedometer;
+	public Image speedImage;
 	// -----------------
 	public int racerCount;
 	public int playerCount;
@@ -68,6 +70,8 @@ public class RaceManager : MonoBehaviour
 	
 	
 	void Update(){
+		
+		updateSpeedometer();
 		
 		if(raceStatus == STATUS_GO){
 			raceTime += 1f * Time.deltaTime;
@@ -223,9 +227,10 @@ public class RaceManager : MonoBehaviour
 		}
 		// -----------------
 		assignLanes(racers);
+		placeStartingBlocks(racers);
+		setRenderQueues(racers);
 		raceStatus = STATUS_MARKS;
-		
-		//Debug.Log("player pb: " + player.GetComponent<PlayerAttributes>().personalBest);
+
 		
 		return racers;
 		
@@ -273,11 +278,6 @@ public class RaceManager : MonoBehaviour
 				att.lane = lanes[i];
 				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
 				racer.transform.position = racerPos;
-				
-				Vector3 blockPos = racerPos + new Vector3(0f,-.8f,-.8f);
-				Vector3 rightPedalPos = anim.rightFoot.transform.position;
-				Vector3 leftPedalPos = anim.leftFoot.transform.position;
-				placeStartingBlock(blockPos, rightPedalPos, leftPedalPos);
 			}
 		}
 		else if(raceMode == REPLAY_MODE){
@@ -285,31 +285,52 @@ public class RaceManager : MonoBehaviour
 			for(int i = 0; i < racers.Count; i++){
 				racer = racers[i];
 				racer.GetComponent<PlayerAttributes>().lane = racers_backEnd[i].GetComponent<PlayerAttributes>().lane;
-				
 				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
 				racer.transform.position = racerPos;
-				
-				Vector3 blockPos = racerPos + new Vector3(0f,-.8f,-.8f);
-				Vector3 rightPedalPos = anim.rightFoot.transform.position;
-				Vector3 leftPedalPos = anim.leftFoot.transform.position;
-				placeStartingBlock(blockPos, rightPedalPos, leftPedalPos);
 			}
 		}
 	}
 	
-	void placeStartingBlock(Vector3 blockPos, Vector3 rightFootPos, Vector3 leftFootPos){
+	void placeStartingBlocks(List<GameObject> racers){
+		for(int i = 0; i < racers.Count; i++){
+			placeStartingBlock(racers[i]);
+		}
+	}
+	
+	void setRenderQueues(List<GameObject> racers){
+		int lane;
+		PlayerAttributes att;
+		SkinnedMeshRenderer[] renderers;
+		SkinnedMeshRenderer renderer;
+		Material material;
+		for(int i = 0; i < racers.Count; i++){
+			att = racers[i].GetComponent<PlayerAttributes>();
+			lane = att.lane;
+			renderers = new SkinnedMeshRenderer[]{att.smr_dummy, att.smr_top, att.smr_bottoms, att.smr_shoes, att.smr_socks, att.smr_headband, att.smr_sleeve};
+			for(int j = 0; j < renderers.Length; j++){
+				renderer = renderers[j];
+				material = renderer.materials[0];
+				material.renderQueue += (lane+100);
+				
+				//renderer.materials = new Material[]{material};
+			}
+		
+		}
+	}
+	
+	void placeStartingBlock(GameObject racer){
+		Vector3 racerPos = racer.transform.position;
+		Vector3 blockPos = racerPos + new Vector3(0f,-.8f,-.8f);
+		
+		
 		GameObject startingBlock = Instantiate(startingBlockPrefab);
 		startingBlock.transform.position = blockPos;
 		GameObject rightPedal = startingBlock.transform.Find("Block Pedal Right").gameObject;
 		GameObject leftPedal = startingBlock.transform.Find("Block Pedal Left").gameObject;
 		
-		//rightPedal.transform.position = rightPedalPos;
-		//leftPedal.transform.position = leftPedalPos;
-		
 		rightPedal.transform.position += Vector3.back * .09f;
 		leftPedal.transform.position += Vector3.forward * .213f;
-				
-					
+							
 		startingBlocks.Add(startingBlock);
 		
 	}
@@ -392,7 +413,7 @@ public class RaceManager : MonoBehaviour
 		while(time < 1f){
 			time += Time.deltaTime;
 			if(time >= .25f){
-				gc.setCameraFocus(startingLine, CameraController.CAMERA_MODE_SIDESCROLL);
+				gc.setCameraFocus(null, CameraController.CAMERA_MODE_SIDESCROLL);
 				Time.timeScale = .15f;
 			}
 			yield return null;
@@ -432,36 +453,47 @@ public class RaceManager : MonoBehaviour
 		}
 	}
 	
+	public void quitRace(){
+		focusRacer = startingLine;
+		gc.clearListAndObjects(racers);
+		gc.clearListAndObjects(startingBlocks);
+		gc.goStartScreen();
+	}
+	
+	void updateSpeedometer(){
+		
+		// text
+		float speed = (focusRacer.GetComponent<Rigidbody>().velocity.z) / 2f;
+		speed *= 2.236936f;
+		speed = (Mathf.Round(speed * 10f) / 10f);
+		speedometer.text = speed + " mph";
+		
+		// image
+		float h,s,v;
+		h = .26f + ((speed/30f));
+		s = 1f;
+		v = speed/30f;
+		if(v < .5f){ v = .5f; }
+		speedImage.GetComponent<Image>().color = Color.HSVToRGB(h, s, v);
+		speedImage.enabled = false;
+	}
+	
 	void setTransparency(GameObject racer, float alpha){
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		SkinnedMeshRenderer[] renderers = new SkinnedMeshRenderer[]{att.smr_shoes, att.smr_socks, att.smr_top, att.smr_bottoms, att.smr_sleeve, att.smr_headband, att.smr_dummy};
-		Material[] newMaterials;
 		// -----------------
-		Material newMaterial;
+		Material material;
 		Color color;
 		SkinnedMeshRenderer renderer;
 		for(int i = 0; i < renderers.Length; i++){
 			renderer = renderers[i];
-			newMaterial = Instantiate(renderer.materials[0]);
-			if(newMaterial.GetFloat("_Mode") != 2){
-				newMaterial.SetFloat("_Mode", 2);
-				newMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-				newMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-				newMaterial.SetInt("_ZWrite", 1);
-				newMaterial.DisableKeyword("_ALPHATEST_ON");
-				newMaterial.EnableKeyword("_ALPHABLEND_ON");
-				newMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-				newMaterial.renderQueue = 3000 - i;
-			}
-			color = newMaterial.color;
+			material = renderer.materials[0];
+			color = material.color;
 			color.a = alpha;
-			newMaterial.color = color;
+			material.color = color;
 			// -----------------
-			newMaterials = new Material[]{newMaterial};
-			Material oldMaterial = renderer.materials[0];
-			renderer.materials = newMaterials;
-			renderer.materials[0] = newMaterial;
-			Destroy(oldMaterial);
+			//renderer.materials = new Material[]{material};
+			//renderer.materials[0] = material;
 		}
 	}
 	

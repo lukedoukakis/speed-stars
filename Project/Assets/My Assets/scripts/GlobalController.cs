@@ -16,14 +16,23 @@ public class GlobalController : MonoBehaviour
 	
 	// UI
 	public GameObject canvas;
+	public GameObject RaceUI;
+		bool RaceUIActive;
 	public GameObject StartScreen;
+		bool StartScreenActive;
 	public GameObject SetupScreen;
+		bool SetupScreenActive;
 	public GameObject CharacterCreatorScreen;
+		bool CharacterCreatorScreenActive;
 		public GameObject nameInputField;
 	public GameObject CountdownScreen;
+		bool CountdownScreenActive;
 	public GameObject RaceScreen;
+		bool RaceScreenActive;
 	public GameObject FinishScreen;
+		bool FinishScreenActive;
 	public GameObject TransitionScreen;
+		bool TransitionScreenActive;
 	public ButtonHandler buttonHandler;
 	public SelectionListScript ghostSelectButtonList;
 	public SelectionListScript playerSelectButtonList;
@@ -56,8 +65,6 @@ public class GlobalController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		//PlayerPrefs.DeleteAll();
-		// -----------------
 		racers_backEnd = new List<GameObject>();
 		racers_backEnd_replay = new List<GameObject>();
 		racers = new List<GameObject>();
@@ -87,7 +94,7 @@ public class GlobalController : MonoBehaviour
 		}
 		
 		
-		if(CountdownScreen.activeInHierarchy){
+		if(CountdownScreenActive){
 			countdownText.text = countdowner.currentString;
 			if(countdowner.currentString == "Set"){
 				raceManager.raceStatus = RaceManager.STATUS_SET;
@@ -97,11 +104,21 @@ public class GlobalController : MonoBehaviour
 			}
 		}
 		
+		if(RaceUIActive){
+			if(Input.GetKeyDown(KeyCode.R)){
+				startRaceAsLive();
+			}
+			if(Input.GetKeyDown(KeyCode.Escape)){
+				raceManager.quitRace();
+			}
+		}
+		
     }
 	
 	public void goStartScreen(){
 		//Debug.Log("Going to start screen");
 		StartCoroutine(screenTransition("Start Screen", false));
+		setCameraFocus(startingLine, CameraController.CAMERA_MODE_TV);
 	}
 	
 	public void goSetupScreen(){
@@ -150,32 +167,48 @@ public class GlobalController : MonoBehaviour
 			doTasks();
 			// -----------------
 		}
+		RaceUI.SetActive(false);
+			RaceUIActive = false;
 		StartScreen.SetActive(false);
+			StartScreenActive = false;
 		SetupScreen.SetActive(false);
+			SetupScreenActive = false;
 		CharacterCreatorScreen.SetActive(false);
-			
+			CharacterCreatorScreenActive = false;
 		CountdownScreen.SetActive(false);
+			CountdownScreenActive = false;
 		RaceScreen.SetActive(false);
+			RaceScreenActive = false;
 		FinishScreen.SetActive(false);
+			FinishScreenActive = false;
 		switch (nextScreen) {
 			case "Start Screen" :
 				StartScreen.SetActive(true);
+				StartScreenActive = true;
 				break;
 			case "Setup Screen" :
 				SetupScreen.SetActive(true);
+				SetupScreenActive = true;
 				break;	
 			case "Character Creator Screen" :
 				CharacterCreatorScreen.SetActive(true);
-				
+				CharacterCreatorScreenActive = true;
 				break;	
 			case "Countdown Screen" :
 				CountdownScreen.SetActive(true);
+				RaceUI.SetActive(true);
+				CountdownScreenActive = true;
+				RaceUIActive = true;
 				break;
 			case "Race Screen" :
 				RaceScreen.SetActive(true);
+				RaceUI.SetActive(true);
+				RaceScreenActive = true;
+				RaceUIActive = true;
 				break;
 			case "Finish Screen" :
 				FinishScreen.SetActive(true);
+				FinishScreenActive = true;
 				break;
 			default:
 				break;
@@ -192,6 +225,7 @@ public class GlobalController : MonoBehaviour
 	
 	//-----------------------------------------------------------------------------------------------------------
 	public void startRaceAsLive(){
+		Time.timeScale = 1f;
 		startRace(RaceManager.LIVE_MODE);
 	}
 	public void startRaceAsReplay(){
@@ -239,7 +273,7 @@ public class GlobalController : MonoBehaviour
 	
 	
 	//-----------------------------------------------------------------------------------------------------------
-	void clearListAndObjects(List<GameObject> list){
+	public void clearListAndObjects(List<GameObject> list){
 		list.Clear();
 		foreach(Transform child in raceManager.RacersFieldParent.transform){
 			Destroy(child.gameObject);

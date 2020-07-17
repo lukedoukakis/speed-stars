@@ -136,10 +136,10 @@ public class ClothingManager : MonoBehaviour
 		// socks
 		n = Random.Range(0, 2);
 		if(n == 0){ 
-			n = shoesMeshes.Length-1;
+			n = socksMeshes.Length-1;
 		}
 		else{
-			n = Random.Range(0, shoesMeshes.Length-1);
+			n = Random.Range(0, socksMeshes.Length-1);
 		}
 		randomMeshNumbers[4] = n;
 		
@@ -157,10 +157,10 @@ public class ClothingManager : MonoBehaviour
 		if(style == "short"){
 			n = Random.Range(0, 7);
 			if(n < 6){ 
-				n = headbandMeshes.Length-1;
+				n = sleeveMeshes.Length-1;
 			}
 			else{
-				n = Random.Range(0, headbandMeshes.Length-1);
+				n = Random.Range(0, sleeveMeshes.Length-1);
 			}
 		}
 		else{
@@ -244,10 +244,10 @@ public class ClothingManager : MonoBehaviour
 		random = Random.Range(0,3);
 		switch (random){
 			case 0 :
-				shoes = top;
+				headband = top;
 				break;
 			case 1 :
-				shoes = bottoms;
+				headband = bottoms;
 				break;
 			case 2 :
 				break;
@@ -257,7 +257,7 @@ public class ClothingManager : MonoBehaviour
 		random = Random.Range(0,2);
 		switch (random){
 			case 0 :
-				shoes = top;
+				sleeve = top;
 				break;
 			case 1 :
 				break;

@@ -239,23 +239,47 @@ public class PlayerAttributes : MonoBehaviour
 			headbandColor = randomColors[j]; j++;
 			sleeveColor = randomColors[j]; j++;
 		}
-		
+		/*
 		int[] meshNumbers = new int[]{ dummyMeshNum, topMeshNum, bottomsMeshNum, shoesMeshNum, socksMeshNum, headbandMeshNum, sleeveMeshNum};
 		int[] materialNumbers = new int[]{ dummyMaterialNum, topMaterialNum, bottomsMaterialNum, shoesMaterialNum, socksMaterialNum, headbandMaterialNum, sleeveMaterialNum};
 		Color[] clothingColors = new Color[]{dummyColor, topColor, bottomsColor, shoesColor, socksColor, headbandColor, sleeveColor};
 		string[] articles = new string[]{ "dummy", "top", "bottoms", "shoes", "socks", "headband", "sleeve"};
 		SkinnedMeshRenderer[] renderers = new SkinnedMeshRenderer[]{ smr_dummy, smr_top, smr_bottoms, smr_shoes, smr_socks, smr_headband, smr_sleeve};
+		*/
 		
+		int[] meshNumbers = new int[]{ shoesMeshNum, socksMeshNum, topMeshNum, bottomsMeshNum, sleeveMeshNum, headbandMeshNum, dummyMeshNum};
+		int[] materialNumbers = new int[]{ shoesMaterialNum, socksMaterialNum, topMaterialNum, bottomsMaterialNum, sleeveMaterialNum, headbandMaterialNum, dummyMaterialNum};
+		Color[] clothingColors = new Color[]{shoesColor, socksColor, topColor, bottomsColor, sleeveColor, headbandColor, dummyColor};
+		string[] articles = new string[]{ "shoes", "socks", "top", "bottoms", "sleeve", "headband", "dummy"};
+		SkinnedMeshRenderer[] renderers = new SkinnedMeshRenderer[]{smr_shoes, smr_socks, smr_top, smr_bottoms, smr_sleeve, smr_headband, smr_dummy};
+		
+		SkinnedMeshRenderer renderer;
 		for(int j = 0; j < renderers.Length; j++){
 			// set meshes, materials and colors
+			renderer = renderers[j];
+			// -----------------
 			mesh = clothingManager.getMesh(articles[j], meshNumbers[j]);
-			material = clothingManager.getMaterial(articles[j], materialNumbers[j]);
+			// -----------------
+			material = Instantiate(clothingManager.getMaterial(articles[j], materialNumbers[j]));
 			material.color = clothingColors[j];
-			renderers[j].sharedMesh = mesh;
-			renderers[j].materials = new Material[]{Instantiate(material)};
-			renderers[j].materials[0] = Instantiate(material);
+			// ~~~~
+				material.SetFloat("_Mode", 2);
+				material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+				material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+				material.SetInt("_ZWrite", 1);
+				material.DisableKeyword("_ALPHATEST_ON");
+				material.EnableKeyword("_ALPHABLEND_ON");
+				material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+				material.renderQueue = 3000 - j;
+			// ~~~~
+			// -----------------
+			renderer.sharedMesh = mesh;
+			renderer.materials = new Material[]{material};
+			renderer.materials[0] = material;
 		}
 		// -----------------
+		
+		// update attributes
 		
 		Color c;
 

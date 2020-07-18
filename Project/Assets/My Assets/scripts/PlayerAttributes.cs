@@ -358,7 +358,7 @@ public class PlayerAttributes : MonoBehaviour
 			float feetScaleZ = 1f;
 		
 			// randomize torso proportions
-			float torsoLength = Random.Range(.95f, 1.05f);
+			float torsoLength = Random.Range(.9f, 1.1f);
 			float torsoWidth = Random.Range(.8f, 1.2f) * Mathf.Pow(torsoLength, .5f);
 			float torsoDepth = Random.Range(.95f, 1.05f) * torsoWidth;
 			setTorsoProportions(torsoLength, torsoWidth, torsoDepth);
@@ -387,7 +387,7 @@ public class PlayerAttributes : MonoBehaviour
 		
 			// randomize neck, arm and leg proportions
 			setNeckProportions(Random.Range(.5f, 1.5f), Random.Range(.7f, 1.8f)*torsoWidth, torsoDepth);
-			setArmProportions(Mathf.Pow(torsoLength, .28f)*Random.Range(1f,1.02f), Mathf.Pow(torsoLength, .28f), Mathf.Pow(torsoLength, .28f));
+			setArmProportions(Mathf.Pow(torsoLength, .28f)*Random.Range(1f,1.02f), 1f, 1f);
 			setLegProportions(Random.Range(1f, 1.02f) * torsoLength, 1f, 1f);
 			
 			// adjust head proportion for neck

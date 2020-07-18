@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -42,6 +43,11 @@ public class RaceManager : MonoBehaviour
 	// -----------------
 	public GameObject startingLine;
 	public Text speedometer;
+	public Text clock;
+		TimeSpan timeSpan;
+		int minutes;
+		int seconds;
+		int milliseconds;
 	public Image speedImage;
 	// -----------------
 	public int racerCount;
@@ -65,17 +71,16 @@ public class RaceManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        focusRacer = startingLine;
     }
 	
 	
 	void Update(){
 		
-		updateSpeedometer();
-		
 		if(raceStatus == STATUS_GO){
 			raceTime += 1f * Time.deltaTime;
 		}
+		updateSpeedometer();
 		
 		GameObject racer;
 		Vector3 racerPos;
@@ -229,6 +234,8 @@ public class RaceManager : MonoBehaviour
 		assignLanes(racers);
 		placeStartingBlocks(racers);
 		setRenderQueues(racers);
+		
+		resetClock();
 		raceStatus = STATUS_MARKS;
 
 		
@@ -250,7 +257,7 @@ public class RaceManager : MonoBehaviour
 			}
 		}
 		else{
-			difficulty = Random.Range(.7f, 1f);
+			difficulty = UnityEngine.Random.Range(.7f, 1f);
 		}
 		return difficulty;
 	}
@@ -426,7 +433,7 @@ public class RaceManager : MonoBehaviour
 	public void falseStartBotsReaction(){
 		for(int i = 0; i < bots.Count; i++){
 			GameObject bot = bots[i];
-			int rand = Random.Range(0,10);
+			int rand = UnityEngine.Random.Range(0,10);
 			//if(rand == 1){
 				bot.GetComponent<PlayerAttributes>().isRacing = true;
 			//}
@@ -462,20 +469,43 @@ public class RaceManager : MonoBehaviour
 	
 	void updateSpeedometer(){
 		
-		// text
+		
+		// time
+		timeSpan = TimeSpan.FromSeconds(raceTime);
+		minutes = timeSpan.Minutes;
+		seconds = timeSpan.Seconds;
+		milliseconds = timeSpan.Milliseconds / 10;
+		if(minutes > 0f){
+			clock.text = minutes + ":" + seconds + "." + milliseconds;
+		}
+		else{
+			clock.text = seconds + "." + milliseconds;
+		}
+		
+		// speed
 		float speed = (focusRacer.GetComponent<Rigidbody>().velocity.z) / 2f;
 		speed *= 2.236936f;
 		speed = (Mathf.Round(speed * 10f) / 10f);
 		speedometer.text = speed + " mph";
 		
+		
+		/*
 		// image
 		float h,s,v;
 		h = .26f + ((speed/30f));
 		s = 1f;
 		v = speed/30f;
 		if(v < .5f){ v = .5f; }
+	
 		speedImage.GetComponent<Image>().color = Color.HSVToRGB(h, s, v);
-		speedImage.enabled = false;
+		//speedImage.enabled = false;
+		*/
+	}
+	
+	void resetClock(){
+		minutes = 0;
+		seconds = 0;
+		milliseconds = 0;
 	}
 	
 	void setTransparency(GameObject racer, float alpha){

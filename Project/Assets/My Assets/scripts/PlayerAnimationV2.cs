@@ -77,7 +77,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		quickness = attributes.QUICKNESS;
 		maxPower = attributes.POWER;
 		knee_dominance = attributes.KNEE_DOMINANCE;
-		knee_dominance_driveModifier = Mathf.Pow(knee_dominance, 2.25f);
+		knee_dominance_driveModifier = Mathf.Pow(knee_dominance, 2.6f);
 		if(knee_dominance_driveModifier < 1f){
 			knee_dominance_driveModifier = 1f;
 		}
@@ -336,9 +336,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 			vy = maxUpSpeed;
 		}
 		
-		float d = .5f * knee_dominance;
-		if(vz > velocityLastFrame.z + d){
-			vz = velocityLastFrame.z + d;
+		float maxD = .5f * knee_dominance;
+		if(vz > velocityLastFrame.z + maxD){
+			vz = velocityLastFrame.z + maxD;
 		}
 		
 		vel.z = vz;
@@ -389,7 +389,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public IEnumerator launch(){
 		StartCoroutine(launchAnimation());
 		for(int i = 0; i < 8; i++){
-			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (1500f) * knee_dominance_driveModifier * Time.deltaTime, ForceMode.Force);
+			float launchPower = 1500f;
+			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (launchPower) * knee_dominance_driveModifier * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}
 		

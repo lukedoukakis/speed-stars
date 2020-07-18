@@ -93,6 +93,10 @@ public class GlobalController : MonoBehaviour
 			PlayerPrefs.DeleteAll();
 		}
 		
+		if(Input.GetKey(KeyCode.T)){
+			Time.timeScale = .1f;
+		}
+		
 		
 		if(CountdownScreenActive){
 			countdownText.text = countdowner.currentString;
@@ -118,7 +122,7 @@ public class GlobalController : MonoBehaviour
 	public void goStartScreen(){
 		//Debug.Log("Going to start screen");
 		StartCoroutine(screenTransition("Start Screen", false));
-		setCameraFocus(startingLine, CameraController.CAMERA_MODE_TV);
+		setCameraFocus(startingLine, CameraController.CAMERA_MODE_CINEMATIC);
 	}
 	
 	public void goSetupScreen(){

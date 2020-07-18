@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 726201613222969264}
   - component: {fileID: 726201613230707148}
   m_Layer: 0
-  m_Name: runner
+  m_Name: Runner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -130,7 +130,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300008, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  m_Mesh: {fileID: 0}
   m_Bones:
   - {fileID: 726201613222969268}
   - {fileID: 726201613222969270}
@@ -272,7 +272,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300010, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  m_Mesh: {fileID: 0}
   m_Bones:
   - {fileID: 726201613222969268}
   - {fileID: 726201613222969270}
@@ -390,7 +390,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0b5fe5c63904b9f4e8256f705508d966, type: 2}
+  - {fileID: 2100000, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -556,7 +556,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300002, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  m_Mesh: {fileID: 0}
   m_Bones:
   - {fileID: 726201613222969268}
   - {fileID: 726201613222969270}
@@ -767,7 +767,7 @@ MonoBehaviour:
   feetX: 0
   feetY: 0
   feetZ: 0
-  POWER: 380
+  POWER: 350
   TRANSITION_PIVOT_SPEED: 160
   QUICKNESS: 1
   KNEE_DOMINANCE: 1
@@ -1096,7 +1096,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300006, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  m_Mesh: {fileID: 0}
   m_Bones:
   - {fileID: 726201613222969268}
   - {fileID: 726201613222969270}

@@ -42,6 +42,7 @@ public class RaceManager : MonoBehaviour
 	public GameObject focusRacer;
 	// -----------------
 	public GameObject startingLine;
+	public GameObject finishLine;
 	public Text speedometer;
 	public Text clock;
 		TimeSpan timeSpan;
@@ -78,7 +79,7 @@ public class RaceManager : MonoBehaviour
 	void Update(){
 		
 		if(raceStatus == STATUS_GO){
-			raceTime += 1f * Time.deltaTime;
+
 		}
 		updateSpeedometer();
 		
@@ -129,6 +130,7 @@ public class RaceManager : MonoBehaviour
 				manageRace();
 			}
 			if(raceStatus == STATUS_GO){
+				raceTime += 1f * Time.deltaTime;
 				raceTick++;
 			}
 		}
@@ -188,13 +190,13 @@ public class RaceManager : MonoBehaviour
 			// --
 			att = racer.GetComponent<PlayerAttributes>();
 			att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
-			att.copyAttributesFromOther(racers_backEnd[i]);
+			att.copyAttributesFromOther(racers_backEnd[i], "all");
 			att.isRacing = false;
 			// --
 			anim = racer.GetComponent<PlayerAnimationV2>();
 			anim.globalController = gc;
 			anim.raceManager = this;
-			anim.mode = 1;
+			anim.mode = PlayerAnimationV2.Set;
 			// --
 			tc = racer.GetComponent<TimerController>();
 			tc.attributes = att;
@@ -382,21 +384,24 @@ public class RaceManager : MonoBehaviour
 			GameObject ghost;
 			for(int i = 0; i < ghosts.Count; i++){
 				ghost = ghosts[i];
-				anim = ghost.GetComponent<PlayerAnimationV2>();
+				PlayerAttributes att = ghost.GetComponent<PlayerAttributes>();
+				PlayerAnimationV2 anim = ghost.GetComponent<PlayerAnimationV2>();
 				anim.readInput(raceTick);
 				anim.applyInput(raceTick);
-				ghost.GetComponent<PlayerAnimationV2>().setPositionAndVelocity(raceTick);
+				anim.setPositionAndVelocity(raceTick);
 			}
 		}
 	}
 	
 	public void addFinisher(GameObject racer){
 		racersFinished++;
-		att = racer.GetComponent<PlayerAttributes>();
+		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
+		PlayerAnimationV2 anim = racer.GetComponent<PlayerAnimationV2>();
 		// -----------------
 		if(racer == focusRacer){
 			focusRacerFinished = true;
 			if(raceMode == LIVE_MODE){
+				gc.setCameraFocus(finishLine, CameraController.CAMERA_MODE_SIDESCROLL);
 				if((raceTime < att.personalBest) || (att.personalBest == -1f)){
 					att.resultTag = "<color=red>PB</color>";
 					att.personalBest = raceTime;
@@ -404,13 +409,18 @@ public class RaceManager : MonoBehaviour
 					player_backEnd.GetComponent<PlayerAttributes>().personalBest = raceTime;
 					playerPB = true;
 				}
-			}	
+			}
+			else{
+				gc.setCameraFocus(finishLine, CameraController.CAMERA_MODE_TV);
+			}
 		}
 		// -----------------
 		att.finishTime = raceTime;
 		att.pathLength = raceTick;
 		att.resultString = "<color="+ att.resultColor+">" + att.racerName + "</color>" + "  " + (Mathf.Round(att.finishTime * 100f) / 100f) + "  " + att.resultTag;
 		resultsText.text += "\n  " + (racersFinished) + "  " + att.resultString;
+		
+		StartCoroutine(anim.autoRun());
 		
 	}
 	

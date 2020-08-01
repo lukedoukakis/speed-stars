@@ -28,9 +28,10 @@ public class ClothingManager : MonoBehaviour
 	public Material[] headbandMaterials;
 	public Material[] sleeveMaterials;
 	// -----------------
-	
-	//string[] skinTones = new string[]{"#8D5524","#553316","#38220E","#C68642","#8B5E2E","#4F361A","#E0AC69","#9D784A","#F1C27D","#F5D4A4","#FFDBAC","#FFDFB4","#BA9A72"};
-	string[] skinTones = new string[]{"#ffad60","#ffe39f",   "#c69076","#af6e51","#843722","#3d0c02","#260701"};
+	public Shader shader_renderOnTop;
+	// -----------------
+
+	public string[] skinTones = new string[]{"#ffad60","#ffe39f",   "#c69076","#af6e51","#843722","#3d0c02","#260701"};
 	
 	// Start is called before the first frame update
     void Start()

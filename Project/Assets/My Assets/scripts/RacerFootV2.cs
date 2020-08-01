@@ -53,7 +53,7 @@ public class RacerFootV2 : MonoBehaviour
     {
 		attributes = GetComponent<PlayerAttributes>();
 		knee_dominance = attributes.KNEE_DOMINANCE;
-		knee_dominance_powerModifier = Mathf.Pow(2f-knee_dominance, 1.05f);
+		knee_dominance_powerModifier = Mathf.Pow(2f-knee_dominance, 1.082f);
 		swingFrames = 0f;
 		groundFrames = 0f;
 		
@@ -104,10 +104,12 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionEnter(Collision collision){
+		if(collision.gameObject.tag == "Ground"){
+			groundContact = true;
+		}
 		if(animation.mode == 2){
 			if(collision.gameObject.tag == "Ground"){
 				touchDown = true;
-				groundContact = true;
 				// -----------------
 				
 				float f = (torsoAngle)/(torsoAngle_max);
@@ -134,10 +136,12 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionStay(Collision collision){
+		if(collision.gameObject.tag == "Ground"){
+			groundContact = true;
+		}
 		if(animation.mode == 2){
 			if(collision.gameObject.tag == "Ground"){
 				touchDown = false;
-				groundContact = true;
 				if(groundFrames < 15f){
 					groundFrames++;
 				}
@@ -146,12 +150,12 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionExit(Collision collision){
+		if(collision.gameObject.tag == "Ground"){
+			groundContact = false;
+		}
 		if(animation.mode == 2){
 			if(collision.gameObject.tag == "Ground"){
 				groundFrames = 0f;
-				groundContact = false;
-				
-				
 			}
 		}
 	}

@@ -31,13 +31,14 @@ public class Bot_AI : MonoBehaviour
 	bool fullUpright;
 	bool forward;
 	bool back;
+	bool dip;
 	float zSpeed;
 	float transitionPivotSpeed;
 	float zSpeedOverTransitionPivotSpeed;
 	
     // Start is called before the first frame update
     void Start()
-    {  
+    { 
     }
 
     // Update is called once per frame
@@ -112,18 +113,24 @@ public class Bot_AI : MonoBehaviour
 				back = false;
 			}
 			if(forward){
-				downTicks -= 5;
+				downTicks -= 6;
 				forward = false;
 			}
 			if(raceManager.raceTick % 10 == 0){
-				if(torsoAngle > torsoAngle_max){
+				if(torsoAngle > torsoAngle_min){
 					forward = true;
 				}
 				else{
 					back = true;
 				}
 			}
-			
+			if(raceManager.finishLine.transform.position.z - transform.position.z < 20f){
+				if(!dip){
+					downTicks += 500;
+					freeTicks -= 400;
+					dip = true;
+				}
+			}
 		}
 
 		
@@ -167,7 +174,7 @@ public class Bot_AI : MonoBehaviour
 		randomRange = 0f + ((1f-difficulty) * 10f);
 		// -----------------
 		freeTicks = (int)(2625f * (2f-cadenceModifier));
-		downTicks = (int)((970f * driveModifier) * (2f-cadenceModifier));
+		downTicks = (int)((950f * driveModifier) * (2f-cadenceModifier));
 		ticksPassedLeft = 0;
 		ticksPassedRight = downTicks / 2 + (int)(310f*(2f-cadenceModifier));
 		frequencyLeft = downTicks;
@@ -181,6 +188,7 @@ public class Bot_AI : MonoBehaviour
 		fullUpright = false;
 		forward = false;
 		back = false;
+		dip = false;
 		transitionPivotSpeed = att.TRANSITION_PIVOT_SPEED;
 	}
 	

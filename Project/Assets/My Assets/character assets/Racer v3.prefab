@@ -24,7 +24,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 726201613223453584}
-  m_LocalRotation: {x: 0.21643952, y: -0, z: -0, w: 0.97629607}
+  m_LocalRotation: {x: 0.22955012, y: -0, z: -0, w: 0.9732969}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -637,6 +637,7 @@ GameObject:
   - component: {fileID: 1930587311104446533}
   - component: {fileID: 4495043316954426790}
   - component: {fileID: 9039809797362458693}
+  - component: {fileID: 558395649584720758}
   - component: {fileID: 3768383618993763894}
   - component: {fileID: 7590939504521409525}
   - component: {fileID: 943846466227655609}
@@ -691,7 +692,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 292f8d36e885ca4419a34a0eb34fa685, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clothingManager: {fileID: 0}
+  clothingManager: {fileID: 558395649584720758}
   id: 
   racerName: 
   personalBest: 0
@@ -767,6 +768,8 @@ MonoBehaviour:
   feetX: 0
   feetY: 0
   feetZ: 0
+  height: 0
+  weight: 0
   POWER: 350
   TRANSITION_PIVOT_SPEED: 160
   QUICKNESS: 1
@@ -777,6 +780,63 @@ MonoBehaviour:
   - {fileID: 9100000, guid: 1bd9b8bcc3319724ca5ea0f0b1ba0656, type: 2}
   - {fileID: 9100000, guid: 1bd9b8bcc3319724ca5ea0f0b1ba0656, type: 2}
   animatorNum: 0
+--- !u!114 &558395649584720758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930587311104446540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcae6c856fc16f34bb027daa2d7d2582, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  numberOfArticles: 7
+  dummyMeshes:
+  - {fileID: 4300000, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  topMeshes:
+  - {fileID: 4300002, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300012, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  bottomsMeshes:
+  - {fileID: 4300004, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300010, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  shoesMeshes:
+  - {fileID: 4300008, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  socksMeshes:
+  - {fileID: 4300014, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300006, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  headbandMeshes:
+  - {fileID: 4300016, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  sleeveMeshes:
+  - {fileID: 4300020, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300018, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  dummyMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  topMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  bottomsMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  shoesMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  socksMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  headbandMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  sleeveMaterials:
+  - {fileID: 2100000, guid: 015b8c4181f8be84a8f99a7154963b86, type: 2}
+  shader_renderOnTop: {fileID: 4800000, guid: c99b95b5fbf35654b9d29f02acc99b72, type: 3}
+  skinTones:
+  - '#ffad60'
+  - '#ffe39f'
+  - '#c69076'
+  - '#af6e51'
+  - '#843722'
+  - '#3d0c02'
+  - '#260701'
 --- !u!114 &3768383618993763894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1378,6 +1438,36 @@ PrefabInstance:
     - target: {fileID: 7205600128719492309, guid: b09c53b074f7c364eb16e60653770312,
         type: 3}
       propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205600128719492379, guid: b09c53b074f7c364eb16e60653770312,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205600128719492381, guid: b09c53b074f7c364eb16e60653770312,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205600128719492409, guid: b09c53b074f7c364eb16e60653770312,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.05962757
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205600128719492415, guid: b09c53b074f7c364eb16e60653770312,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205600128719492415, guid: b09c53b074f7c364eb16e60653770312,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.0596276
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205600128719492431, guid: b09c53b074f7c364eb16e60653770312,
+        type: 3}
+      propertyPath: m_LocalScale.y
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

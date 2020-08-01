@@ -17,13 +17,11 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Transform pushLeg;
 	public Quaternion pushRotation;
 	
+	public static int Set = 1;
+	public static int Run = 2;
+	public static int Idle = 3;
 	public int mode;
-		/* // -----------------
-			mode
-			1	set
-			2	run
-		*/ // -----------------		
-		
+	
 	public float transitionSpeed;
 	
 	public GlobalController globalController;
@@ -35,7 +33,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public RacerFootV2 rightFootScript;
 	public RacerFootV2 leftFootScript;
 	public bool rightInput;
+	int framesSinceRight;
 	public bool leftInput;
+	int framesSinceLeft;
 	
 	int tick;
 	public bool firstMove;
@@ -103,13 +103,17 @@ public class PlayerAnimationV2 : MonoBehaviour
     void FixedUpdate()
     {
 	
-		if (mode == 1){
+		if(mode == Set){
 			setPositionMode();
 		}
-		else if(mode == 2){
+		else if(mode == Run){
 			//Debug.Log("RUNMODE");
 			runMode();
 		}
+		else if(mode == Idle){
+			idleMode();
+		}
+		
 		//-----------------------------------------------------------------------------------------------------------
 		adjustRotation();
 		//-----------------------------------------------------------------------------------------------------------
@@ -131,6 +135,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		applySpeedModifiers();
 		
 		
+		animator.SetBool("groundContact", rightFootScript.groundContact || leftFootScript.groundContact);
 		
 		velocityLastFrame = rb.velocity;
 	}	
@@ -156,6 +161,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 		if(runWeight > 1f){
 			runWeight = 1f;
 		}
+		
+		if(!rightInput){
+			framesSinceRight++;
+		}
+		if(!leftInput){
+			framesSinceLeft++;
+		}
    }
 	
 	public void setPositionMode(){
@@ -164,6 +176,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 		runWeight = 0f;
 	}
 	
+	public void idleMode(){
+		animator.SetBool("idle", true);
+	}
 	
 	
 	
@@ -182,7 +197,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	}
 	
 	public void applyInput(int tick){
-		if(mode == 1){
+		if(mode == Set){
 			if(rightInput || leftInput){
 				if(attributes.isRacing){
 					mode = 2;
@@ -196,7 +211,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				}
 			}
 		}
-		else if(mode == 2){
+		else if(mode == Run){
 			if(rightInput || leftInput){
 				animator.SetBool("input", true);
 			}
@@ -205,6 +220,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 			
 			if(rightInput){
+				framesSinceRight = 0;
 				if(tag == "Player" || tag == "Bot"){
 					rightFootScript.input = true;
 					firstMove = true;
@@ -215,6 +231,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				animator.SetBool("right", false);
 			}
 			if(leftInput){
+				framesSinceLeft = 0;
 				if(tag == "Player" || tag == "Bot"){
 					leftFootScript.input = true;
 					firstMove = true;
@@ -229,10 +246,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	void adjustRotation(){
 		if(leans){
-			if(mode == 1){
+			if(mode == Set){
 				leanWeight += .5f * Time.deltaTime;
 			}
-			else if(mode == 2){
+			else if(mode == Run){
 				// torso lean
 				bool pushing = false;
 				bool[] inputs = new bool[2] {rightInput, leftInput};
@@ -271,11 +288,28 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	// for mapping ghost position and velocity from paths
 	public void setPositionAndVelocity(int tick){
+		
 		if(tick < attributes.pathLength){
 			rb.velocity = new Vector3(rb.velocity.x, attributes.velPathY[tick], attributes.velPathZ[tick]);
 			Vector3 targetPos = new Vector3(transform.position.x, attributes.posPathY[tick], attributes.posPathZ[tick]);
 			transform.position = targetPos;
 		}
+			
+		
+		/*
+		if(tick_float < (float)attributes.pathLength){
+			
+			int tick_lo, tick_hi;
+			tick_lo = (int)Mathf.Floor(tick_float);
+			tick_hi = (int)Mathf.Ceil(tick_float);
+			
+			Vector3 pos_lo, pos_hi;
+			pos_lo = new Vector3(transform.position.x, attributes.posPathY[tick_lo], attributes.posPathZ[tick_lo]);
+			pos_hi = new Vector3(transform.position.x, attributes.posPathY[tick_hi], attributes.posPathZ[tick_hi]);
+			
+			transform.position = new Vector3(pos_lo.x, (pos_lo.y + pos_hi.y) / 2f, (pos_lo.z + pos_hi.z) / 2f);
+		}
+		*/
 	}
 	
 	
@@ -404,10 +438,50 @@ public class PlayerAnimationV2 : MonoBehaviour
 		launchFlag = false;
 	}
 	
+	public IEnumerator autoRun(){
+		if(framesSinceRight < 7){
+			StartCoroutine(stepLeft());
+			for(int j = 0; j < 15; j++){
+				applyInput(0);
+				yield return null;
+			}
+		}
+		while(true){
+			StartCoroutine(stepRight());
+			for(int j = 0; j < 8; j++){
+				applyInput(0);
+				yield return null;
+			}
+			StartCoroutine(stepLeft());
+			for(int j = 0; j < 8; j++){
+				applyInput(0);
+				yield return null;
+			}
+		}
+		IEnumerator stepRight(){
+			rightInput = true;
+			for(int j = 0; j < 4; j++){
+				yield return null;
+			}
+			rightInput = false;
+		}	
+		IEnumerator stepLeft(){
+			leftInput = true;
+			for(int j = 0; j < 4; j++){
+				yield return null;
+			}
+			leftInput = false;
+		}
+	}
+	
+	public void setIdle(){
+		mode = 3;
+	}
+	
 	void LateUpdate(){
 		if(launchFlag){
 			pushLeg.rotation = pushRotation;
-			pushLeg.Rotate(Vector3.up * 60f * knee_dominance_driveModifier * Time.deltaTime);
+			pushLeg.Rotate(Vector3.up * 80f * knee_dominance_driveModifier * Time.deltaTime);
 			pushRotation = pushLeg.rotation;
 		}
 	}

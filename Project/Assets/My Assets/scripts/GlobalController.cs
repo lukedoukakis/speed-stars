@@ -23,6 +23,7 @@ public class GlobalController : MonoBehaviour
 	public GameObject SetupScreen;
 		bool SetupScreenActive;
 	public GameObject CharacterCreatorScreen;
+		public GameObject previewRacer;
 		bool CharacterCreatorScreenActive;
 		public GameObject nameInputField;
 	public GameObject CountdownScreen;
@@ -44,7 +45,6 @@ public class GlobalController : MonoBehaviour
 	public Countdowner countdowner;
 		public Text countdownText;
 	public RaceManager raceManager;
-	public ClothingManager clothingManager;
 	
 	// racers
 	public GameObject racerPrefab;
@@ -69,14 +69,14 @@ public class GlobalController : MonoBehaviour
 		racers_backEnd_replay = new List<GameObject>();
 		racers = new List<GameObject>();
 		// -----------------
-		
 		playerSelectButtonList.init(PLAYABLE_RACER_MEMORY, 1, true);
 		playableRacerIDs = PlayerPrefs.GetString("PLAYABLE RACER IDS").Split(':').ToList();
 		
 		ghostSelectButtonList.init(SAVED_RACER_MEMORY, 7, false);
 		savedRacerIDs = PlayerPrefs.GetString("SAVED RACER IDS").Split(':').ToList();
 		// -----------------
-
+		previewRacer.GetComponent<PlayerAttributes>().renderInForeground();
+		previewRacer.GetComponent<PlayerAnimationV2>().setIdle();
 		// -----------------
 		checkedRacerIndexes = new List<int>();
 		// -----------------
@@ -88,13 +88,16 @@ public class GlobalController : MonoBehaviour
     {
 		
 		// debug
-		if(Input.GetKey(KeyCode.O)){
+		if(Input.GetKeyUp(KeyCode.O)){
 			Debug.Log("Deleting PlayerPrefs");
 			PlayerPrefs.DeleteAll();
 		}
 		
-		if(Input.GetKey(KeyCode.T)){
-			Time.timeScale = .1f;
+		if(Input.GetKeyUp(KeyCode.T)){
+			Time.timeScale -= .1f;
+		}
+		if(Input.GetKeyUp(KeyCode.Y)){
+			Time.timeScale += .1f;
 		}
 		
 		
@@ -132,6 +135,9 @@ public class GlobalController : MonoBehaviour
 	
 	public void goCharacterCreatorScreen(){
 		//Debug.Log("Going to creator screen");
+		PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
+		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_DEFAULT);
+		att.setClothing(PlayerAttributes.ATTRIBUTES_DEFAULT);
 		StartCoroutine(screenTransition("Character Creator Screen", false));
 	}
 	
@@ -426,9 +432,10 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.feetX
 		+ ":" + att.feetY
 		+ ":" + att.feetZ
+		+ ":" + att.height
+		+ ":" + att.weight
 		+ ":" + att.animatorNum
 		);
-		//Debug.Log(att.headX);
 	}
 	
 	
@@ -505,6 +512,8 @@ public class GlobalController : MonoBehaviour
 		att.feetX = float.Parse(racerInfo[i]); i++;
 		att.feetY = float.Parse(racerInfo[i]); i++;
 		att.feetZ = float.Parse(racerInfo[i]); i++;
+		att.height = float.Parse(racerInfo[i]); i++;
+		att.weight = float.Parse(racerInfo[i]); i++;
 		att.animatorNum = int.Parse(racerInfo[i]); i++;
 		// -----------------
 		
@@ -544,7 +553,6 @@ public class GlobalController : MonoBehaviour
 		att.headbandRGB = headbandRGB;
 		att.sleeveRGB = sleeveRGB;
 		// -----------------
-		att.clothingManager = clothingManager;
 		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		att.setStats(PlayerAttributes.ATTRIBUTES_FROM_THIS);
@@ -562,7 +570,6 @@ public class GlobalController : MonoBehaviour
 		PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
 		att.id = PlayerAttributes.generateID(racerName);
 		att.racerName = racerName;
-		att.clothingManager = clothingManager;
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
 		att.setClothing(PlayerAttributes.ATTRIBUTES_RANDOM);
@@ -627,13 +634,14 @@ public class GlobalController : MonoBehaviour
 		newRacer.tag = "Player";
 		newRacer.SetActive(false);
 		PlayerAttributes att = newRacer.GetComponent<PlayerAttributes>();
+		att.copyAttributesFromOther(previewRacer, "body proportions");
+		att.copyAttributesFromOther(previewRacer, "clothing");
 		string name = nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text;
 		att.id = PlayerAttributes.generateID(name);
 		att.racerName = name;
-		att.clothingManager = clothingManager;
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
-		att.setClothing(PlayerAttributes.ATTRIBUTES_RANDOM);
-		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		att.setAnimatorController(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.finishTime = -1f;

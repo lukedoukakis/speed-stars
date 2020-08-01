@@ -6,11 +6,13 @@ public class PlayerAttributes : MonoBehaviour
 {
 	
 	public ClothingManager clothingManager;
-	
+	// -----------------
 	public static int DEFAULT_PATH_LENGTH = 10000;
 	// -----------------
+
 	public static int ATTRIBUTES_RANDOM = 1;
 	public static int ATTRIBUTES_FROM_THIS = 2;
+	public static int ATTRIBUTES_DEFAULT = 3;
 	// -----------------
 	
 	// id info
@@ -104,6 +106,9 @@ public class PlayerAttributes : MonoBehaviour
 	public float feetX;
 	public float feetY;
 	public float feetZ;
+	// --
+	public float height;
+	public float weight;
 	
 	// -----------------
 	
@@ -157,29 +162,32 @@ public class PlayerAttributes : MonoBehaviour
 		
 		Mesh mesh;
 		Material material;
-		int dummyMeshNum = -1;
-		int topMeshNum = -1;
-		int bottomsMeshNum = -1;
-		int shoesMeshNum = -1;
-		int socksMeshNum = -1;
-		int headbandMeshNum = -1;
-		int sleeveMeshNum = -1;
-		int dummyMaterialNum = -1;
-		int topMaterialNum = -1;
-		int bottomsMaterialNum = -1;
-		int shoesMaterialNum = -1;
-		int socksMaterialNum = -1;
-		int headbandMaterialNum = -1;
-		int sleeveMaterialNum = -1;
-		Color dummyColor = Color.white;
-		Color topColor = Color.white;
+		int dummyMeshNum = 0;
+		int topMeshNum = 0;
+		int bottomsMeshNum = 0;
+		int shoesMeshNum = 0;
+		int socksMeshNum = 0;
+		int headbandMeshNum = 0;
+		int sleeveMeshNum = 0;
+		int dummyMaterialNum = 0;
+		int topMaterialNum = 0;
+		int bottomsMaterialNum = 0;
+		int shoesMaterialNum = 0;
+		int socksMaterialNum = 0;
+		int headbandMaterialNum = 0;
+		int sleeveMaterialNum = 0;
+		Color dummyColor; ColorUtility.TryParseHtmlString(clothingManager.skinTones[Random.Range(0, clothingManager.skinTones.Length)], out dummyColor);
+		Color topColor = Color.red;
 		Color bottomsColor = Color.white;
 		Color shoesColor = Color.white;
 		Color socksColor = Color.white;
 		Color headbandColor = Color.white;
-		Color sleeveColor = Color.white;
+		Color sleeveColor = Color.red;
 		// -----------------
-		if(setting == ATTRIBUTES_FROM_THIS){
+		if(setting == ATTRIBUTES_DEFAULT){
+			// do nothing
+		}	
+		else if(setting == ATTRIBUTES_FROM_THIS){
 			// get values for meshes, materials, and colors from self
 			dummyMeshNum = this.dummyMeshNumber;
 			topMeshNum = this.topMeshNumber;
@@ -239,6 +247,7 @@ public class PlayerAttributes : MonoBehaviour
 			headbandColor = randomColors[j]; j++;
 			sleeveColor = randomColors[j]; j++;
 		}
+			
 		/*
 		int[] meshNumbers = new int[]{ dummyMeshNum, topMeshNum, bottomsMeshNum, shoesMeshNum, socksMeshNum, headbandMeshNum, sleeveMeshNum};
 		int[] materialNumbers = new int[]{ dummyMaterialNum, topMaterialNum, bottomsMaterialNum, shoesMaterialNum, socksMaterialNum, headbandMaterialNum, sleeveMaterialNum};
@@ -326,147 +335,170 @@ public class PlayerAttributes : MonoBehaviour
 	// z: depth
 	public void setBodyProportions(int setting){
 		
-		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
-			setTorsoProportions(torsoX, torsoY, torsoZ);
-			setHeadProportions(headX, headY, headZ);
-			setNeckProportions(neckX, neckY, neckZ);
-			setArmProportions(armX, armY, armZ);
-			setLegProportions(legX, legY, legZ);
-			setFeetProportions(feetX, feetY, feetZ);
-			
-			
-			
+		float headScaleX = 1f;
+		float neckScaleX = 1f;
+		float torsoScaleX = 1f;
+		float armScaleX = 1f;
+		float legScaleX = 1f;
+		float feetScaleX = 1f;
+		float headScaleY = 1f;
+		float neckScaleY = 1f;
+		float torsoScaleY = 1f;
+		float armScaleY = 1f;
+		float legScaleY = 1f;
+		float feetScaleY = 1f;
+		float headScaleZ = 1f;
+		float neckScaleZ = 1f;
+		float torsoScaleZ = 1f;
+		float armScaleZ = 1f;
+		float legScaleZ = 1f;
+		float feetScaleZ = 1f;
+		float h = 70f;
+		float w = 155f;
+		
+		if(setting == ATTRIBUTES_DEFAULT){
+			// do nothing
+		}
+		else if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
+			headScaleX = headX;
+			neckScaleX = neckX;
+			torsoScaleX = torsoX;
+			armScaleX = armX;
+			legScaleX = legX;
+			feetScaleX = feetX;
+			headScaleY = headY;
+			neckScaleY = neckY;
+			torsoScaleY =torsoY;
+			armScaleY = armY;
+			legScaleY = legY;
+			feetScaleY = feetY;
+			headScaleZ = headZ;
+			neckScaleZ = neckZ;
+			torsoScaleZ = torsoZ;
+			armScaleZ = armZ;
+			legScaleZ = legZ;
+			feetScaleZ = feetZ;
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-			float headScaleX = 1f;
-			float neckScaleX = 1f;
-			float torsoScaleX = 1f;
-			float armScaleX = 1f;
-			float legScaleX = 1f;
-			float feetScaleX = 1f;
-			float headScaleY = 1f;
-			float neckScaleY = 1f;
-			float torsoScaleY = 1f;
-			float armScaleY = 1f;
-			float legScaleY = 1f;
-			float feetScaleY = 1f;
-			float headScaleZ = 1f;
-			float neckScaleZ = 1f;
-			float torsoScaleZ = 1f;
-			float armScaleZ = 1f;
-			float legScaleZ = 1f;
-			float feetScaleZ = 1f;
 		
+			
 			// randomize torso proportions
-			float torsoLength = Random.Range(.9f, 1.1f);
-			float torsoWidth = Random.Range(.8f, 1.2f) * Mathf.Pow(torsoLength, .5f);
-			float torsoDepth = Random.Range(.95f, 1.05f) * torsoWidth;
-			setTorsoProportions(torsoLength, torsoWidth, torsoDepth);
+			torsoScaleX = Random.Range(.9f, 1.1f);
+			torsoScaleY = Random.Range(.9f, 1.1f);
+			torsoScaleZ = torsoScaleY * Random.Range(.9f, 1.1f);
 		
-			// adjust neck, head, arm proportions for torso
-			armScaleY = (1f/torsoLength) + (1f-(1f/torsoLength))*.5f;
-			neckScaleX = (1f/torsoLength);
-			headScaleX = (1f/torsoLength);
-			// --
-			armScaleX = (1f/torsoWidth) + (1f-(1f/torsoWidth))*.5f;
-			neckScaleY = (1f/torsoWidth);
-			headScaleY = (1f/torsoWidth);
-			// --
-			armScaleZ = (1f/torsoDepth) + (1f-(1f/torsoDepth))*.5f;
-			neckScaleZ = (1f/torsoDepth);
-			headScaleZ = (1f/torsoDepth);
-			// --
-			if(torsoLength < 1f){
-				headScaleX *= torsoLength;
-				headScaleY *= torsoLength;
-				headScaleZ *= torsoLength;
-			}
-			setHeadProportions(headScaleX, headScaleY, headScaleZ);
-			setNeckProportions(neckScaleX, neckScaleY, neckScaleZ);
-			setArmProportions(armScaleX, armScaleY, armScaleZ);
+			// adjust head, neck, arm, leg proportions for torso
+			neckScaleX *= (1f/torsoScaleX);
+			neckScaleY *= (1f/torsoScaleY);
+			neckScaleZ *= (1f/torsoScaleZ);
+			armScaleX *= Mathf.Pow((1f/torsoScaleY), .5f);
+			armScaleY *= Mathf.Pow(torsoScaleY, .5f);
+			armScaleZ *= Mathf.Pow(torsoScaleY, .5f);
+			legScaleX *= torsoScaleX;
+			legScaleY *= torsoScaleY;
+			legScaleZ = legScaleY;
+			
 		
 			// randomize neck, arm and leg proportions
-			setNeckProportions(Random.Range(.5f, 1.5f), Random.Range(.7f, 1.8f)*torsoWidth, torsoDepth);
-			setArmProportions(Mathf.Pow(torsoLength, .28f)*Random.Range(1f,1.02f), 1f, 1f);
-			setLegProportions(Random.Range(1f, 1.02f) * torsoLength, 1f, 1f);
+			neckScaleX *= Random.Range(.5f, 1.5f);
+			neckScaleY *= Random.Range(.8f, 1.2f);
+			neckScaleZ = neckScaleY;
+			armScaleX *= Random.Range(1f,1.02f);
+			legScaleX *= Random.Range(1f, 1.02f);
+	
 			
-			// adjust head proportion for neck
-			headScaleX = 1f / neck.localScale.x;
-			headScaleY = 1f / neck.localScale.y;
-			headScaleZ = 1f / neck.localScale.z;
-			setHeadProportions(headScaleX, headScaleY, headScaleZ);
+			
+			// adjust head proportion for neck and torso
+			headScaleX *= (1f / neckScaleX) * (1f / torsoScaleX);
+			//headScaleY *= 1f / neckScaleY;
+			//headScaleZ = 1f / neckScaleZ;
+			
 			
 			// adjust feet proportion for legs
-			setFeetProportions(2f-thighRight.localScale.x, 1f, 2f-thighRight.localScale.x);
-			
+			feetScaleX *= 2f-thighRight.localScale.x;
+			feetScaleZ *= 2f-thighRight.localScale.x;
 			// -----------------
 			
-			updateAttributes();
 		}
-
+		
+		setTorsoProportions(torsoScaleX, torsoScaleY, torsoScaleZ);
+		setHeadProportions(headScaleX, headScaleY, headScaleZ);
+		setNeckProportions(neckScaleX, neckScaleY, neckScaleZ);
+		setArmProportions(armScaleX, armScaleY, armScaleZ);
+		setLegProportions(legScaleX, legScaleY, legScaleZ);
+		setFeetProportions(feetScaleX, feetScaleY, feetScaleZ);
+		adjustHeightAndWeight();
+		
+		updateAttributes();
 		// -----------------
 
 		void setTorsoProportions(float scaleX, float scaleY, float scaleZ){
-			torso.localScale = Vector3.Scale(torso.localScale, new Vector3(scaleX, scaleY, scaleZ));
+			torso.localScale = new Vector3(scaleX, scaleY, scaleZ);
 		}
 		
 		void setHeadProportions(float scaleX, float scaleY, float scaleZ){
-			head.localScale = Vector3.Scale(head.localScale, new Vector3(scaleX, scaleY, scaleZ));
+			head.localScale = new Vector3(scaleX, scaleY, scaleZ);
 		}
 		
 		void setNeckProportions(float scaleX, float scaleY, float scaleZ){
-			neck.localScale = Vector3.Scale(neck.localScale, new Vector3(scaleX, scaleY, scaleZ));
+			neck.localScale = new Vector3(scaleX, scaleY, scaleZ);
 		}
 		
 		void setArmProportions(float scaleX, float scaleY, float scaleZ){
 			Vector3 scaleVec = new Vector3(scaleX, scaleY, scaleZ);
-			upperArmRight.localScale = Vector3.Scale(upperArmRight.localScale, scaleVec);
-			upperArmLeft.localScale = Vector3.Scale(upperArmLeft.localScale, scaleVec);
-			lowerArmRight.localScale = Vector3.Scale(lowerArmRight.localScale, scaleVec);
-			lowerArmLeft.localScale = Vector3.Scale(lowerArmLeft.localScale, scaleVec);
+			upperArmRight.localScale = scaleVec;
+			upperArmLeft.localScale = scaleVec;
+			lowerArmRight.localScale = scaleVec;
+			lowerArmLeft.localScale = scaleVec;
 		}
 		void setLegProportions(float scaleX, float scaleY, float scaleZ){
 			Vector3 scaleVec_thigh = new Vector3(scaleX, scaleY, scaleZ);
-			Vector3 scaleVec_shin = new Vector3(scaleX, 1f, 1f);
-			thighRight.localScale = Vector3.Scale(thighRight.localScale, scaleVec_thigh);
-			thighLeft.localScale = Vector3.Scale(thighLeft.localScale, scaleVec_thigh);
-			shinRight.localScale = Vector3.Scale(shinRight.localScale, scaleVec_shin);
-			shinLeft.localScale = Vector3.Scale(shinLeft.localScale, scaleVec_shin);
+			Vector3 scaleVec_shin = new Vector3(scaleX, 1f/scaleX, 1f/scaleX);
+			thighRight.localScale = scaleVec_thigh;
+			thighLeft.localScale = scaleVec_thigh;
+			shinRight.localScale = scaleVec_shin;
+			shinLeft.localScale = scaleVec_shin;
 		}
 		
 		void setFeetProportions(float scaleX, float scaleY, float scaleZ){
-			footRight.localScale = Vector3.Scale(footRight.localScale, new Vector3(scaleX, scaleY, scaleZ));
+			footRight.localScale = new Vector3(scaleX, scaleY, scaleZ);
 			footLeft.localScale = footRight.localScale;
+		}
+		
+		void adjustHeightAndWeight(){
+			h *= Mathf.Pow(torsoScaleX, .5f) * Mathf.Pow(legScaleX, .5f) * Mathf.Pow(neckScaleX, .05f);
+			w *= Mathf.Pow(h/70f, 2.48f) * Mathf.Pow(torsoScaleY*torsoScaleZ, .8f);
 		}
 		
 		// sets stats based on body proportions
 		void updateAttributes(){
-			Vector3 scale;
-			// --
-			scale = head.localScale;
-			headX = scale.x;
-			headY = scale.y;
-			headZ = scale.z;
-			scale = neck.localScale;
-			neckX = scale.x;
-			neckY = scale.y;
-			neckZ = scale.z;
-			scale = torso.localScale;
-			torsoX = scale.x;
-			torsoY = scale.y;
-			torsoZ = scale.z;
-			scale = upperArmRight.localScale;
-			armX = scale.x;
-			armY = scale.y;
-			armZ = scale.z;
-			scale = thighRight.localScale;
-			legX = scale.x;
-			legY = scale.y;
-			legZ = scale.z;
-			scale = footRight.localScale;
-			feetX = scale.x;
-			feetY = scale.y;
-			feetZ = scale.z;
+			headX = headScaleX;
+			headY = headScaleY;
+			headZ = headScaleZ;
+			neckX = neckScaleX;
+			neckY = neckScaleY;
+			neckZ = neckScaleZ;
+			torsoX = torsoScaleX;
+			torsoY = torsoScaleY;
+			torsoZ = torsoScaleZ;
+			armX = armScaleX;
+			armY = armScaleY;
+			armZ = armScaleZ;
+			legX = legScaleX;
+			legY = legScaleY;
+			legZ = legScaleZ;
+			feetX = feetScaleX;
+			feetY = feetScaleY;
+			feetZ = feetScaleZ;
+			height = h;
+			weight = w;
+			
+			int feet = (int)height / 12;
+			int inchesLeft = (int)height % 12;
+			
+			Debug.Log("Height: " + feet + "\'" + inchesLeft + "\"");
+			Debug.Log("Weight: " + weight);
+			Debug.Log("");
 		}
 	}
 	
@@ -478,7 +510,7 @@ public class PlayerAttributes : MonoBehaviour
 			
 			
 			// modify stats from leg length
-			TURNOVER = 1f + ((1f - thighRight.localScale.x) * .2f);
+			TURNOVER = 1f + ((1f - thighRight.localScale.x) * .28f);
 			KNEE_DOMINANCE = 1f * (2f - thighRight.localScale.x);
 		}	
 		
@@ -496,80 +528,142 @@ public class PlayerAttributes : MonoBehaviour
 		}	
 	}
 	
-	public void copyAttributesFromOther(GameObject other){
+	public void copyAttributesFromOther(GameObject other, string whichAttributes){
 		PlayerAttributes otherAttributes = other.GetComponent<PlayerAttributes>();
 		// -----------------
-		id = otherAttributes.id;
-		racerName = otherAttributes.racerName;
-		personalBest = otherAttributes.personalBest;
-		resultString = otherAttributes.resultString;
+		if(whichAttributes == "all"){
+			id = otherAttributes.id;
+			racerName = otherAttributes.racerName;
+			personalBest = otherAttributes.personalBest;
+			resultString = otherAttributes.resultString;
+			// -----------------
+		}
+		if(whichAttributes == "all" || whichAttributes == "stats"){
+			POWER = otherAttributes.POWER;
+			TRANSITION_PIVOT_SPEED = otherAttributes.TRANSITION_PIVOT_SPEED;
+			KNEE_DOMINANCE = otherAttributes.KNEE_DOMINANCE;
+			TURNOVER = otherAttributes.TURNOVER;
+			// -----------------
+		}
+		if(whichAttributes == "all" || whichAttributes == "ghost data"){
+			pathLength = otherAttributes.pathLength;
+			velPathY = otherAttributes.velPathY;
+			velPathZ = otherAttributes.velPathZ;
+			posPathZ = otherAttributes.posPathZ;
+			posPathY = otherAttributes.posPathY;
+			rightInputPath = otherAttributes.rightInputPath;
+			leftInputPath = otherAttributes.leftInputPath;
+			// -----------------
+		}
+		if(whichAttributes == "all" || whichAttributes == "clothing"){
+			topMeshNumber = otherAttributes.topMeshNumber;
+			bottomsMeshNumber = otherAttributes.bottomsMeshNumber;
+			shoesMeshNumber = otherAttributes.shoesMeshNumber;
+			socksMeshNumber = otherAttributes.socksMeshNumber;
+			headbandMeshNumber = otherAttributes.headbandMeshNumber;
+			sleeveMeshNumber = otherAttributes.sleeveMeshNumber;
+			topMaterialNumber = otherAttributes.topMaterialNumber;
+			bottomsMaterialNumber = otherAttributes.bottomsMaterialNumber;
+			shoesMaterialNumber = otherAttributes.shoesMaterialNumber;
+			socksMaterialNumber = otherAttributes.socksMaterialNumber;
+			headbandMaterialNumber = otherAttributes.headbandMaterialNumber;
+			sleeveMaterialNumber = otherAttributes.sleeveMaterialNumber;
+		
+			float[] RGB;
+		
+			RGB = otherAttributes.dummyRGB;
+			dummyRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+			
+			RGB = otherAttributes.topRGB;
+			topRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		
+			RGB = otherAttributes.bottomsRGB;
+			bottomsRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		
+			RGB = otherAttributes.shoesRGB;
+			shoesRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		
+			RGB = otherAttributes.socksRGB;
+			socksRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		
+			RGB = otherAttributes.headbandRGB;
+			headbandRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		
+			RGB = otherAttributes.sleeveRGB;
+			sleeveRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		}
+		if(whichAttributes == "all" || whichAttributes == "body proportions"){
+			headX = otherAttributes.headX;
+			headY = otherAttributes.headY;
+			headZ = otherAttributes.headZ;
+			neckX = otherAttributes.neckX;
+			neckY = otherAttributes.neckY;
+			neckZ = otherAttributes.neckZ;
+			torsoX = otherAttributes.torsoX;
+			torsoY = otherAttributes.torsoY;
+			torsoZ = otherAttributes.torsoZ;
+			armX = otherAttributes.armX;
+			armY = otherAttributes.armY;
+			armZ = otherAttributes.armZ;
+			legX = otherAttributes.legX;
+			legY = otherAttributes.legY;
+			legZ = otherAttributes.legZ;
+			feetX = otherAttributes.feetX;
+			feetY = otherAttributes.feetY;
+			feetZ = otherAttributes.feetZ;
+			height = otherAttributes.height;
+			weight = otherAttributes.weight;
+			// -----------------
+			animatorNum = otherAttributes.animatorNum;
+		}
+	}
+	
+	public void renderInForeground(){
+		Material m;
+		Color c;
+		Shader s = clothingManager.shader_renderOnTop;
 		// -----------------
-		POWER = otherAttributes.POWER;
-		TRANSITION_PIVOT_SPEED = otherAttributes.TRANSITION_PIVOT_SPEED;
-		KNEE_DOMINANCE = otherAttributes.KNEE_DOMINANCE;
-		TURNOVER = otherAttributes.TURNOVER;
-		// -----------------
-		pathLength = otherAttributes.pathLength;
-		velPathY = otherAttributes.velPathY;
-		velPathZ = otherAttributes.velPathZ;
-		posPathZ = otherAttributes.posPathZ;
-		posPathY = otherAttributes.posPathY;
-		rightInputPath = otherAttributes.rightInputPath;
-		leftInputPath = otherAttributes.leftInputPath;
-		// -----------------
-		topMeshNumber = otherAttributes.topMeshNumber;
-		bottomsMeshNumber = otherAttributes.bottomsMeshNumber;
-		shoesMeshNumber = otherAttributes.shoesMeshNumber;
-		socksMeshNumber = otherAttributes.socksMeshNumber;
-		headbandMeshNumber = otherAttributes.headbandMeshNumber;
-		sleeveMeshNumber = otherAttributes.sleeveMeshNumber;
-		topMaterialNumber = otherAttributes.topMaterialNumber;
-		bottomsMaterialNumber = otherAttributes.bottomsMaterialNumber;
-		shoesMaterialNumber = otherAttributes.shoesMaterialNumber;
-		socksMaterialNumber = otherAttributes.socksMaterialNumber;
-		headbandMaterialNumber = otherAttributes.headbandMaterialNumber;
-		sleeveMaterialNumber = otherAttributes.sleeveMaterialNumber;
+		m = smr_dummy.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_dummy.materials[0] = m;
 		
-		float[] RGB;
+		m = smr_top.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_top.materials[0] = m;
 		
-		RGB = otherAttributes.dummyRGB;
-		dummyRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		m = smr_bottoms.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_bottoms.materials[0] = m;
 		
-		RGB = otherAttributes.topRGB;
-		topRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		m = smr_shoes.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_shoes.materials[0] = m;
 		
-		RGB = otherAttributes.bottomsRGB;
-		bottomsRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		m = smr_socks.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_socks.materials[0] = m;
 		
-		RGB = otherAttributes.shoesRGB;
-		shoesRGB = new float[]{RGB[0], RGB[1], RGB[2]};
+		m = smr_headband.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_headband.materials[0] = m;
 		
-		RGB = otherAttributes.socksRGB;
-		socksRGB = new float[]{RGB[0], RGB[1], RGB[2]};
-		
-		RGB = otherAttributes.headbandRGB;
-		headbandRGB = new float[]{RGB[0], RGB[1], RGB[2]};
-		
-		RGB = otherAttributes.sleeveRGB;
-		sleeveRGB = new float[]{RGB[0], RGB[1], RGB[2]};
-		// -----------------
-		headX = otherAttributes.headX;
-		headY = otherAttributes.headY;
-		headZ = otherAttributes.headZ;
-		neckX = otherAttributes.neckX;
-		neckY = otherAttributes.neckY;
-		neckZ = otherAttributes.neckZ;
-		torsoX = otherAttributes.torsoX;
-		torsoY = otherAttributes.torsoY;
-		torsoZ = otherAttributes.torsoZ;
-		armX = otherAttributes.armX;
-		armY = otherAttributes.armY;
-		armZ = otherAttributes.armZ;
-		legX = otherAttributes.legX;
-		legY = otherAttributes.legY;
-		legZ = otherAttributes.legZ;
-		// -----------------
-		animatorNum = otherAttributes.animatorNum;
+		m = smr_sleeve.materials[0];
+		c = m.color;
+		m.shader = s;
+		m.color = c;
+		smr_sleeve.materials[0] = m;
 	}
 	
 

@@ -496,9 +496,11 @@ public class PlayerAttributes : MonoBehaviour
 			int feet = (int)height / 12;
 			int inchesLeft = (int)height % 12;
 			
+			/*
 			Debug.Log("Height: " + feet + "\'" + inchesLeft + "\"");
 			Debug.Log("Weight: " + weight);
 			Debug.Log("");
+			*/
 		}
 	}
 	

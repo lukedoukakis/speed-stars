@@ -6,18 +6,19 @@ using UnityEngine.UI;
 
 public class RaceManager : MonoBehaviour
 {
-	
-	public static int LIVE_MODE = 1;
-	public static int REPLAY_MODE = 2;
+	public static int RACE_EVENT_100M = 0;
+	public static int RACE_EVENT_110MH = 1;
 	// -----------------
+	public static int VIEW_MODE_LIVE = 0;
+	public static int VIEW_MODE_REPLAY = 1;
+	// -----------------
+	
 	public GlobalController gc;
 	public Countdowner countdowner;
 	public Text resultsText;
 	// -----------------
-	public GameObject startingBlockPrefab;
-	public List<GameObject> startingBlocks;
-	// -----------------
-	public int raceMode;
+	public int raceEvent;
+	public int viewMode;
 	public int raceStatus;
 		public static int STATUS_MARKS = 1;
 		public static int STATUS_SET = 2;
@@ -41,8 +42,17 @@ public class RaceManager : MonoBehaviour
 	public GameObject RacersFieldParent;
 	public GameObject focusRacer;
 	// -----------------
+	public GameObject track;
+	public GameObject[] startingBlocks_100m;
+	public GameObject[] startingBlocks_110mH;
+	public GameObject[] startingBlocks;
+	public GameObject startingLine_100m;
+	public GameObject startingLine_110mH;
 	public GameObject startingLine;
 	public GameObject finishLine;
+	public GameObject hurdlesSetPrefab;
+	public GameObject hurdlesSet;
+	// -----------------
 	public Text speedometer;
 	public Text clock;
 		TimeSpan timeSpan;
@@ -85,7 +95,7 @@ public class RaceManager : MonoBehaviour
 		
 		GameObject racer;
 		Vector3 racerPos;
-		if(raceMode == RaceManager.LIVE_MODE){
+		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			for(int i = 0; i < racers.Count; i++){
 				racer = racers[i];
 				if(racer.tag != "Player"){
@@ -137,7 +147,7 @@ public class RaceManager : MonoBehaviour
     }
 	
 	
-	public List<GameObject> setupRace(List<GameObject> backEndRacers, int mode){
+	public List<GameObject> setupRace(List<GameObject> backEndRacers, int raceEvent, int viewMode){
 		resultsText.text = "100m Dash Finals\n==========================\nWorld Record: 9.58 U. Bolt\nLocal Record: x.xx N. Name\n==========================\n\nFinals";
 		// -----------------
 		racers_backEnd = backEndRacers;
@@ -145,7 +155,8 @@ public class RaceManager : MonoBehaviour
 		bots = new List<GameObject>();
 		ghosts = new List<GameObject>();
 		// -----------------
-		raceMode = mode;
+		this.raceEvent = raceEvent;
+		this.viewMode = viewMode;
 		fStart = false;
 		raceStarted = false;
 		raceTime = 0f;
@@ -162,7 +173,7 @@ public class RaceManager : MonoBehaviour
 		// -----------------
 		GameObject racer;
 
-		if(raceMode == LIVE_MODE){
+		if(viewMode == VIEW_MODE_LIVE){
 			// calculate bot difficulty and set player
 			for(int i = 0; i < racers_backEnd.Count; i++){
 				racer = racers_backEnd[i];
@@ -173,7 +184,7 @@ public class RaceManager : MonoBehaviour
 				}
 			}
 		}
-		else if(raceMode == REPLAY_MODE){
+		else if(viewMode == VIEW_MODE_REPLAY){
 			
 		}
 		// -- set up racers field
@@ -215,7 +226,7 @@ public class RaceManager : MonoBehaviour
 				botCount++;
 			}
 			else if(racer.tag == "Ghost"){
-				if(raceMode == LIVE_MODE){
+				if(viewMode == VIEW_MODE_LIVE){
 					//setTransparency(racer, transparency_ghost_base);
 				}
 				racer.GetComponent<PlayerAnimationV2>().setPositionAndVelocity(raceTick);
@@ -226,15 +237,35 @@ public class RaceManager : MonoBehaviour
 			racers.Add(racer);
 		}
 		// -----------------
-		if(raceMode == LIVE_MODE){
+		if(raceEvent == RACE_EVENT_100M){
+			startingLine = startingLine_100m;
+			startingBlocks = startingBlocks_100m;
+			
+			if(hurdlesSet != null){
+				Destroy(hurdlesSet);
+				hurdlesSet = null;
+			}
+		}
+		else if(raceEvent == RACE_EVENT_110MH){
+			startingLine = startingLine_110mH;
+			startingBlocks = startingBlocks_110mH;
+			
+			Debug.Log("replacing hurdles");
+			if(hurdlesSet != null){ Destroy(hurdlesSet); }
+			hurdlesSet = Instantiate(hurdlesSetPrefab);
+			hurdlesSet.transform.position = track.transform.position;
+			hurdlesSet.transform.SetParent(track.transform);
+			hurdlesSet.SetActive(true);
+		}
+		if(viewMode == VIEW_MODE_LIVE){
 			focusRacer = player;
 		}
-		else if(raceMode == REPLAY_MODE){
+		else if(viewMode == VIEW_MODE_REPLAY){
 			focusRacer = racers[gc.playerIndex];
 		}
 		// -----------------
 		assignLanes(racers);
-		placeStartingBlocks(racers);
+		showStartingBlocks(racers);
 		setRenderQueues(racers);
 		
 		resetClock();
@@ -265,7 +296,7 @@ public class RaceManager : MonoBehaviour
 	}
 	
 	void assignLanes(List<GameObject> racers){
-		if(raceMode == LIVE_MODE){
+		if(viewMode == VIEW_MODE_LIVE){
 			PlayerAttributes att;
 			PlayerAnimationV2 anim;
 			for(int i = 0; i < racers.Count; i++){
@@ -285,11 +316,11 @@ public class RaceManager : MonoBehaviour
 					att.personalBest = -1f;
 				}
 				att.lane = lanes[i];
-				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
+				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.6f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
 				racer.transform.position = racerPos;
 			}
 		}
-		else if(raceMode == REPLAY_MODE){
+		else if(viewMode == VIEW_MODE_REPLAY){
 			GameObject racer;
 			for(int i = 0; i < racers.Count; i++){
 				racer = racers[i];
@@ -300,9 +331,17 @@ public class RaceManager : MonoBehaviour
 		}
 	}
 	
-	void placeStartingBlocks(List<GameObject> racers){
+	void showStartingBlocks(List<GameObject> racers){
+		for(int i = 0; i < startingBlocks.Length; i++){
+			startingBlocks_100m[i].SetActive(false);
+			startingBlocks_110mH[i].SetActive(false);
+			
+		}
+		// -----------------
+		PlayerAttributes att;
 		for(int i = 0; i < racers.Count; i++){
-			placeStartingBlock(racers[i]);
+			att = racers[i].GetComponent<PlayerAttributes>();
+			startingBlocks[att.lane-1].SetActive(true);
 		}
 	}
 	
@@ -327,23 +366,6 @@ public class RaceManager : MonoBehaviour
 		}
 	}
 	
-	void placeStartingBlock(GameObject racer){
-		Vector3 racerPos = racer.transform.position;
-		Vector3 blockPos = racerPos + new Vector3(0f,-.8f,-.8f);
-		
-		
-		GameObject startingBlock = Instantiate(startingBlockPrefab);
-		startingBlock.transform.position = blockPos;
-		GameObject rightPedal = startingBlock.transform.Find("Block Pedal Right").gameObject;
-		GameObject leftPedal = startingBlock.transform.Find("Block Pedal Left").gameObject;
-		
-		rightPedal.transform.position += Vector3.back * .09f;
-		leftPedal.transform.position += Vector3.forward * .213f;
-							
-		startingBlocks.Add(startingBlock);
-		
-	}
-	
 	public void setOffRacers(){
 		if(!fStart){
 			raceStatus = STATUS_GO;
@@ -364,7 +386,7 @@ public class RaceManager : MonoBehaviour
 			gc.endRace();
 		}
 		else{
-			if(raceMode == LIVE_MODE){
+			if(viewMode == VIEW_MODE_LIVE){
 				anim = player.GetComponent<PlayerAnimationV2>();
 				anim.readInput(raceTick);
 				anim.applyInput(raceTick);
@@ -400,7 +422,7 @@ public class RaceManager : MonoBehaviour
 		// -----------------
 		if(racer == focusRacer){
 			focusRacerFinished = true;
-			if(raceMode == LIVE_MODE){
+			if(viewMode == VIEW_MODE_LIVE){
 				gc.setCameraFocus(finishLine, CameraController.CAMERA_MODE_SIDESCROLL);
 				if((raceTime < att.personalBest) || (att.personalBest == -1f)){
 					att.resultTag = "<color=red>PB</color>";
@@ -436,7 +458,7 @@ public class RaceManager : MonoBehaviour
 			yield return null;
 		}
 		Time.timeScale = 1f;
-		gc.startRace(LIVE_MODE);
+		gc.startRace(raceEvent, VIEW_MODE_LIVE);
 		
 	}
 	
@@ -473,7 +495,6 @@ public class RaceManager : MonoBehaviour
 	public void quitRace(){
 		focusRacer = startingLine;
 		gc.clearListAndObjects(racers);
-		gc.clearListAndObjects(startingBlocks);
 		gc.goStartScreen();
 	}
 	

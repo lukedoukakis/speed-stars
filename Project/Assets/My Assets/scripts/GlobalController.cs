@@ -55,6 +55,7 @@ public class GlobalController : MonoBehaviour
 	public List<GameObject> racers;
 	
 	// scene
+	public int selectedRaceEvent;
 	public GameObject startingLine;
 	public GameObject finishLine;
 	
@@ -65,6 +66,10 @@ public class GlobalController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+		
+		//
+		selectedRaceEvent = RaceManager.RACE_EVENT_110MH;
+		
 		racers_backEnd = new List<GameObject>();
 		racers_backEnd_replay = new List<GameObject>();
 		racers = new List<GameObject>();
@@ -236,38 +241,41 @@ public class GlobalController : MonoBehaviour
 	//-----------------------------------------------------------------------------------------------------------
 	public void startRaceAsLive(){
 		Time.timeScale = 1f;
-		startRace(RaceManager.LIVE_MODE);
+		startRace(selectedRaceEvent, RaceManager.VIEW_MODE_LIVE);
 	}
 	public void startRaceAsReplay(){
-		if(raceManager.raceMode != RaceManager.REPLAY_MODE){
+		if(raceManager.viewMode != RaceManager.VIEW_MODE_REPLAY){
 			taskManager.addTask(TaskManager.SETUP_REPLAY);
 		}
-		startRace(RaceManager.REPLAY_MODE);
+		startRace(selectedRaceEvent, RaceManager.VIEW_MODE_REPLAY);
 	}
-	public void startRace(int mode){
-		if(mode == RaceManager.LIVE_MODE){
+	public void startRace(int raceEvent, int viewMode){
+		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			//fillRemainingSpotsWithBots();
 		}
-		else if(mode == RaceManager.REPLAY_MODE){
+		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			
 		}
 		goCountDownScreen();
-		StartCoroutine(setupRaceWhenReady(mode));
+		StartCoroutine(setupRaceWhenReady(raceEvent, viewMode));
 	}
-	IEnumerator setupRaceWhenReady(int mode){
+	IEnumerator setupRaceWhenReady(int raceEvent, int viewMode){
 		yield return new WaitUntil(() => taskManager.tasks.Count == 0);
 		clearListAndObjects(racers);
-		clearListAndObjects(raceManager.startingBlocks);
-		// --
+		// -----------------
+		List<GameObject> backEndRacers = new List<GameObject>();
 		int cameraMode = 0;
-		if(mode == RaceManager.LIVE_MODE){
-			racers = raceManager.setupRace(racers_backEnd, mode);
+		// --
+		if(viewMode == RaceManager.VIEW_MODE_LIVE){
+			backEndRacers = racers_backEnd;
 			cameraMode = CameraController.CAMERA_MODE_SIDESCROLL;
 		}
-		else if(mode == RaceManager.REPLAY_MODE){
-			racers = raceManager.setupRace(racers_backEnd_replay, mode);
+		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
+			backEndRacers = racers_backEnd_replay;
 			cameraMode = CameraController.CAMERA_MODE_TV;
 		}
+		// --
+		racers = raceManager.setupRace(backEndRacers, raceEvent, viewMode);
 		setCameraFocus(raceManager.focusRacer, cameraMode);
 	}
 	//-----------------------------------------------------------------------------------------------------------
@@ -758,7 +766,6 @@ public class GlobalController : MonoBehaviour
 		clearListAndObjects(racers);
 		clearListAndObjects(racers_backEnd);
 		clearListAndObjects(racers_backEnd_replay);
-		clearListAndObjects(raceManager.startingBlocks);
 	}
 	
 

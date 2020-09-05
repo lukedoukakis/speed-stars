@@ -11,6 +11,10 @@ TagManager:
   - Bot
   - Bot (Back End)
   - Chest
+  - Runner
+  - Adjuster
+  - GroundCurve
+  - Foot
   layers:
   - Default
   - TransparentFX

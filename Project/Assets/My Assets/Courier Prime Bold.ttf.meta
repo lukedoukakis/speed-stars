@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 2a806203d1a3be948af11018b110efbc
+guid: d045b393540c1db44bd2856120898c1e
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -11,7 +11,14 @@ TrueTypeFontImporter:
   fontName: Courier Prime
   fontNames:
   - Courier Prime
-  fallbackFontReferences: []
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 3e8511a13ef8b8d448c46a691611fd42, type: 3}
+  - {fileID: 12800000, guid: 0ed32192dbc491a429d22c06f3a17153, type: 3}
+  - {fileID: 12800000, guid: 612c1dd2722e9d94ab9101368d0b4312, type: 3}
+  - {fileID: 12800000, guid: 2a806203d1a3be948af11018b110efbc, type: 3}
+  - {fileID: 12800000, guid: 99b4ae13abc4c084285231a14b0f6801, type: 3}
+  - {fileID: 12800000, guid: c2b714c52b3a95644a3e79cbfd625239, type: 3}
+  - {fileID: 12800000, guid: c1d2662a30147034db32d75ea04de16f, type: 3}
   customCharacters: 
   fontRenderingMode: 0
   ascentCalculationMode: 1

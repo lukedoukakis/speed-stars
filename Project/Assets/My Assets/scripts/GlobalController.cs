@@ -4,15 +4,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
 
 public class GlobalController : MonoBehaviour
 {
+	
+	
+	bool write;
+	
 	
 	public static string PLAYABLE_RACER_MEMORY = "PLAYABLE RACER IDS";
 	public static string SAVED_RACER_MEMORY = "SAVED RACER IDS";
 	
 	
 	public CameraController gameCamera;
+	public AudioSource musicSource;
 	
 	// UI
 	public GameObject canvas;
@@ -24,6 +30,7 @@ public class GlobalController : MonoBehaviour
 		bool SetupScreenActive;
 	public GameObject CharacterCreatorScreen;
 		public GameObject previewRacer;
+		public GameObject newRacerButton;
 		bool CharacterCreatorScreenActive;
 		public GameObject nameInputField;
 	public GameObject CountdownScreen;
@@ -45,6 +52,7 @@ public class GlobalController : MonoBehaviour
 	public Countdowner countdowner;
 		public Text countdownText;
 	public RaceManager raceManager;
+	public SetupManager setupManager;
 	
 	// racers
 	public GameObject racerPrefab;
@@ -56,8 +64,6 @@ public class GlobalController : MonoBehaviour
 	
 	// scene
 	public int selectedRaceEvent;
-	public GameObject startingLine;
-	public GameObject finishLine;
 	
 	// finish screen ghost
 	public List<int> checkedRacerIndexes;
@@ -67,17 +73,20 @@ public class GlobalController : MonoBehaviour
     void Start()
     {
 		
-		//
-		selectedRaceEvent = RaceManager.RACE_EVENT_110MH;
+		write = false;
+		
+		musicSource.Play(0);
+		
+		Application.targetFrameRate = 20;
 		
 		racers_backEnd = new List<GameObject>();
 		racers_backEnd_replay = new List<GameObject>();
 		racers = new List<GameObject>();
 		// -----------------
-		playerSelectButtonList.init(PLAYABLE_RACER_MEMORY, 1, true);
+		playerSelectButtonList.init(RaceManager.RACE_EVENT_100M, PLAYABLE_RACER_MEMORY, 1, 1, true, true);
 		playableRacerIDs = PlayerPrefs.GetString("PLAYABLE RACER IDS").Split(':').ToList();
 		
-		ghostSelectButtonList.init(SAVED_RACER_MEMORY, 7, false);
+		ghostSelectButtonList.init(RaceManager.RACE_EVENT_100M, SAVED_RACER_MEMORY, 7, 0, false, false);
 		savedRacerIDs = PlayerPrefs.GetString("SAVED RACER IDS").Split(':').ToList();
 		// -----------------
 		previewRacer.GetComponent<PlayerAttributes>().renderInForeground();
@@ -103,6 +112,9 @@ public class GlobalController : MonoBehaviour
 		}
 		if(Input.GetKeyUp(KeyCode.Y)){
 			Time.timeScale += .1f;
+		}
+		if(Input.GetKeyUp(KeyCode.W)){
+			write = true;
 		}
 		
 		
@@ -130,7 +142,7 @@ public class GlobalController : MonoBehaviour
 	public void goStartScreen(){
 		//Debug.Log("Going to start screen");
 		StartCoroutine(screenTransition("Start Screen", false));
-		setCameraFocus(startingLine, CameraController.CAMERA_MODE_CINEMATIC);
+		setCameraFocus(raceManager.startingLines_100m[4], CameraController.CAMERA_MODE_CINEMATIC);
 	}
 	
 	public void goSetupScreen(){
@@ -157,7 +169,7 @@ public class GlobalController : MonoBehaviour
 		//Debug.Log("Going to race screen");
 		StartCoroutine(screenTransition("Race Screen", true));
 		// -----------------
-		StartCoroutine(wait(.01f));
+		raceManager.focusRacer.GetComponent<RacerAudio>().playSound("Starting Gun");
 		raceManager.setOffRacers();
 	}
 	
@@ -204,6 +216,7 @@ public class GlobalController : MonoBehaviour
 			case "Setup Screen" :
 				SetupScreen.SetActive(true);
 				SetupScreenActive = true;
+				SetupScreen.GetComponent<SetupManager>().moveUIElement("center");
 				break;	
 			case "Character Creator Screen" :
 				CharacterCreatorScreen.SetActive(true);
@@ -239,6 +252,7 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
+	
 	public void startRaceAsLive(){
 		Time.timeScale = 1f;
 		startRace(selectedRaceEvent, RaceManager.VIEW_MODE_LIVE);
@@ -251,7 +265,7 @@ public class GlobalController : MonoBehaviour
 	}
 	public void startRace(int raceEvent, int viewMode){
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
-			//fillRemainingSpotsWithBots();
+			addBots(setupManager.botCount - raceManager.botCount);
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			
@@ -286,6 +300,7 @@ public class GlobalController : MonoBehaviour
 		if(raceManager.playerPB){
 			taskManager.addTask(TaskManager.SAVE_PLAYER);
 		}
+		gameCamera.setFieldOfView(CameraController.FOV_STANDARD);
 	}
 	
 	
@@ -329,7 +344,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void saveRacer(GameObject racer, string[] targetMemoryLocations, bool forReplay){
+	public void saveRacer(GameObject racer, int raceEvent, string[] targetMemoryLocations, bool forReplay){
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		string id = att.id;
 		if(forReplay){
@@ -356,16 +371,22 @@ public class GlobalController : MonoBehaviour
 		}
 		// -----------------
 		// paths
-		string vY, vZ, pY, pZ, r, l;
-		vY = vZ = pY = pZ = r = l = "";
-		int length = att.pathLength;
-		for(int i = 0; i < length; i++){
+		string vM, vX, vY, vZ, pX, pY, pZ, r, l, s1P, s2P;
+		vM = vX = vY = vZ = pX = pY = pZ = r = l = s1P = s2P = "";
+		int pLength = att.pathLength;
+		Debug.Log("path length: " + pLength);
+		for(int i = 0; i < pLength; i++){
+			vM += att.velMagPath[i].ToString() + ",";
+			vX += att.velPathX[i].ToString() + ",";
 			vY += att.velPathY[i].ToString() + ",";
 			vZ += att.velPathZ[i].ToString() + ",";
+			pX += att.posPathX[i].ToString() + ",";
 			pY += att.posPathY[i].ToString() + ",";
 			pZ += att.posPathZ[i].ToString() + ",";
 			r += att.rightInputPath[i].ToString() + ",";
 			l += att.leftInputPath[i].ToString() + ",";
+			s1P += att.sphere1Prog[i].ToString() + ",";
+			s2P += att.sphere2Prog[i].ToString() + ",";
 		}
 		// -----------------
 		// clothing
@@ -383,38 +404,59 @@ public class GlobalController : MonoBehaviour
 		
 		
 		// -----------------
+		int[] raceEvents = new int[0];
+		if(raceEvent == -1){
+			raceEvents = new int[3]{0,1,2};
+		}
+		else{
+			raceEvents = new int[1]{raceEvent};
+		}
+		for(int i = 0; i < raceEvents.Length; i++){
+			int _raceEvent = raceEvents[i];
+			// -----------------
+			PlayerPrefs.SetString(id+"_pathsForEvent "+_raceEvent,
+				pLength
+			+ ":" +	vM
+			+ ":" + vX
+			+ ":" + vY
+			+ ":" + vZ
+			+ ":" + pX
+			+ ":" + pY
+			+ ":" + pZ
+			+ ":" + r
+			+ ":" + l
+			+ ":" + s1P
+			+ ":" + s2P
+			);
+		}
 		PlayerPrefs.SetString(id,
 				id
 		+ ":" + att.racerName
-		+ ":" + att.finishTime.ToString()
-		+ ":" + att.personalBest.ToString()
+		+ ":" + att.finishTime
+		+ ":" + att.personalBests[0]
+		+ ":" + att.personalBests[1]
+		+ ":" + att.personalBests[2]
 		+ ":" + att.resultString
-		+ ":" + att.POWER.ToString()
-		+ ":" + att.TRANSITION_PIVOT_SPEED.ToString()
-		+ ":" + att.QUICKNESS.ToString()
-		+ ":" + att.KNEE_DOMINANCE.ToString()
-		+ ":" + att.TURNOVER.ToString()
-		+ ":" + att.pathLength.ToString()
-		+ ":" + vY
-		+ ":" + vZ
-		+ ":" + pY
-		+ ":" + pZ
-		+ ":" + r
-		+ ":" + l
-		+ ":" + att.dummyMeshNumber.ToString()
-		+ ":" + att.topMeshNumber.ToString()
-		+ ":" + att.bottomsMeshNumber.ToString()
-		+ ":" + att.shoesMeshNumber.ToString()
-		+ ":" + att.socksMeshNumber.ToString()
-		+ ":" + att.headbandMeshNumber.ToString()
-		+ ":" + att.sleeveMeshNumber.ToString()
-		+ ":" + att.dummyMaterialNumber.ToString()
-		+ ":" + att.topMaterialNumber.ToString()
-		+ ":" + att.bottomsMaterialNumber.ToString()
-		+ ":" + att.shoesMaterialNumber.ToString()
-		+ ":" + att.socksMaterialNumber.ToString()
-		+ ":" + att.headbandMaterialNumber.ToString()
-		+ ":" + att.sleeveMaterialNumber.ToString()
+		+ ":" + att.POWER
+		+ ":" + att.TRANSITION_PIVOT_SPEED
+		+ ":" + att.QUICKNESS
+		+ ":" + att.KNEE_DOMINANCE
+		+ ":" + att.TURNOVER
+		+ ":" + att.FITNESS
+		+ ":" + att.dummyMeshNumber
+		+ ":" + att.topMeshNumber
+		+ ":" + att.bottomsMeshNumber
+		+ ":" + att.shoesMeshNumber
+		+ ":" + att.socksMeshNumber
+		+ ":" + att.headbandMeshNumber
+		+ ":" + att.sleeveMeshNumber
+		+ ":" + att.dummyMaterialNumber
+		+ ":" + att.topMaterialNumber
+		+ ":" + att.bottomsMaterialNumber
+		+ ":" + att.shoesMaterialNumber
+		+ ":" + att.socksMaterialNumber
+		+ ":" + att.headbandMaterialNumber
+		+ ":" + att.sleeveMaterialNumber
 		+ ":" + dummyColor
 		+ ":" + topColor
 		+ ":" + bottomsColor
@@ -446,8 +488,12 @@ public class GlobalController : MonoBehaviour
 		);
 	}
 	
+	public void printAtt(){
+		
+	}
 	
-	public GameObject loadRacer(string id, string asTag, bool forReplay){
+	
+	public GameObject loadRacer(string id, int raceEvent, string asTag, bool forReplay){
 		// -----------------
 		GameObject racer = Instantiate(racerPrefab);
 		racer.tag = asTag;
@@ -456,31 +502,41 @@ public class GlobalController : MonoBehaviour
 		if(forReplay){
 			id += "_REPLAY";
 		}
+		
+		att.personalBests = new float[3];
 		string[] racerInfo = PlayerPrefs.GetString(id).Split(':');
-		/*
-		for(int i = 0; i < racerInfo.Length; i++){
-			Debug.Log("racerInfo[" + i + "]: " + racerInfo[i]);
-		}
-		*/
-		int i = 0;
+		string[] pathInfo = PlayerPrefs.GetString(id+"_pathsForEvent "+raceEvent).Split(':');
+		int i;
 		// -----------------
+		
+		i = 0;
+		att.pathLength = int.Parse(pathInfo[i]); i++;
+		string[] vM = pathInfo[i].Split(','); i++;
+		string[] vX = pathInfo[i].Split(','); i++;
+		string[] vY = pathInfo[i].Split(','); i++;
+		string[] vZ = pathInfo[i].Split(','); i++;
+		string[] pX = pathInfo[i].Split(','); i++;
+		string[] pY = pathInfo[i].Split(','); i++;
+		string[] pZ = pathInfo[i].Split(','); i++;
+		string[] r = pathInfo[i].Split(','); i++;
+		string[] l = pathInfo[i].Split(','); i++;
+		string[] s1P = pathInfo[i].Split(','); i++;
+		string[] s2P = pathInfo[i].Split(','); i++;
+		
+		i = 0;
 		att.id = racerInfo[i]; i++;
 		att.racerName = racerInfo[i]; i++;
 		att.finishTime = float.Parse(racerInfo[i]); i++;
-		att.personalBest = float.Parse(racerInfo[i]); i++;
+		att.personalBests[0] = float.Parse(racerInfo[i]); i++;
+		att.personalBests[1] = float.Parse(racerInfo[i]); i++;
+		att.personalBests[2] = float.Parse(racerInfo[i]); i++;
 		att.resultString = racerInfo[i]; i++;
 		att.POWER = float.Parse(racerInfo[i]); i++;
 		att.TRANSITION_PIVOT_SPEED = float.Parse(racerInfo[i]); i++;
 		att.QUICKNESS = float.Parse(racerInfo[i]); i++;
 		att.KNEE_DOMINANCE = float.Parse(racerInfo[i]); i++;
 		att.TURNOVER = float.Parse(racerInfo[i]); i++;
-		att.pathLength = int.Parse(racerInfo[i]); i++;
-		string[] vY = racerInfo[i].Split(','); i++;
-		string[] vZ = racerInfo[i].Split(','); i++;
-		string[] pY = racerInfo[i].Split(','); i++;
-		string[] pZ = racerInfo[i].Split(','); i++;
-		string[] r = racerInfo[i].Split(','); i++;
-		string[] l = racerInfo[i].Split(','); i++;
+		att.FITNESS = float.Parse(racerInfo[i]); i++;
 		att.dummyMeshNumber = int.Parse(racerInfo[i]); i++;
 		att.topMeshNumber = int.Parse(racerInfo[i]); i++;
 		att.bottomsMeshNumber = int.Parse(racerInfo[i]); i++;
@@ -528,10 +584,15 @@ public class GlobalController : MonoBehaviour
 		// paths
 		att.setPaths(att.pathLength + 500);
 		for(int j = 0; j < att.pathLength; j++){
+			att.velMagPath[j] = float.Parse(vM[j]);
+			att.velPathX[j] = float.Parse(vX[j]);
 			att.velPathY[j] = float.Parse(vY[j]);
 			att.velPathZ[j] = float.Parse(vZ[j]);
+			att.posPathX[j] = float.Parse(pX[j]);
 			att.posPathY[j] = float.Parse(pY[j]);
 			att.posPathZ[j] = float.Parse(pZ[j]);
+			att.sphere1Prog[j] = float.Parse(s1P[j]);
+			att.sphere2Prog[j] = float.Parse(s2P[j]);
 			att.rightInputPath[j] = int.Parse(r[j]);
 			att.leftInputPath[j] = int.Parse(l[j]);
 		}
@@ -570,7 +631,7 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	
-	public GameObject loadNewBot(string racerName){
+	public GameObject loadNewBot(string racerName, int preset){
 		GameObject bot = Instantiate(racerPrefab);
 		bot.tag = "Bot (Back End)";
 		bot.transform.SetParent(raceManager.RacersBackEndParent.transform);
@@ -580,24 +641,38 @@ public class GlobalController : MonoBehaviour
 		att.racerName = racerName;
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
-		att.setClothing(PlayerAttributes.ATTRIBUTES_RANDOM);
-		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
-		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
-		att.setAnimatorController(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setClothing(preset);
+		att.setBodyProportions(preset);
+		att.setStats(preset);
+		att.setAnimatorController(preset);
 		bot.AddComponent<Bot_AI>();
 		
 		return bot;
 	}
 	
-	public void fillRemainingSpotsWithBots(){
+	public void addBots(int _numOfBots){
+		
 		GameObject bot;
-		int count = 8 - racers_backEnd.Count;
+		int count = _numOfBots;
 		for(int i = 0; i < count; i++){
-			bot = loadNewBot("Bot " + (i).ToString());
+			bot = loadNewBot("Bot " + (i).ToString(), PlayerAttributes.ATTRIBUTES_RANDOM);
 			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
-			bot.GetComponent<PlayerAttributes>().personalBest = -1f;
+			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
 			racers_backEnd.Add(bot);
 		}
+		
+		
+		/*
+		// all same bot
+		GameObject bot;
+		bot = loadNewBot("Bot Clone");
+		bot.GetComponent<PlayerAttributes>().finishTime = -1f;
+		bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
+		int count = 8 - racers_backEnd.Count;
+		for(int i = 0; i < count; i++){
+			racers_backEnd.Add(bot);
+		}
+		*/
 	}
 	
 	
@@ -653,12 +728,12 @@ public class GlobalController : MonoBehaviour
 		att.setAnimatorController(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.finishTime = -1f;
-		att.personalBest = -1f;
+		att.personalBests = new float[]{-1f, -1f, -1f};
 		// -----------------
-		saveRacer(newRacer, new string[]{PLAYABLE_RACER_MEMORY}, false);
+		saveRacer(newRacer, -1, new string[]{PLAYABLE_RACER_MEMORY}, false);
 		Destroy(newRacer);
 		// -----------------
-		GameObject b = playerSelectButtonList.GetComponent<SelectionListScript>().addButton(att.id);
+		GameObject b = playerSelectButtonList.GetComponent<SelectionListScript>().addButton(att.id, selectedRaceEvent);
 		b.GetComponent<SelectionButtonScript>().toggle();
 	}
 	
@@ -668,8 +743,8 @@ public class GlobalController : MonoBehaviour
 		GameObject b;
 		// -----------------
 		playerSelectButtonList.removeButton(id);
-		saveRacer(raceManager.player, new string[]{PLAYABLE_RACER_MEMORY, SAVED_RACER_MEMORY}, false);
-		b = playerSelectButtonList.addButton(id);
+		saveRacer(raceManager.player, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY, SAVED_RACER_MEMORY}, false);
+		b = playerSelectButtonList.addButton(id, selectedRaceEvent);
 		b.GetComponent<SelectionButtonScript>().toggle();
 		// -----------------
 		bool selected = false;
@@ -677,7 +752,7 @@ public class GlobalController : MonoBehaviour
 			selected = ghostSelectButtonList.getButton(id).GetComponent<SelectionButtonScript>().selected;
 		}
 		ghostSelectButtonList.removeButton(id);
-		b = ghostSelectButtonList.addButton(id);
+		b = ghostSelectButtonList.addButton(id, selectedRaceEvent);
 		if(selected){
 			b.GetComponent<SelectionButtonScript>().toggle(true);
 		}
@@ -692,8 +767,8 @@ public class GlobalController : MonoBehaviour
 			racerIndex = checkedRacerIndexes[j];
 			racer = racers[racerIndex];
 			att = racer.GetComponent<PlayerAttributes>();
-			saveRacer(racer, new string[]{SAVED_RACER_MEMORY}, false);
-			ghostSelectButtonList.addButton(att.id);
+			saveRacer(racer, selectedRaceEvent, new string[]{SAVED_RACER_MEMORY}, false);
+			ghostSelectButtonList.addButton(att.id, selectedRaceEvent);
 		}	
 	}
 	
@@ -708,7 +783,7 @@ public class GlobalController : MonoBehaviour
 			b = child.gameObject;
 			s = b.GetComponent<SelectionButtonScript>();
 			if(s.selected){
-				player = loadRacer(s.id, "Player (Back End)", false);
+				player = loadRacer(s.id, selectedRaceEvent, "Player (Back End)", false);
 				player.GetComponent<PlayerAttributes>().setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 				player.SetActive(false);
 				player.transform.SetParent(raceManager.RacersBackEndParent.transform);
@@ -729,7 +804,7 @@ public class GlobalController : MonoBehaviour
 			b = child.gameObject;
 			s = b.GetComponent<SelectionButtonScript>();
 			if(s.selected){
-				racer = loadRacer(s.id, "Ghost (Back End)", false);
+				racer = loadRacer(s.id, selectedRaceEvent, "Ghost (Back End)", false);
 				racer.transform.SetParent(raceManager.RacersBackEndParent.transform);
 				racers_backEnd.Add(racer);
 			}
@@ -748,8 +823,8 @@ public class GlobalController : MonoBehaviour
 		for(int j = 0; j < numOfRacers; j++){
 			racer = racers[j];
 			id = racer.GetComponent<PlayerAttributes>().id;
-			saveRacer(racer, new string[]{PLAYABLE_RACER_MEMORY}, true);
-			racer_replay = loadRacer(id, "Ghost (Back End)", true);
+			saveRacer(racer, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY}, true);
+			racer_replay = loadRacer(id, selectedRaceEvent, "Ghost (Back End)", true);
 			racer_replay.SetActive(false);
 			racer_replay.transform.SetParent(raceManager.RacersBackEndParent.transform);
 			racer_replay.GetComponent<PlayerAttributes>().lane = racers[j].GetComponent<PlayerAttributes>().lane;
@@ -759,6 +834,7 @@ public class GlobalController : MonoBehaviour
 				playerIndex = j;
 			}
 		}
+		gameCamera.GetComponent<CameraController>().setForRaceEvent(selectedRaceEvent);
 	}
 	
 	void clearRacersFromScene(){

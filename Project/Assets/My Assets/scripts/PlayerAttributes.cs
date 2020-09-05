@@ -13,12 +13,15 @@ public class PlayerAttributes : MonoBehaviour
 	public static int ATTRIBUTES_RANDOM = 1;
 	public static int ATTRIBUTES_FROM_THIS = 2;
 	public static int ATTRIBUTES_DEFAULT = 3;
+	
+	public static int ATTRIBUTES_LEGEND_USAINBOLT = 4;
+	public static int ATTRIBUTES_LEGEND_JUSTINGATLIN = 5;
 	// -----------------
 	
 	// id info
 	public string id;
 	public string racerName;
-	public float personalBest;
+	public float[] personalBests;
 	// -----------------
 	
 	// race info
@@ -32,12 +35,17 @@ public class PlayerAttributes : MonoBehaviour
 	
 	// ghost info
 	public int pathLength;
+	public float[] velMagPath;
+	public float[] velPathX;
 	public float[] velPathY;
 	public float[] velPathZ;
+	public float[] posPathX;
 	public float[] posPathY;
 	public float[] posPathZ;
 	public int[] rightInputPath;
 	public int[] leftInputPath;
+	public float[] sphere1Prog;
+	public float[] sphere2Prog;
 	// -----------------
 	
 	// material info
@@ -118,6 +126,7 @@ public class PlayerAttributes : MonoBehaviour
 	public float QUICKNESS;							// base 1
 	public float KNEE_DOMINANCE;					// base 1
 	public float TURNOVER;							// base 1
+	public float FITNESS;							// base 1
 	
 	// -----------------
 	
@@ -383,8 +392,8 @@ public class PlayerAttributes : MonoBehaviour
 		
 			
 			// randomize torso proportions
-			torsoScaleX = Random.Range(.9f, 1.1f);
-			torsoScaleY = Random.Range(.9f, 1.1f);
+			torsoScaleX = (Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f))/3f;
+			torsoScaleY = torsoScaleX * Random.Range(.9f, 1.2f);
 			torsoScaleZ = torsoScaleY * Random.Range(.9f, 1.1f);
 		
 			// adjust head, neck, arm, leg proportions for torso
@@ -395,7 +404,7 @@ public class PlayerAttributes : MonoBehaviour
 			armScaleY *= Mathf.Pow(torsoScaleY, .5f);
 			armScaleZ *= Mathf.Pow(torsoScaleY, .5f);
 			legScaleX *= torsoScaleX;
-			legScaleY *= torsoScaleY;
+			legScaleY *= 1f;
 			legScaleZ = legScaleY;
 			
 		
@@ -512,8 +521,9 @@ public class PlayerAttributes : MonoBehaviour
 			
 			
 			// modify stats from leg length
-			TURNOVER = 1f + ((1f - thighRight.localScale.x) * .28f);
-			KNEE_DOMINANCE = 1f * (2f - thighRight.localScale.x);
+			TURNOVER = Mathf.Pow((2f - thighRight.localScale.x), .5f);
+			//TURNOVER = 1f + ((1f - thighRight.localScale.x) * .28f);
+			KNEE_DOMINANCE = Mathf.Pow((2f - thighRight.localScale.x), 1f);
 		}	
 		
 		
@@ -536,7 +546,7 @@ public class PlayerAttributes : MonoBehaviour
 		if(whichAttributes == "all"){
 			id = otherAttributes.id;
 			racerName = otherAttributes.racerName;
-			personalBest = otherAttributes.personalBest;
+			personalBests = otherAttributes.personalBests;
 			resultString = otherAttributes.resultString;
 			// -----------------
 		}
@@ -545,16 +555,22 @@ public class PlayerAttributes : MonoBehaviour
 			TRANSITION_PIVOT_SPEED = otherAttributes.TRANSITION_PIVOT_SPEED;
 			KNEE_DOMINANCE = otherAttributes.KNEE_DOMINANCE;
 			TURNOVER = otherAttributes.TURNOVER;
+			FITNESS = otherAttributes.FITNESS;
 			// -----------------
 		}
 		if(whichAttributes == "all" || whichAttributes == "ghost data"){
 			pathLength = otherAttributes.pathLength;
+			velMagPath = otherAttributes.velMagPath;
+			velPathX = otherAttributes.velPathX;
 			velPathY = otherAttributes.velPathY;
 			velPathZ = otherAttributes.velPathZ;
+			posPathX = otherAttributes.posPathX;
 			posPathZ = otherAttributes.posPathZ;
 			posPathY = otherAttributes.posPathY;
 			rightInputPath = otherAttributes.rightInputPath;
 			leftInputPath = otherAttributes.leftInputPath;
+			sphere1Prog = otherAttributes.sphere1Prog;
+			sphere2Prog = otherAttributes.sphere2Prog;
 			// -----------------
 		}
 		if(whichAttributes == "all" || whichAttributes == "clothing"){
@@ -671,12 +687,17 @@ public class PlayerAttributes : MonoBehaviour
 
 
 	public void setPaths(int length){
+		velMagPath = new float[length];
+		velPathX = new float[length];
 		velPathY = new float[length];
 		velPathZ = new float[length];
+		posPathX = new float[length];
 		posPathZ = new float[length];
 		posPathY = new float[length];
 		rightInputPath = new int[length];
 		leftInputPath = new int[length];
+		sphere1Prog = new float[length];
+		sphere2Prog = new float[length];
 	}
 	
 	

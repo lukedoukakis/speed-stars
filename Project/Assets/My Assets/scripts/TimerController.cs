@@ -8,6 +8,7 @@ public class TimerController : MonoBehaviour
 	
 	public PlayerAttributes attributes;
 	public PlayerAnimationV2 animation;
+	public OrientationController oc;
 
 	// Start is called before the first frame update
 	void Start()
@@ -38,12 +39,26 @@ public class TimerController : MonoBehaviour
 		else{
 			attributes.leftInputPath[tick] = 0;
 		}
+		//Vector3 vel = animation.rb.velocity;
 		Vector3 vel = animation.rb.velocity;
+		float y = vel.y;
+		vel.y = 0f;
+		float velMagnitude = vel.magnitude;
+		
 		Vector3 pos = transform.position;
-		attributes.velPathY[tick] = vel.y;
+		
+		attributes.velMagPath[tick] = velMagnitude;
+		attributes.velPathX[tick] = vel.x;
+		attributes.velPathY[tick] = y;
 		attributes.velPathZ[tick] = vel.z;
+		attributes.posPathX[tick] = pos.x;
 		attributes.posPathY[tick] = pos.y;
 		attributes.posPathZ[tick] = pos.z;
+		attributes.sphere1Prog[tick] = oc.sphere1_prog;
+		attributes.sphere2Prog[tick] = oc.sphere2_prog;
+			
+		
+		
 	}
 
 }

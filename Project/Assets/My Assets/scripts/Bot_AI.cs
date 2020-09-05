@@ -13,32 +13,42 @@ public class Bot_AI : MonoBehaviour
 	// -----------------
 	bool reaction;
 	float reactionTime;
-	float randomRange;
 	// -----------------
-	int freeTicks;
-	int downTicks;
-	int ticksPassedLeft;
-	int ticksPassedRight;
-	int frequencyLeft;
-	int frequencyRight;
+	float freeTicks;
+	float downTicks;
+	float ticksPassedLeft;
+	float ticksPassedRight;
+	float frequencyLeft;
+	float frequencyRight;
 	int inputLeft;
 	int inputRight;
 	float time;
-	int tickRate;
+	float tickRate;
+	float pace;
+	bool maintenanceFlag;
 	// -----------------
-	float torsoAngle_min;
-	float torsoAngle_max;
-	bool fullUpright;
+	float difficulty;
+	float cadenceModifier;
+	float quicknessModifier;
+	float powerModifier;
+	float knee_dominance_modifier;
+	// -----------------
+	float torsoAngle_upright;
+	float torsoAngle_forward;
+	float torsoAngle_back;
+	bool topEndFlag;
 	bool forward;
-	bool back;
-	bool dip;
 	float zSpeed;
 	float transitionPivotSpeed;
 	float zSpeedOverTransitionPivotSpeed;
+	float modifierCapSpeed;
+	float curveModifier;
+	float energyThreshold;
 	
     // Start is called before the first frame update
     void Start()
     { 
+
     }
 
     // Update is called once per frame
@@ -47,18 +57,21 @@ public class Bot_AI : MonoBehaviour
     }
 	
 	public void runAI(int tick){
+		
+		
 		if(!reaction){
 			reaction = raceManager.raceTime > reactionTime;
 		}
 		else{
 			adjustStride();
 			// -----------------
-			int randomDeviation = (int)(Random.Range(0f-randomRange,randomRange));
-			// -----------------
 			if(ticksPassedLeft >= frequencyLeft){
 				if(inputLeft == 0){
 					inputLeft = 1;
 					frequencyLeft = downTicks;
+					if(maintenanceFlag){
+						ticksPassedRight = (freeTicks * .25f);
+					}
 				}
 				else if(inputLeft == 1){
 					inputLeft = 0;
@@ -66,8 +79,8 @@ public class Bot_AI : MonoBehaviour
 				}
 				ticksPassedLeft = 0;
 			}
-			att.leftInputPath[tick] = inputLeft + randomDeviation;
-			ticksPassedLeft += (tickRate + randomDeviation);
+			att.leftInputPath[tick] = inputLeft;
+			ticksPassedLeft += tickRate;
 			// --
 			if(ticksPassedRight >= frequencyRight){
 				if(inputRight == 0){
@@ -81,15 +94,17 @@ public class Bot_AI : MonoBehaviour
 				ticksPassedRight = 0;
 			}
 			att.rightInputPath[tick] = inputRight;
-			ticksPassedRight += (tickRate + randomDeviation);
-		}
+			ticksPassedRight += tickRate;
+		}	
 	}
+	
 	
 	
 	public void adjustStride(){
 		float torsoAngle = anim.torsoAngle;
-		zSpeed = anim.rb.velocity.z;
-		zSpeedOverTransitionPivotSpeed = (zSpeed / (transitionPivotSpeed-110f)) + .55f;
+		zSpeed = anim.speedHoriz;
+		if(anim.onCurve){ curveModifier = 1.5f; } else{ curveModifier = 1f; };
+		zSpeedOverTransitionPivotSpeed = (zSpeed / (modifierCapSpeed*curveModifier*1.1f));
 		if(zSpeedOverTransitionPivotSpeed > 1f){
 			if(zSpeedOverTransitionPivotSpeed > 1.2f){
 				zSpeedOverTransitionPivotSpeed = 1.2f;
@@ -98,98 +113,127 @@ public class Bot_AI : MonoBehaviour
 		else{
 			zSpeedOverTransitionPivotSpeed = 1f;
 		}
-		tickRate = (int)(100f * (zSpeedOverTransitionPivotSpeed));
+		if(zSpeed < 3f){
+			//zSpeedOverTransitionPivotSpeed *= .9f;
+		}
+		tickRate = (int)(100f * zSpeedOverTransitionPivotSpeed);
 		// -----------------
-		if(!fullUpright){
-			if(torsoAngle < torsoAngle_min){
-				downTicks += 100;
-				fullUpright = true;
-				back = true;
+		if(!topEndFlag){
+			if(torsoAngle < torsoAngle_upright){
+				downTicks += 105f;
+				topEndFlag = true;
 			}
 		}
-		if(fullUpright){
-			if(back){
-				downTicks += 5;
-				back = false;
-			}
+		else if(topEndFlag){
 			if(forward){
-				downTicks -= 6;
+				downTicks -= 6f;
 				forward = false;
 			}
 			if(raceManager.raceTick % 10 == 0){
-				if(torsoAngle > torsoAngle_min){
+				if(torsoAngle > torsoAngle_upright){
 					forward = true;
 				}
 				else{
-					back = true;
+					if(!maintenanceFlag){
+						setTicks(2400f);
+						maintenanceFlag = true;
+					}
+					if(torsoAngle < torsoAngle_back){
+						anim.leanLock = true;
+					}
 				}
 			}
-			if(raceManager.finishLine.transform.position.z - transform.position.z < 20f){
-				if(!dip){
-					downTicks += 500;
-					freeTicks -= 400;
-					dip = true;
+			
+			float energy = anim.energy;
+			
+			if(energy >= energyThreshold){
+			
+			}
+			else{
+				//Debug.Log("energy adjust");
+				//anim.leanLock = false;
+				//torsoAngle_back = torsoAngle_upright - (.05f * ((energy+35f)*.001f));
+				float newPace = Mathf.Lerp(pace, 1f * (1f - energy/1000f), 30f * Time.deltaTime);
+				if(newPace > pace){
+					pace = newPace;
+					setTicks(2400f);
 				}
 			}
 		}
-
 		
+	}
+	
+	void setTicks(float _freeTicks){
+		freeTicks = _freeTicks * (2f - cadenceModifier) * (2f-pace);
+		downTicks = (3575f - _freeTicks) * (2f - cadenceModifier) * (2f-pace);
 	}
 	
 	
 	
-	public void init(float difficulty){
+	public void init(float _difficulty){
+		
+		difficulty = _difficulty;
 		
 		anim = gameObject.GetComponent<PlayerAnimationV2>();
 		att = anim.attributes;
-		
-		float cadenceModifier = difficulty;
-		cadenceModifier *= cadenceModifier;
-		if(cadenceModifier < .7f){
-			cadenceModifier = .7f;
-		}
-		cadenceModifier *= att.TURNOVER;
-		//cadenceModifier += Random.Range(-.015f, .015f);
 		// -----------------
-		float quicknessModifier = difficulty;
-		quicknessModifier *= quicknessModifier*quicknessModifier;
-		if(quicknessModifier < .6f){
-			quicknessModifier = .6f;
-		}
-		//quicknessModifier += Random.Range(-.015f, .015f);
+		cadenceModifier = 1f;
+		//cadenceModifier *= Mathf.Pow(difficulty, .5f);
+		cadenceModifier *= Mathf.Pow(att.TURNOVER, .01f);
 		// -----------------
-		float driveModifier = 1f - ((1f - (2f - att.KNEE_DOMINANCE))*.1f);
+		quicknessModifier = Mathf.Pow(difficulty, .3f);
+		
+		//quicknessModifier = 1f;
+		anim.quicknessMod = quicknessModifier;
 		// -----------------
-		
-		
-		
-
+		powerModifier = Mathf.Pow(difficulty, 2f);
+		//powerModifier = .9f;
+		anim.powerMod = powerModifier;
 		// -----------------
-		att.QUICKNESS = quicknessModifier;
 		leftInputPath = att.leftInputPath;
 		rightInputPath = att.rightInputPath;
 		// -----------------
 		reaction = false;
-		reactionTime = Random.Range(.17f, .21f);
-		randomRange = 0f + ((1f-difficulty) * 10f);
+		reactionTime = Random.Range(.17f, .21f) * (2f - difficulty);
 		// -----------------
-		freeTicks = (int)(2625f * (2f-cadenceModifier));
-		downTicks = (int)((950f * driveModifier) * (2f-cadenceModifier));
-		ticksPassedLeft = 0;
-		ticksPassedRight = downTicks / 2 + (int)(310f*(2f-cadenceModifier));
+		freeTicks = 2650f * (2f - cadenceModifier);
+		downTicks = 950f * (2f - cadenceModifier);
 		frequencyLeft = downTicks;
 		frequencyRight = freeTicks;
 		inputLeft = 1;
 		inputRight = 0;
-		tickRate = 100;
+		tickRate = 100f;
 		// -----------------
-		torsoAngle_min = 330f /** Mathf.Pow((2f-att.legX), .2f)*/;
-		torsoAngle_max = torsoAngle_min + .25f;
-		fullUpright = false;
+		if(raceManager.raceEvent == RaceManager.RACE_EVENT_100M){
+			pace = 1f;
+			energyThreshold = 0f;
+		}
+		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_200M){
+			pace = .985f * cadenceModifier;
+			energyThreshold = 85f;
+		}
+		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_400M){
+			pace = .85f * cadenceModifier;
+			energyThreshold = 65f;
+		}
+		else{
+			pace = 1f;
+			energyThreshold = 95f;
+		}
+		// -----------------
+		torsoAngle_upright = 315f * Mathf.Pow(att.KNEE_DOMINANCE,.01f);
+		torsoAngle_back = torsoAngle_upright;
+		topEndFlag = false;
+		maintenanceFlag = false;
 		forward = false;
-		back = false;
-		dip = false;
 		transitionPivotSpeed = att.TRANSITION_PIVOT_SPEED;
+		//knee_dominance_modifier = Mathf.Pow(att.KNEE_DOMINANCE,.5f);
+		knee_dominance_modifier = 1f;
+		
+		modifierCapSpeed = 23f * difficulty;
+		// -----------------
+		ticksPassedLeft = 0;
+		ticksPassedRight = (downTicks / 2f) + 310f;
 	}
 	
 }

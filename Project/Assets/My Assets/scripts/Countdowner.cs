@@ -35,7 +35,7 @@ public class Countdowner : MonoBehaviour
 			}
 			countdownTime -= 1f * Time.deltaTime;
 			if(countdownTime <= 0f){
-				countdownTime = Random.Range(2f, 3f);
+				countdownTime = 2f;
 				countdownIndex++;
 			}
 		}

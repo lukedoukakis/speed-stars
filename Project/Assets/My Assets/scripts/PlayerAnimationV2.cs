@@ -5,10 +5,13 @@ using UnityEngine;
 
 public class PlayerAnimationV2 : MonoBehaviour
 {
+	
+	public GameObject gyro;
 	public Transform root;
 	public Rigidbody rb;
 	public BoxCollider chestCollider;
 	public Animator animator;
+	public RacerAudio audio;
 	
 	public Transform rightFoot;
 	public Transform leftFoot;
@@ -16,6 +19,12 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Transform leftUpperArm;
 	public Transform pushLeg;
 	public Quaternion pushRotation;
+	
+	Vector3 rightFootPos_lastFrame;
+	Vector3 leftFootPos_lastFrame;
+	float rightFootVel_lastFrame;
+	float leftFootVel_lastFrame;
+	
 	
 	public static int Set = 1;
 	public static int Run = 2;
@@ -27,7 +36,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public GlobalController globalController;
 	public RaceManager raceManager;
 	public PlayerAttributes attributes;
+	public OrientationController oc;
 	public TimerController timer;
+	public EnergyMeterController emc;
 	
 	public RacerFootV2[] feet;
 	public RacerFootV2 rightFootScript;
@@ -38,9 +49,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	int framesSinceLeft;
 	
 	int tick;
-	public bool firstMove;
-	bool firstMoveFlag;
-	bool launchFlag;
+	public bool onCurve;
+	public bool launchFlag;
 	Vector3 friction;
 	public float frictionMagnitude;
 	public float torsoAngle_ideal;
@@ -48,17 +58,26 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float torsoAngle_neutral;
 	public float torsoAngle_max;
 	public float power;
+	public float powerMod;
 	float knee_dominance;
 	float knee_dominance_driveModifier;
-	float maxPower;
+	float knee_dominance_curveModifier;
+	public float maxPower;
 	public float maxUpSpeed;
 	float topSpeed;
 	Vector3 velocityLastFrame;
+	Vector3 velocityLastFrame_relative;
+	public float speedHoriz;
+	public float speedHoriz_lastFrame;
+	public float energy;
 	
 	public bool leans;
 	public float zTilt;
+	public bool leanLock;
 	float leanThreshold;
 	public float quickness;
+	public float quicknessMod;
+	public float turnover;
 	
 	public bool upInSet;
 	public float setPositionWeight;
@@ -74,20 +93,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 		
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
-		quickness = attributes.QUICKNESS;
-		maxPower = attributes.POWER;
-		knee_dominance = attributes.KNEE_DOMINANCE;
-		knee_dominance_driveModifier = Mathf.Pow(knee_dominance, 2.6f);
-		if(knee_dominance_driveModifier < 1f){
-			knee_dominance_driveModifier = 1f;
-		}
-		leanThreshold = .825f * attributes.KNEE_DOMINANCE;
-		torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
-		
-		if(tag.StartsWith("Ghost")){
-			rightFootScript.enabled = false;
-			leftFootScript.enabled = false;
-		}
+
     }
 	
 	
@@ -98,11 +104,31 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 	}
 	
+	public void init(){
+		turnover = attributes.TURNOVER;
+		quickness = attributes.QUICKNESS;
+		maxPower = attributes.POWER;
+		quicknessMod = 1f;
+		powerMod = 1f;
+		knee_dominance = attributes.KNEE_DOMINANCE;
+		knee_dominance_driveModifier = Mathf.Pow(knee_dominance, 3f);
+		knee_dominance_curveModifier = Mathf.Pow(knee_dominance, .1f);
+		leanThreshold = .825f * attributes.KNEE_DOMINANCE;
+		torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
+		leanLock = false;
+		
+		if(tag.StartsWith("Ghost")){
+			//rightFootScript.enabled = false;
+			//leftFootScript.enabled = false;
+		}
+	}
+	
 	
 	
     void FixedUpdate()
     {
-	
+		speedHoriz = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
+
 		if(mode == Set){
 			setPositionMode();
 		}
@@ -118,32 +144,45 @@ public class PlayerAnimationV2 : MonoBehaviour
 		adjustRotation();
 		//-----------------------------------------------------------------------------------------------------------
 		updateLayerWeights();
-		
-		// first move -----------------------------------------------------------------------------------------------------------
-		if(firstMove){
-			if(!firstMoveFlag){
-				launchFlag = true;
-				StartCoroutine(launch());
-				firstMoveFlag = true;
-			}
-		}
 		//-----------------------------------------------------------------------------------------------------------
 		applyFriction();
 		//-----------------------------------------------------------------------------------------------------------
 		applyPowerModifiers();
 		//-----------------------------------------------------------------------------------------------------------
 		applySpeedModifiers();
-		
+		//-----------------------------------------------------------------------------------------------------------
 		
 		animator.SetBool("groundContact", rightFootScript.groundContact || leftFootScript.groundContact);
 		
 		velocityLastFrame = rb.velocity;
+		velocityLastFrame_relative = gyro.transform.InverseTransformDirection(rb.velocity);
+		speedHoriz_lastFrame = speedHoriz;
 	}	
 		
 	void runMode(){
+		
+		audio.as_wind.volume = (speedHoriz) / (28f);
+		audio.as_wind.pitch = 1f * ((speedHoriz) / (28f));
+		
+		if(raceManager.raceEvent != RaceManager.RACE_EVENT_100M){
+			oc.updateOrientation(true);
+			if(oc.trackSegment == 1 || oc.trackSegment == 3){
+				if(!onCurve){
+					animator.SetBool("onCurve", true);
+				}
+				onCurve = true;
+			}
+			else{
+				if(onCurve){
+					animator.SetBool("onCurve", false);
+				}
+				onCurve = false;
+			}
+		}
+		
 		// set quickness to increase with speed
 		torsoAngle = root.rotation.eulerAngles.x;
-		quickness = attributes.QUICKNESS * (rb.velocity.z)*.25f;
+		quickness = attributes.QUICKNESS * speedHoriz *.25f;
 		if(quickness > attributes.QUICKNESS){
 			if(quickness > attributes.QUICKNESS * 1.35f){
 				quickness = attributes.QUICKNESS * 1.35f;
@@ -152,7 +191,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 		else{
 			quickness = attributes.QUICKNESS;
 		}
-		animator.SetFloat("limbSpeed", quickness);
+		if(energy < 70f){
+			quickness *= Mathf.Pow(energy/70f, .075f);
+		}
+		if(quickness < .95f){
+			quickness = .95f;
+		}
+		animator.SetFloat("limbSpeed", quickness*quicknessMod);
 		//-----------------------------------------------------------------------------------------------------------
 		if(setPositionWeight >= 0f){
 			setPositionWeight -= transitionSpeed * attributes.QUICKNESS * Time.deltaTime;
@@ -205,7 +250,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				else{
 					if(upInSet){
 						mode = 2;
-						Debug.Log("false start");
+						//Debug.Log("false start");
 						StartCoroutine(raceManager.falseStart());
 					}
 				}
@@ -221,22 +266,27 @@ public class PlayerAnimationV2 : MonoBehaviour
 			
 			if(rightInput){
 				framesSinceRight = 0;
-				if(tag == "Player" || tag == "Bot"){
-					rightFootScript.input = true;
-					firstMove = true;
-				}
+				rightFootScript.input = true;
 				animator.SetBool("right", true);
+				
+				if(!launchFlag){
+					StartCoroutine(launch());
+					launchFlag = true;
+				}
+				
 			}else{
 				rightFootScript.input = false;
 				animator.SetBool("right", false);
 			}
 			if(leftInput){
 				framesSinceLeft = 0;
-				if(tag == "Player" || tag == "Bot"){
-					leftFootScript.input = true;
-					firstMove = true;
+				leftFootScript.input = true;
+				animator.SetBool("left", true);
+				
+				if(!launchFlag){
+					StartCoroutine(launch());
+					launchFlag = true;
 				}
-				animator.SetBool("left", true);	
 			}else{
 				leftFootScript.input = false;
 				animator.SetBool("left", false);
@@ -250,21 +300,24 @@ public class PlayerAnimationV2 : MonoBehaviour
 				leanWeight += .5f * Time.deltaTime;
 			}
 			else if(mode == Run){
+				if(!leanLock){
+				
 				// torso lean
-				bool pushing = false;
-				bool[] inputs = new bool[2] {rightInput, leftInput};
-				foreach(bool input in inputs){
-					if(input){
-						pushing = true;
-						leanWeight += .58f * Time.deltaTime;
-						root.Rotate(transform.TransformDirection(Vector3.right * 23f * Time.deltaTime));
-						zTilt += 23f * Time.deltaTime;
+					bool pushing = false;
+					bool[] inputs = new bool[2] {rightInput, leftInput};
+					foreach(bool input in inputs){
+						if(input){
+							pushing = true;
+							leanWeight += .58f * Time.deltaTime;
+							root.Rotate(Vector3.right * 23f * Time.deltaTime, Space.Self);
+							zTilt += 23f * Time.deltaTime;
+						}
 					}
-				}
-				if(!pushing){
-					leanWeight -= 1.2f * Time.deltaTime;
-					root.Rotate(transform.TransformDirection(Vector3.left * 47f * Time.deltaTime));
-					zTilt -= 47f * Time.deltaTime;
+					if(!pushing){
+						leanWeight -= 1.2f * Time.deltaTime;
+						root.Rotate(Vector3.left * 47f * Time.deltaTime, Space.Self);
+						zTilt -= 47f * Time.deltaTime;
+					}
 				}
 			}
 			if(leanWeight > 0f){
@@ -276,108 +329,199 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 			
 			if(zTilt > 45f){
-				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt - 45f)));
+				root.Rotate(Vector3.left * (zTilt - 45f), Space.Self);
 				zTilt = 45f;
 			}
 			else if(zTilt < -45f){
-				root.Rotate(transform.TransformDirection(Vector3.left * (zTilt + 45f)));
+				root.Rotate(Vector3.left * (zTilt + 45f), Space.Self);
 				zTilt = -45f;
 			}
+			
+			
+			
+			
+			
+			
 		}
 	}
 	
+	
+	public void turnTowardsY(float y){
+		
+		//Debug.Log("turning towards y: " + y);
+		Vector3 eulers = transform.rotation.eulerAngles;
+		eulers.y = y;
+		transform.rotation = Quaternion.Euler(eulers);
+		
+		eulers = gyro.transform.rotation.eulerAngles;
+		eulers.y = y;
+		gyro.transform.rotation = Quaternion.Euler(eulers);
+	}
+	
+	
 	// for mapping ghost position and velocity from paths
 	public void setPositionAndVelocity(int tick){
-		
 		if(tick < attributes.pathLength){
-			rb.velocity = new Vector3(rb.velocity.x, attributes.velPathY[tick], attributes.velPathZ[tick]);
-			Vector3 targetPos = new Vector3(transform.position.x, attributes.posPathY[tick], attributes.posPathZ[tick]);
-			transform.position = targetPos;
-		}
+			float vM = attributes.velMagPath[tick];
+			float vX = attributes.velPathX[tick];
+			float vY = attributes.velPathY[tick];
+			float vZ = attributes.velPathZ[tick];
+			float pX = attributes.posPathX[tick];
+			float pY = attributes.posPathY[tick];
+			float pZ = attributes.posPathZ[tick];
+			float s1P = attributes.sphere1Prog[tick];
+			float s2P = attributes.sphere2Prog[tick];
+			// -----------------
+			// set horizontal velocity magnitude to magnitude from paths
+			Vector3 vel = rb.velocity;
+			vel.y = 0f;
+			vel *= 100f;
+			vel = Vector3.ClampMagnitude(vel, vM);
+			vel.y = vY;
+			rb.velocity = vel;
+			// -----------------
+			// set position from paths
+			/*
+			if(oc.sphere != null){
+				float progressInDegrees = 0f;
+				float targetRotY = 0f;
+				Vector3 sphereEulers;
+				Vector3 targetPos;
+				// -----------------
+				if(oc.trackSegment == 1){
+					progressInDegrees = (oc.rotY_complete_sphere1 - oc.rotY_initial_sphere1) * s1P;
+					targetRotY = oc.rotY_initial_sphere1 + progressInDegrees;
+				
+					sphereEulers = oc.sphere1.transform.rotation.eulerAngles;
+					sphereEulers.y = targetRotY;
+					oc.sphere.transform.rotation = Quaternion.Euler(sphereEulers);
+				}
+				else if(oc.trackSegment == 3){
+					progressInDegrees = (oc.rotY_initial_sphere2 - oc.rotY_complete_sphere2) * s1P;
+					targetRotY = oc.rotY_initial_sphere2 - progressInDegrees;
+				
+					sphereEulers = oc.sphere1.transform.rotation.eulerAngles;
+					sphereEulers.y = targetRotY;
+					oc.sphere.transform.rotation = Quaternion.Euler(sphereEulers);
+				}
+				targetPos = oc.sphere.transform.forward * oc.distance;
+				//transform.position = targetPos;
+			}
+			*/
+			if(oc.trackSegment == 4){
+				Vector3 targetPos = new Vector3(transform.position.x, pY, pZ);
+				if(Vector3.Distance(transform.position, globalController.raceManager.finishLine.transform.position) > 20f){
+					transform.position = Vector3.Lerp(transform.position, targetPos, 1f * Time.deltaTime);
+				}
+				else{
+					transform.position = targetPos;
+				}
+			}
 			
+		}
+
+	}
+	
+	public void updateEnergy(float speed, float swingTimeBonus){
+		float energyCost;
+		energyCost = .5f;
+		energyCost *= Mathf.Pow(speed / 27f, 2.5f);
+		energyCost *= 1f + (1f - (swingTimeBonus / 2.0736f));
+		if(energyCost < .1f){
+			energyCost = .1f;
+		}
 		
-		/*
-		if(tick_float < (float)attributes.pathLength){
-			
-			int tick_lo, tick_hi;
-			tick_lo = (int)Mathf.Floor(tick_float);
-			tick_hi = (int)Mathf.Ceil(tick_float);
-			
-			Vector3 pos_lo, pos_hi;
-			pos_lo = new Vector3(transform.position.x, attributes.posPathY[tick_lo], attributes.posPathZ[tick_lo]);
-			pos_hi = new Vector3(transform.position.x, attributes.posPathY[tick_hi], attributes.posPathZ[tick_hi]);
-			
-			transform.position = new Vector3(pos_lo.x, (pos_lo.y + pos_hi.y) / 2f, (pos_lo.z + pos_hi.z) / 2f);
+		energy -= energyCost;
+		if(energy < 0f){
+			energy = 0f;
 		}
-		*/
+		
+		emc.setEnergyLevel(energy);
+
 	}
 	
 	
 	void applyFriction(){
-		friction = Vector3.back * rb.velocity.z * frictionMagnitude * 100f;
+		friction = gyro.transform.forward*-1f * speedHoriz * frictionMagnitude * 100f;
 		if(rightFootScript.groundContact || leftFootScript.groundContact){
 			rb.AddForce(friction * Time.deltaTime);
 		}
 	}
 	
 	void applyPowerModifiers(){
-		
-		// reduce power if both feet on ground
+		float modifier = 1f;
 		float modifiedPower = maxPower;
+		// -----------------
+		// reduce power if both feet on ground
 		if(rightFootScript.groundContact && leftFootScript.groundContact){
 			modifiedPower *= .2f;
 		}
-		
-		/*
-		// reduce power based on deviance from torsoAngle_ideal
-		torsoAngle = root.rotation.eulerAngles.x;
-		if(torsoAngle < torsoAngle_ideal){
-			float modifier = torsoAngle / torsoAngle_ideal;
-			modifiedPower *= modifier;
-		}
-		*/
-		
+		// -----------------
+		// modify power from lean magnitude
 		float leanMag = rightFootScript.leanMagnitude;
 		if(leanMag > leanThreshold){
-			float modifier = leanThreshold/leanMag;
+			modifier = leanThreshold/leanMag;
 			modifier *= modifier * modifier * modifier * modifier * modifier;
 			modifiedPower *= modifier;
 		}
-		
-		// reduce power if torso angle too low
-		/*
-		float f = 0;
-		if(root.rotation.eulerAngles.x > 350f){
-			f += root.rotation.eulerAngles.x - 350f;
+		// -----------------
+		// reduce power if on curve
+		if(onCurve){
+			//modifier = .9f * knee_dominance_curveModifier;
+			modifier = .9f;
+			modifiedPower *= modifier;
 		}
-		else if(root.rotation.eulerAngles.x < 290f){
-			f += root.rotation.eulerAngles.x;
+
+		// -----------------
+		// modify power from energy
+		if(energy < 80f){
+			if(energy >= 30f){
+				modifier *= (energy / 80f);
+			}
+			else{
+				modifier *= (30f / 80f);
+			}
+			modifier = Mathf.Pow(modifier, .75f);
+			modifiedPower *= modifier;
 		}
-		modifiedPower -= (modifiedPower*.025f) * f;
-		*/
-		
+		// -----------------
 		power = modifiedPower;
+		power *= powerMod;
 	}
 	
 	void applySpeedModifiers(){
-		Vector3 vel = rb.velocity;
-		float vz = vel.z;
-		float vy = vel.y;
-		if(vz < 0f){
-			vz = 0f;
+		
+		
+		
+		Vector3 velHoriz = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+		float velY = rb.velocity.y;
+		
+		if(gyro.transform.forward.z > 0){
+			if(velHoriz.z < 0f){
+				velHoriz.z = 0f;
+			}
 		}
-		if(vy > maxUpSpeed){
-			vy = maxUpSpeed;
+		else if(gyro.transform.forward.z < 0){
+			if(velHoriz.z > 0f){
+				velHoriz.z = 0f;
+			}
 		}
 		
-		float maxD = .5f * knee_dominance;
-		if(vz > velocityLastFrame.z + maxD){
-			vz = velocityLastFrame.z + maxD;
+		float maxD = .475f * knee_dominance_driveModifier;
+		if(speedHoriz > speedHoriz_lastFrame + maxD){
+			velHoriz = Vector3.ClampMagnitude(velHoriz, speedHoriz_lastFrame + maxD);
 		}
 		
-		vel.z = vz;
-		vel.y = vy;
-		rb.velocity = vel;
+		if(velY > maxUpSpeed){
+			velY = maxUpSpeed;
+		}
+		
+
+		
+		
+		
+		Vector3 newVelocity = new Vector3(velHoriz.x, velY, velHoriz.z);
+		rb.velocity = newVelocity;
 	}
 	
 	// set layer weight values to corresponding variables
@@ -396,12 +540,12 @@ public class PlayerAnimationV2 : MonoBehaviour
 				10	left arm (upright)
 				11	right arm (drive)
 				12	left arm (drive)
-				13	triple extension
 			*/ // -----------------
-			
-		driveWeight = leanWeight * (1-((rb.velocity.z)/(attributes.TRANSITION_PIVOT_SPEED*.1425f))) * knee_dominance_driveModifier;
-		if(driveWeight > 1f){
-			driveWeight = 1f;
+		
+		//driveWeight = leanWeight * (1f-(speedHoriz/(attributes.TRANSITION_PIVOT_SPEED*.1425f))) * knee_dominance;
+		driveWeight = leanWeight * (1f-(speedHoriz/(attributes.TRANSITION_PIVOT_SPEED*.1425f)));
+		if(driveWeight > .8f){
+			driveWeight = .8f;
 		}
 		
 	
@@ -418,72 +562,34 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetLayerWeight(11,driveWeight*runWeight);
 		animator.SetLayerWeight(12,driveWeight*runWeight);
 	}
+	
+	public void setViewMode(int viewMode){
+		animator.SetInteger("viewMode", viewMode);
+	}
 
 	
 	public IEnumerator launch(){
-		StartCoroutine(launchAnimation());
-		for(int i = 0; i < 8; i++){
-			float launchPower = 1500f;
-			rb.AddForce((Vector3.forward + (Vector3.up * .2f)) * (launchPower) * knee_dominance_driveModifier * Time.deltaTime, ForceMode.Force);
-			yield return null;
+		if(this.gameObject == raceManager.focusRacer){
+			audio.playSound("Block Exit");
+			audio.playSound("Wind");
 		}
+		raceManager.startingBlocks_current[attributes.lane-1].GetComponent<StartingBlockController>().addLaunchForce();
 		
-	}
-	
-	public IEnumerator launchAnimation(){
-		pushRotation = pushLeg.rotation;
-		for(int i = 0; i < 12; i++){
+		animator.SetBool("launch", true);
+		for(int i = 0; i < 8; i++){
+			float launchPower = 2500f;
+			rb.AddForce((gyro.transform.forward + (Vector3.up * knee_dominance_driveModifier * .2f)) * (launchPower) * knee_dominance_driveModifier * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}
-		launchFlag = false;
+		for(int i = 0; i < 10; i++){
+			yield return null;
+		}
+		animator.SetBool("launch", false);
 	}
 	
-	public IEnumerator autoRun(){
-		if(framesSinceRight < 7){
-			StartCoroutine(stepLeft());
-			for(int j = 0; j < 15; j++){
-				applyInput(0);
-				yield return null;
-			}
-		}
-		while(true){
-			StartCoroutine(stepRight());
-			for(int j = 0; j < 8; j++){
-				applyInput(0);
-				yield return null;
-			}
-			StartCoroutine(stepLeft());
-			for(int j = 0; j < 8; j++){
-				applyInput(0);
-				yield return null;
-			}
-		}
-		IEnumerator stepRight(){
-			rightInput = true;
-			for(int j = 0; j < 4; j++){
-				yield return null;
-			}
-			rightInput = false;
-		}	
-		IEnumerator stepLeft(){
-			leftInput = true;
-			for(int j = 0; j < 4; j++){
-				yield return null;
-			}
-			leftInput = false;
-		}
-	}
 	
 	public void setIdle(){
 		mode = 3;
-	}
-	
-	void LateUpdate(){
-		if(launchFlag){
-			pushLeg.rotation = pushRotation;
-			pushLeg.Rotate(Vector3.up * 80f * knee_dominance_driveModifier * Time.deltaTime);
-			pushRotation = pushLeg.rotation;
-		}
 	}
 	
 	

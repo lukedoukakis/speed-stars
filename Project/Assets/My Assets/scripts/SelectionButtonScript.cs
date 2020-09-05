@@ -27,13 +27,13 @@ public class SelectionButtonScript : MonoBehaviour
         
     }
 	
-	public void setFromRacer(string id){
+	public void setFromRacer(string _id, int raceEvent){
 		// -----------------
-		this.id = id;
-		name = PlayerPrefs.GetString(id).Split(':')[1];
+		this.id = _id;
+		name = PlayerPrefs.GetString(_id).Split(':')[1];
 		gameObject.transform.Find("NameText").GetComponent<Text>().text = name;
 		// -----------------
-		time = PlayerPrefs.GetString(id).Split(':')[2];
+		time = PlayerPrefs.GetString(_id).Split(':')[3 + raceEvent];
 		if(float.Parse(time) == -1f){
 			gameObject.transform.Find("TimeText").GetComponent<Text>().text = "--";
 		}else{
@@ -53,36 +53,75 @@ public class SelectionButtonScript : MonoBehaviour
 	
 	
 	public void toggle(){
-		selected = !selected;
-		if(selected){
+		// if trying to select
+		if(!selected){
+			// select if numSelected less than maxSelectable
 			if(list.numSelected < list.maxSelectable){
-				setColor(selectedColorCode);
-				list.numSelected++;
-				list.selectedButtonIDs.Add(id);
-			}
-			else{
-				// max selectable message
-				if(list.replaceLastSelection){
-					list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().toggle();
+				if(!list.getButton(id).GetComponent<SelectionButtonScript>().selected){
 					setColor(selectedColorCode);
 					list.numSelected++;
 					list.selectedButtonIDs.Add(id);
+					if(list == list.gc.playerSelectButtonList){
+						list.setPreviewRacer(id);
+					}
+					selected = true;
+				}
+			}
+			// else, if replaceLastSelection true, unselect first selected button and select this one
+			else{
+				if(list.replaceLastSelection){
+					Debug.Log("replacing last selection");
+					Debug.Log("replaced button id: " + list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().id);
+					list.minSelectable--;
+					list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().toggle(false);
+					list.minSelectable++;
+					setColor(selectedColorCode);
+					list.numSelected++;
+					list.selectedButtonIDs.Add(id);
+					if(list == list.gc.playerSelectButtonList){
+						list.setPreviewRacer(id);
+					}
+					selected = true;
+					
+					
+					string s = "selectedButtonIDs: ";
+					for(int i = 0; i < list.selectedButtonIDs.Count; i++){
+						s += list.selectedButtonIDs[i] + ", ";
+					}
+					Debug.Log(s);
+					
 				}
 				else{
-					selected = false;
+					
 				}
 			}
 		}
+		// else, deselect if numSelected greater than minSelectable, otherwise do nothing
 		else{
-			setColor(unselectedColorCode);
-			list.numSelected--;
-			list.selectedButtonIDs.Remove(id);
+			if(list.numSelected > list.minSelectable){
+				setColor(unselectedColorCode);
+				list.numSelected--;
+				list.selectedButtonIDs.Remove(id);
+				selected = false;
+			}
+			else{
+
+			}
+		}
+		if(list == list.gc.ghostSelectButtonList){
+			list.gc.setupManager.botCount_max = 7 - list.numSelected;
+			if(list.gc.setupManager.botCount > list.gc.setupManager.botCount_max){
+				list.gc.setupManager.incrementBotCount(list.gc.setupManager.botCount_max - list.gc.setupManager.botCount);
+				//list.gc.setupManager.botCount = list.gc.setupManager.botCount_max;
+				//list.gc.setupManager.botCountText.text = list.gc.setupManager.botCount.ToString();
+			}
 		}
 	}
 	
 	public void toggle(bool setting){
-		selected = !setting;
-		toggle();
+		if(selected != setting){
+			toggle();
+		}
 	}
 	
 	
@@ -95,7 +134,8 @@ public class SelectionButtonScript : MonoBehaviour
 		}
 	}
 	
-	public void init(){
-		selected = false;
+	public void init(SelectionListScript s){
+		list = s;
+		transform.SetParent(list.grid.transform, false);
 	}
 }

@@ -6,8 +6,11 @@ using UnityEngine.UI;
 
 public class RaceManager : MonoBehaviour
 {
+	
 	public static int RACE_EVENT_100M = 0;
-	public static int RACE_EVENT_110MH = 1;
+	public static int RACE_EVENT_200M = 1;
+	public static int RACE_EVENT_400M = 2;
+	public static int RACE_EVENT_110MH = 3;
 	// -----------------
 	public static int VIEW_MODE_LIVE = 0;
 	public static int VIEW_MODE_REPLAY = 1;
@@ -44,14 +47,21 @@ public class RaceManager : MonoBehaviour
 	// -----------------
 	public GameObject track;
 	public GameObject[] startingBlocks_100m;
-	public GameObject[] startingBlocks_110mH;
-	public GameObject[] startingBlocks;
-	public GameObject startingLine_100m;
-	public GameObject startingLine_110mH;
-	public GameObject startingLine;
+	public GameObject[] startingBlocks_200m;
+	public GameObject[] startingBlocks_400m;
+	public GameObject[] startingBlocks_current;
+	public GameObject[] startingLines_100m;
+	public GameObject[] startingLines_200m;
+	public GameObject[] startingLines_400m;
+	public GameObject[] startingLines_current;
+	
 	public GameObject finishLine;
 	public GameObject hurdlesSetPrefab;
 	public GameObject hurdlesSet;
+	public GameObject curve1_surface;
+	public GameObject curve2_surface;
+	public GameObject curve1_sphere;
+	public GameObject curve2_sphere;
 	// -----------------
 	public Text speedometer;
 	public Text clock;
@@ -78,11 +88,13 @@ public class RaceManager : MonoBehaviour
 	PlayerAnimationV2 anim;
 	Rigidbody rb;
 	TimerController tc;
+	OrientationController oc;
+	EnergyMeterController emc;
 	
     // Start is called before the first frame update
     void Start()
     {
-        focusRacer = startingLine;
+        focusRacer = startingLines_100m[4];
     }
 	
 	
@@ -113,9 +125,11 @@ public class RaceManager : MonoBehaviour
 							trans_min = transparency_bot_min;
 						}
 						float a = trans_base;
-						float zDistance = Mathf.Abs((racerPos.z) - focusRacer.transform.position.z);
-						if(zDistance < 2f){
-							a = trans_base *  (zDistance/2f);
+						Vector3 cameraPos = gc.gameCamera.transform.position;
+						Vector3 focusRacerPos = focusRacer.transform.position;
+						float angle = Vector3.Angle(racerPos-cameraPos, focusRacerPos - cameraPos);
+						if(angle < 20f){
+							a = trans_base *  (angle/20f);
 							if(a < trans_min){ a = trans_min; }
 		
 							setTransparency(racer, a);
@@ -179,7 +193,7 @@ public class RaceManager : MonoBehaviour
 				racer = racers_backEnd[i];
 				if(racer.tag == "Player (Back End)"){
 					player_backEnd = racer;
-					botDifficulty = calculateDifficulty(racer.GetComponent<PlayerAttributes>().personalBest);
+					botDifficulty = calculateDifficulty(raceEvent, racer.GetComponent<PlayerAttributes>().personalBests[raceEvent]);
 					break;
 				}
 			}
@@ -205,13 +219,22 @@ public class RaceManager : MonoBehaviour
 			att.isRacing = false;
 			// --
 			anim = racer.GetComponent<PlayerAnimationV2>();
+			anim.init();
 			anim.globalController = gc;
 			anim.raceManager = this;
 			anim.mode = PlayerAnimationV2.Set;
+			anim.energy = 100f;
+			anim.launchFlag = false;
+			anim.setViewMode(viewMode);
 			// --
 			tc = racer.GetComponent<TimerController>();
 			tc.attributes = att;
 			tc.animation = anim;
+			tc.oc = anim.GetComponent<OrientationController>();
+			// -----------------
+			emc = racer.GetComponent<EnergyMeterController>();
+			emc.camera = gc.gameCamera.camera;
+			emc.hide();
 			// -----------------
 			racerCount++;
 			if(racer.tag == "Player"){
@@ -220,8 +243,8 @@ public class RaceManager : MonoBehaviour
 			}
 			else if(racer.tag == "Bot"){
 				Bot_AI ai = racer.GetComponent<Bot_AI>();
-				ai.init(botDifficulty);
 				ai.raceManager = this;
+				ai.init(botDifficulty);
 				bots.Add(racer);
 				botCount++;
 			}
@@ -238,24 +261,16 @@ public class RaceManager : MonoBehaviour
 		}
 		// -----------------
 		if(raceEvent == RACE_EVENT_100M){
-			startingLine = startingLine_100m;
-			startingBlocks = startingBlocks_100m;
-			
-			if(hurdlesSet != null){
-				Destroy(hurdlesSet);
-				hurdlesSet = null;
-			}
+			startingLines_current = startingLines_100m;
+			startingBlocks_current = startingBlocks_100m;
 		}
-		else if(raceEvent == RACE_EVENT_110MH){
-			startingLine = startingLine_110mH;
-			startingBlocks = startingBlocks_110mH;
-			
-			Debug.Log("replacing hurdles");
-			if(hurdlesSet != null){ Destroy(hurdlesSet); }
-			hurdlesSet = Instantiate(hurdlesSetPrefab);
-			hurdlesSet.transform.position = track.transform.position;
-			hurdlesSet.transform.SetParent(track.transform);
-			hurdlesSet.SetActive(true);
+		else if(raceEvent == RACE_EVENT_200M){
+			startingLines_current = startingLines_200m;
+			startingBlocks_current = startingBlocks_200m;
+		}
+		else if(raceEvent == RACE_EVENT_400M){
+			startingLines_current = startingLines_400m;
+			startingBlocks_current = startingBlocks_400m;
 		}
 		if(viewMode == VIEW_MODE_LIVE){
 			focusRacer = player;
@@ -264,8 +279,8 @@ public class RaceManager : MonoBehaviour
 			focusRacer = racers[gc.playerIndex];
 		}
 		// -----------------
+		hideStartingBlocks();
 		assignLanes(racers);
-		showStartingBlocks(racers);
 		setRenderQueues(racers);
 		
 		resetClock();
@@ -276,9 +291,20 @@ public class RaceManager : MonoBehaviour
 		
 	}
 	
-	float calculateDifficulty(float time){
+	float calculateDifficulty(int raceEvent, float time){
 		//Debug.Log("playerPB: " + time);
-		float difficulty = 10f/time;
+		float eliteStandard = 0f;
+		if(raceEvent == RACE_EVENT_100M){
+			eliteStandard = 10f;
+		}
+		else if(raceEvent == RACE_EVENT_200M){
+			eliteStandard = 20f;
+		}
+		else if(raceEvent == RACE_EVENT_400M){
+			eliteStandard = 45f;
+		}
+		float difficulty = eliteStandard/time;
+		
 		if(difficulty > 0f){
 			if(difficulty > .7f){
 				if(difficulty > 1f){
@@ -290,58 +316,123 @@ public class RaceManager : MonoBehaviour
 			}
 		}
 		else{
-			difficulty = UnityEngine.Random.Range(.7f, 1f);
+			difficulty = .7f;
 		}
 		return difficulty;
 	}
 	
 	void assignLanes(List<GameObject> racers){
+		
+		List<int> lanes = new List<int>(){ 5, 4, 6, 3, 7, 2, 8, 1 };
 		if(viewMode == VIEW_MODE_LIVE){
-			PlayerAttributes att;
-			PlayerAnimationV2 anim;
+			PlayerAttributes _att;
 			for(int i = 0; i < racers.Count; i++){
-				att = racers[i].GetComponent<PlayerAttributes>();
-				if(att.personalBest == -1f){
-					att.personalBest = float.MaxValue;
+				_att = racers[i].GetComponent<PlayerAttributes>();
+				if(_att.personalBests[raceEvent] == -1f){
+					_att.personalBests[raceEvent] = float.MaxValue;
 				}
 			}
-			List<int> lanes = new List<int>(){ 5, 4, 6, 3, 7, 2, 8, 1 };
-			racers.Sort((x,y) => x.GetComponent<PlayerAttributes>().personalBest.CompareTo(y.GetComponent<PlayerAttributes>().personalBest));
-			GameObject racer;
-			for(int i = 0; i < racers.Count; i++){
-				racer = racers[i];
-				att = racer.GetComponent<PlayerAttributes>();
-				anim = racer.GetComponent<PlayerAnimationV2>();
-				if(att.personalBest == float.MaxValue){
-					att.personalBest = -1f;
-				}
-				att.lane = lanes[i];
-				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.6f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
-				racer.transform.position = racerPos;
-			}
+			racers.Sort((x,y) => x.GetComponent<PlayerAttributes>().personalBests[raceEvent].CompareTo(y.GetComponent<PlayerAttributes>().personalBests[raceEvent]));
 		}
-		else if(viewMode == VIEW_MODE_REPLAY){
-			GameObject racer;
-			for(int i = 0; i < racers.Count; i++){
-				racer = racers[i];
-				racer.GetComponent<PlayerAttributes>().lane = racers_backEnd[i].GetComponent<PlayerAttributes>().lane;
-				Vector3 racerPos = new Vector3((startingLine.transform.position.x - 4.4f) + (racer.GetComponent<PlayerAttributes>().lane-1)*1.252f, startingLine.transform.position.y + 1f, startingLine.transform.position.z - .13f);
-				racer.transform.position = racerPos;
+		
+		
+		GameObject racer;
+		PlayerAttributes att;
+		PlayerAnimationV2 anim;
+		OrientationController oc;
+		int lane = 0;
+		GameObject line;
+		GameObject block;
+		for(int i = 0; i < racers.Count; i++){
+			
+			racer = racers[i];
+			att = racer.GetComponent<PlayerAttributes>();
+			anim = racer.GetComponent<PlayerAnimationV2>();
+			oc = racer.GetComponent<OrientationController>();
+			
+			if(viewMode == VIEW_MODE_LIVE){
+				Debug.Log(i);
+				lane = lanes[i];
+				if(att.personalBests[raceEvent] == float.MaxValue){
+					att.personalBests[raceEvent] = -1f;
+				}
 			}
+			else if(viewMode == VIEW_MODE_REPLAY){
+				lane = racers_backEnd[i].GetComponent<PlayerAttributes>().lane;
+			}
+			
+			
+			att.lane = lane;
+			line = startingLines_current[lane - 1];
+			block = startingBlocks_current[lane - 1];
+			
+			racer.transform.position = line.transform.position + (line.transform.forward*-.13f) + Vector3.up;
+			
+			block.SetActive(true);
+			Physics.IgnoreCollision(anim.rightFootScript.bc, block.GetComponent<BoxCollider>());
+			Physics.IgnoreCollision(anim.leftFootScript.bc, block.GetComponent<BoxCollider>());
+			block.transform.position = line.transform.position + (line.transform.forward*-1f) + (Vector3.up*.22f);
+			block.transform.rotation = line.transform.rotation;
+			block.GetComponent<Rigidbody>().velocity = Vector3.zero;
+			block.GetComponent<StartingBlockController>().adjustPedals(att.legX);
+			
+				
+			oc.sphere1 = curve1_sphere;
+			oc.sphere2 = curve2_sphere;
+			oc.sphere = oc.sphere1;
+			if(raceEvent != RACE_EVENT_100M){
+				oc.updateOrientation(false);
+			}
+			oc.initRotations();
+			
+			/*
+			if(raceEvent == RACE_EVENT_100M){
+				oc.sphere1 = null;
+				oc.sphere2 = null;
+				oc.sphere = null;
+				oc.trackSegment = 4;
+			}
+			else if(raceEvent == RACE_EVENT_200M){
+				oc.sphere1 = curve1_sphere;
+				oc.sphere2 = curve2_sphere;
+				oc.sphere = curve2_sphere;
+				oc.trackSegment = 3;
+				Vector3 spherePos = new Vector3(oc.sphere.transform.position.x, 0f, oc.sphere.transform.position.z);
+				racerPos.y = 0f;
+				oc.distance = Vector3.Distance(spherePos, racerPos);
+			}
+			else if(raceEvent == RACE_EVENT_400M){
+				oc.sphere1 = curve1_sphere;
+				oc.sphere2 = curve2_sphere;
+				oc.sphere = curve1_sphere;
+				oc.trackSegment = 1;
+				Vector3 spherePos = new Vector3(oc.sphere.transform.position.x, 0f, oc.sphere.transform.position.z);
+				racerPos.y = 0f;
+				oc.distance = Vector3.Distance(spherePos, racerPos);
+			}
+			*/
 		}
 	}
 	
-	void showStartingBlocks(List<GameObject> racers){
-		for(int i = 0; i < startingBlocks.Length; i++){
-			startingBlocks_100m[i].SetActive(false);
-			startingBlocks_110mH[i].SetActive(false);
+	/*
+	void resetStartingBlocks(){
+		GameObject block;
+		GameObject blockPedal;
+		for(int i = 0; i < startingBlocks_current.Length; i++){
+			block = startingBlocks[i];
+			blockPedal = block.transform.Find("Block Pedal Right").gameObject;
+			Vector3 targetPos = 
 			
+			.transform.position +=
 		}
-		// -----------------
-		PlayerAttributes att;
-		for(int i = 0; i < racers.Count; i++){
-			att = racers[i].GetComponent<PlayerAttributes>();
-			startingBlocks[att.lane-1].SetActive(true);
+	}
+	*/
+	
+	void hideStartingBlocks(){
+		for(int i = 0; i < startingBlocks_current.Length; i++){
+			startingBlocks_100m[i].SetActive(false);
+			startingBlocks_200m[i].SetActive(false);
+			startingBlocks_400m[i].SetActive(false);
 		}
 	}
 	
@@ -357,10 +448,9 @@ public class RaceManager : MonoBehaviour
 			renderers = new SkinnedMeshRenderer[]{att.smr_dummy, att.smr_top, att.smr_bottoms, att.smr_shoes, att.smr_socks, att.smr_headband, att.smr_sleeve};
 			for(int j = 0; j < renderers.Length; j++){
 				renderer = renderers[j];
-				material = renderer.materials[0];
-				material.renderQueue += (lane+100);
-				
-				//renderer.materials = new Material[]{material};
+				material = renderer.sharedMaterial;
+				material.renderQueue += (lane*100 + j);
+				renderer.sharedMaterial = material;
 			}
 		
 		}
@@ -368,8 +458,20 @@ public class RaceManager : MonoBehaviour
 	
 	public void setOffRacers(){
 		if(!fStart){
+			StartCoroutine(wait(.1f));
 			raceStatus = STATUS_GO;
 			raceStarted = true;
+			
+			GameObject racer;
+			EnergyMeterController emc;
+			for(int i = 0; i < racers.Count; i++){
+				racer = racers[i];
+				emc = racer.GetComponent<EnergyMeterController>();
+				
+				emc.show();
+				
+			}
+			
 		}
 	}
 	
@@ -380,16 +482,19 @@ public class RaceManager : MonoBehaviour
 		if(focusRacerFinished){
 			gc.showResultsScreen();
 			focusRacerFinished = false;
+			gc.endRace();
 		}
 		if(allRacersFinished){
 			raceStatus = STATUS_FINISHED;
-			gc.endRace();
+			//gc.endRace();
 		}
 		else{
 			if(viewMode == VIEW_MODE_LIVE){
 				anim = player.GetComponent<PlayerAnimationV2>();
+				oc = player.GetComponent<OrientationController>();
 				anim.readInput(raceTick);
 				anim.applyInput(raceTick);
+				//oc.updateOrientation(true);
 				player.GetComponent<TimerController>().recordInput(raceTick);
 			}
 			// -----------------
@@ -397,9 +502,11 @@ public class RaceManager : MonoBehaviour
 			for(int i = 0; i < bots.Count; i++){
 				bot = bots[i];
 				anim = bot.GetComponent<PlayerAnimationV2>();
+				oc = bot.GetComponent<OrientationController>();
 				bot.GetComponent<Bot_AI>().runAI(raceTick);
 				anim.readInput(raceTick);
 				anim.applyInput(raceTick);
+				//oc.updateOrientation(true);
 				bot.GetComponent<TimerController>().recordInput(raceTick);
 			}
 			// -----------------
@@ -407,9 +514,11 @@ public class RaceManager : MonoBehaviour
 			for(int i = 0; i < ghosts.Count; i++){
 				ghost = ghosts[i];
 				PlayerAttributes att = ghost.GetComponent<PlayerAttributes>();
+				oc = ghost.GetComponent<OrientationController>();
 				PlayerAnimationV2 anim = ghost.GetComponent<PlayerAnimationV2>();
 				anim.readInput(raceTick);
 				anim.applyInput(raceTick);
+				//oc.updateOrientation(false);
 				anim.setPositionAndVelocity(raceTick);
 			}
 		}
@@ -424,11 +533,11 @@ public class RaceManager : MonoBehaviour
 			focusRacerFinished = true;
 			if(viewMode == VIEW_MODE_LIVE){
 				gc.setCameraFocus(finishLine, CameraController.CAMERA_MODE_SIDESCROLL);
-				if((raceTime < att.personalBest) || (att.personalBest == -1f)){
+				if((raceTime < att.personalBests[raceEvent]) || (att.personalBests[raceEvent] == -1f)){
 					att.resultTag = "<color=red>PB</color>";
-					att.personalBest = raceTime;
-					player.GetComponent<PlayerAttributes>().personalBest = raceTime;
-					player_backEnd.GetComponent<PlayerAttributes>().personalBest = raceTime;
+					att.personalBests[raceEvent] = raceTime;
+					//player.GetComponent<PlayerAttributes>().personalBests[raceEvent] = raceTime;
+					player_backEnd.GetComponent<PlayerAttributes>().personalBests[raceEvent] = raceTime;
 					playerPB = true;
 				}
 			}
@@ -441,9 +550,7 @@ public class RaceManager : MonoBehaviour
 		att.pathLength = raceTick;
 		att.resultString = "<color="+ att.resultColor+">" + att.racerName + "</color>" + "  " + (Mathf.Round(att.finishTime * 100f) / 100f) + "  " + att.resultTag;
 		resultsText.text += "\n  " + (racersFinished) + "  " + att.resultString;
-		
-		StartCoroutine(anim.autoRun());
-		
+
 	}
 	
 	public IEnumerator falseStart(){
@@ -484,6 +591,11 @@ public class RaceManager : MonoBehaviour
 				racer.GetComponent<PlayerAnimationV2>().upInSet = false;
 			}
 			else if(mode == STATUS_SET){
+				if(racer.GetComponent<PlayerAnimationV2>().upInSet == false){
+					if(racer == focusRacer){
+						racer.GetComponent<PlayerAnimationV2>().audio.playSound("Block Rattle");
+					}
+				}
 				racer.GetComponent<PlayerAnimationV2>().upInSet = true;
 			}
 			else if(mode == STATUS_GO){
@@ -493,7 +605,7 @@ public class RaceManager : MonoBehaviour
 	}
 	
 	public void quitRace(){
-		focusRacer = startingLine;
+		focusRacer = startingLines_current[4];
 		gc.clearListAndObjects(racers);
 		gc.goStartScreen();
 	}
@@ -514,7 +626,13 @@ public class RaceManager : MonoBehaviour
 		}
 		
 		// speed
-		float speed = (focusRacer.GetComponent<Rigidbody>().velocity.z) / 2f;
+		float speed = 0f;
+		if(focusRacer != null){
+			PlayerAnimationV2 anim = focusRacer.GetComponent<PlayerAnimationV2>();
+			if(anim != null){
+				speed = (focusRacer.GetComponent<PlayerAnimationV2>().speedHoriz) / 2f;
+			}
+		}
 		speed *= 2.236936f;
 		speed = (Mathf.Round(speed * 10f) / 10f);
 		speedometer.text = speed + " mph";
@@ -558,9 +676,8 @@ public class RaceManager : MonoBehaviour
 		}
 	}
 	
+	IEnumerator wait(float t){
+		yield return new WaitForSeconds(t);
+	}
 
-
-	
-	
-	
 }

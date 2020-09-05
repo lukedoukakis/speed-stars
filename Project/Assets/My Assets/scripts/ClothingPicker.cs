@@ -7,6 +7,8 @@ public class ClothingPicker : MonoBehaviour
 {
 	
 	public GameObject previewRacer;
+	public GameObject previewPlatform;
+	
 	public PlayerAttributes att;
 	public ClothingManager clothingManager;
 	
@@ -117,6 +119,7 @@ public class ClothingPicker : MonoBehaviour
 	}
 	
 	public void resetPreviewPosition(){
-		previewRacer.transform.position += Vector3.up*.15f;
+		previewRacer.transform.position = previewPlatform.transform.position + Vector3.up*.5f;
+		//previewRacer.GetComponent<PlayerAnimationV2>().energy = 100f;
 	}
 }

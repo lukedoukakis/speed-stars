@@ -45,7 +45,6 @@ public class RacerFootV2 : MonoBehaviour
 	Vector3 forceDirHoriz;
 	Vector3 forceDirVert;
 	float forceHoriz;
-	float forceVert;
 	
 
     // Start is called before the first frame update
@@ -53,14 +52,13 @@ public class RacerFootV2 : MonoBehaviour
     {
 		attributes = GetComponent<PlayerAttributes>();
 		knee_dominance = attributes.KNEE_DOMINANCE;
-		knee_dominance_powerModifier = Mathf.Pow(2f-knee_dominance, 1.082f);
+		knee_dominance_powerModifier = Mathf.Pow(2f - knee_dominance, 1.2f);
 		swingFrames = 0f;
 		groundFrames = 0f;
 		
 		zTiltMinAbs = Mathf.Abs(-45f);
 		zTiltMaxAbs = Mathf.Abs(45f);
-		
-		turnoverFactor = 150f * (2f-attributes.TURNOVER);
+
 		torsoAngle_ideal = animation.torsoAngle_ideal;
 		torsoAngle_max = animation.torsoAngle_max;
     }
@@ -73,10 +71,11 @@ public class RacerFootV2 : MonoBehaviour
 		}
 		else if(animation.mode == 2){
 			power = animation.power;
+			turnoverFactor = 150f * (2f-animation.turnover);
 			leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
 			torsoAngle = animation.torsoAngle;
 			transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
-			zSpeed = rb.velocity.z;
+			zSpeed = animation.speedHoriz;
 			ySpeed = rb.velocity.y;
 			zSpeedOverTransitionPivotSpeed = zSpeed/transitionPivotSpeed;
 			if(zSpeedOverTransitionPivotSpeed > 1f){
@@ -104,30 +103,32 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionEnter(Collision collision){
-		if(collision.gameObject.tag == "Ground"){
-			groundContact = true;
-		}
+		GameObject g = collision.gameObject;
+		// -----------------
 		if(animation.mode == 2){
-			if(collision.gameObject.tag == "Ground"){
+			if(g.tag.StartsWith("Ground")){
 				touchDown = true;
 				// -----------------
 				
 				float f = (torsoAngle)/(torsoAngle_max);
 				f *= f*f;
-				float driveBonus = f * (1f - (zSpeed/(40f))) * 8f;
+				float driveBonus = f * (1f - (zSpeed/(40f))) * 12f;
 				if(driveBonus > 1f){
-					if(driveBonus > 8f){ driveBonus = 8f; }
+					if(driveBonus > 12f){ driveBonus = 12f; }
 				}else{ driveBonus = 1f; }
 				// -----------------
-				forceDirHoriz = Vector3.forward;
-				forceDirVert = Vector3.up;
 				forceHoriz = 1f;
-				forceVert = 1f;
 				forceHoriz *= power * (1f-zSpeedOverTransitionPivotSpeed) * knee_dominance_powerModifier;
 				forceHoriz *= driveBonus;
 				forceHoriz *= swingTimeBonus;
 				// -----------------
 				StartCoroutine(applyForce(forceHoriz));
+				animation.updateEnergy(zSpeed, swingTimeBonus);
+				
+				if(swingFrames > 10f){
+					//AudioManager.playSound(audioSource, "Footfall 0");
+				}
+				
 				// -----------------
 				swingTimeBonus = 0f;
 				swingFrames = 0;
@@ -136,11 +137,13 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionStay(Collision collision){
-		if(collision.gameObject.tag == "Ground"){
+		GameObject g = collision.gameObject;
+		// -----------------
+		if(g.tag.StartsWith("Ground")){
 			groundContact = true;
 		}
 		if(animation.mode == 2){
-			if(collision.gameObject.tag == "Ground"){
+			if(g.tag.StartsWith("Ground")){
 				touchDown = false;
 				if(groundFrames < 15f){
 					groundFrames++;
@@ -150,11 +153,13 @@ public class RacerFootV2 : MonoBehaviour
 	}
 	
 	void OnCollisionExit(Collision collision){
-		if(collision.gameObject.tag == "Ground"){
+		GameObject g = collision.gameObject;
+		// -----------------
+		if(g.tag.StartsWith("Ground")){
 			groundContact = false;
 		}
 		if(animation.mode == 2){
-			if(collision.gameObject.tag == "Ground"){
+			if(g.tag.StartsWith("Ground")){
 				groundFrames = 0f;
 			}
 		}
@@ -162,6 +167,7 @@ public class RacerFootV2 : MonoBehaviour
 	
 	public IEnumerator applyForce(float forceMagnitude){
 		for(int i = 0; i < 5; i++){
+			forceDirHoriz = animation.gyro.transform.forward;
 			rb.AddForce(forceDirHoriz * forceMagnitude * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}

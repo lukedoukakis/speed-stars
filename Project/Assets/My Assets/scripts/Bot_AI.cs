@@ -7,6 +7,7 @@ public class Bot_AI : MonoBehaviour
 	public RaceManager raceManager;
 	public PlayerAnimationV2 anim;
 	public PlayerAttributes att;
+	public int preset;
 	// -----------------
 	int[] leftInputPath;
 	int[] rightInputPath;
@@ -114,7 +115,7 @@ public class Bot_AI : MonoBehaviour
 			zSpeedOverTransitionPivotSpeed = 1f;
 		}
 		if(zSpeed < 3f){
-			//zSpeedOverTransitionPivotSpeed *= .9f;
+			zSpeedOverTransitionPivotSpeed = .5f;
 		}
 		tickRate = (int)(100f * zSpeedOverTransitionPivotSpeed);
 		// -----------------
@@ -138,8 +139,12 @@ public class Bot_AI : MonoBehaviour
 						setTicks(2400f);
 						maintenanceFlag = true;
 					}
-					if(torsoAngle < torsoAngle_back){
-						anim.leanLock = true;
+					if(!anim.leanLock){
+						if(torsoAngle < torsoAngle_back){
+							anim.leanLock = true;
+							att.leanLockTick = raceManager.raceTick;
+							Debug.Log("leanLock at tick: " + att.leanLockTick);
+						}
 					}
 				}
 			}
@@ -153,7 +158,10 @@ public class Bot_AI : MonoBehaviour
 				//Debug.Log("energy adjust");
 				//anim.leanLock = false;
 				//torsoAngle_back = torsoAngle_upright - (.05f * ((energy+35f)*.001f));
-				float newPace = Mathf.Lerp(pace, 1f * (1f - energy/1000f), 30f * Time.deltaTime);
+				float newPace;
+				if(energy > 30f){
+					newPace = Mathf.Lerp(pace, 1f * (1f - energy/1000f), 30f * Time.deltaTime);
+				}else{ newPace = 1f; }
 				if(newPace > pace){
 					pace = newPace;
 					setTicks(2400f);
@@ -176,6 +184,7 @@ public class Bot_AI : MonoBehaviour
 		
 		anim = gameObject.GetComponent<PlayerAnimationV2>();
 		att = anim.attributes;
+		preset = anim.preset;
 		// -----------------
 		cadenceModifier = 1f;
 		//cadenceModifier *= Mathf.Pow(difficulty, .5f);
@@ -195,6 +204,7 @@ public class Bot_AI : MonoBehaviour
 		// -----------------
 		reaction = false;
 		reactionTime = Random.Range(.17f, .21f) * (2f - difficulty);
+		reactionTime = .18f;
 		// -----------------
 		freeTicks = 2650f * (2f - cadenceModifier);
 		downTicks = 950f * (2f - cadenceModifier);
@@ -204,36 +214,75 @@ public class Bot_AI : MonoBehaviour
 		inputRight = 0;
 		tickRate = 100f;
 		// -----------------
-		if(raceManager.raceEvent == RaceManager.RACE_EVENT_100M){
-			pace = 1f;
-			energyThreshold = 0f;
-		}
-		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_200M){
-			pace = .985f * cadenceModifier;
-			energyThreshold = 85f;
-		}
-		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_400M){
-			pace = .85f * cadenceModifier;
-			energyThreshold = 65f;
-		}
-		else{
-			pace = 1f;
-			energyThreshold = 95f;
-		}
-		// -----------------
-		torsoAngle_upright = 315f * Mathf.Pow(att.KNEE_DOMINANCE,.01f);
-		torsoAngle_back = torsoAngle_upright;
 		topEndFlag = false;
 		maintenanceFlag = false;
 		forward = false;
 		transitionPivotSpeed = att.TRANSITION_PIVOT_SPEED;
 		//knee_dominance_modifier = Mathf.Pow(att.KNEE_DOMINANCE,.5f);
 		knee_dominance_modifier = 1f;
-		
 		modifierCapSpeed = 23f * difficulty;
 		// -----------------
 		ticksPassedLeft = 0;
 		ticksPassedRight = (downTicks / 2f) + 310f;
+		// -----------------
+		setPresetStats();
+	}
+	
+	
+	void setPresetStats(){
+		if(raceManager.raceEvent == RaceManager.RACE_EVENT_100M){
+			if(preset < 4){
+				pace = 1f;
+				energyThreshold = 0f;
+			}
+			else{
+				pace = float.Parse(TextReader.getAttribute(preset, "pace100"));
+				energyThreshold = float.Parse(TextReader.getAttribute(preset, "energyThreshold100"));
+			}
+		}
+		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_200M){
+			if(preset < 4){
+				pace = (Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f))/4f * cadenceModifier;
+				energyThreshold = 95f;
+			}
+			else{
+				pace = float.Parse(TextReader.getAttribute(preset, "pace200"));
+				energyThreshold = float.Parse(TextReader.getAttribute(preset, "energyThreshold200"));
+				if(preset == PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE){
+					att.POWER *= .805f;
+				}
+			}
+		}
+		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_400M){
+			if(preset < 4){
+				pace = (Random.Range(.7f, 1f)+Random.Range(.7f, 1f)+Random.Range(.7f, 1f)+Random.Range(.7f, 1f))/4f * (2f - att.KNEE_DOMINANCE);
+				energyThreshold = 65f;
+			}
+			else{
+				pace = float.Parse(TextReader.getAttribute(preset, "pace400"));
+				energyThreshold = float.Parse(TextReader.getAttribute(preset, "energyThreshold400"));
+				
+				if(preset == PlayerAttributes.ATTRIBUTES_LEGEND_MICHAELJOHNSON){
+					att.POWER *= .88f;
+					pace = .97f;
+				}
+				if(preset == PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE){
+					att.POWER *= .75f;
+				}
+			}
+		}
+		else{
+			pace = 1f;
+			energyThreshold = 0f;
+		}
+		// -----------------
+		if(preset < 4){
+			torsoAngle_upright = 315f * Mathf.Pow(att.KNEE_DOMINANCE,.01f);
+		}
+		else{
+			torsoAngle_upright = float.Parse(TextReader.getAttribute(preset, "torsoAngle"));
+		}
+		torsoAngle_back = torsoAngle_upright;
 	}
 	
 }

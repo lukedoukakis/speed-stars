@@ -15,7 +15,9 @@ public class PlayerAttributes : MonoBehaviour
 	public static int ATTRIBUTES_DEFAULT = 3;
 	
 	public static int ATTRIBUTES_LEGEND_USAINBOLT = 4;
-	public static int ATTRIBUTES_LEGEND_JUSTINGATLIN = 5;
+	public static int ATTRIBUTES_LEGEND_MICHAELJOHNSON = 5;
+	public static int ATTRIBUTES_LEGEND_YOHANBLAKE = 6;
+	
 	// -----------------
 	
 	// id info
@@ -35,6 +37,7 @@ public class PlayerAttributes : MonoBehaviour
 	
 	// ghost info
 	public int pathLength;
+	public int leanLockTick;
 	public float[] velMagPath;
 	public float[] velPathX;
 	public float[] velPathY;
@@ -121,7 +124,7 @@ public class PlayerAttributes : MonoBehaviour
 	// -----------------
 	
 	// stats info
-	public float POWER;											
+	public float POWER;
 	public float TRANSITION_PIVOT_SPEED;			
 	public float QUICKNESS;							// base 1
 	public float KNEE_DOMINANCE;					// base 1
@@ -164,7 +167,6 @@ public class PlayerAttributes : MonoBehaviour
     {
 	
     }
-	
 	
 	
 	public void setClothing(int setting){
@@ -255,6 +257,29 @@ public class PlayerAttributes : MonoBehaviour
 			socksColor = randomColors[j]; j++;
 			headbandColor = randomColors[j]; j++;
 			sleeveColor = randomColors[j]; j++;
+		}
+		else if(setting >= 4){
+			dummyMeshNum = int.Parse(TextReader.getAttribute(setting, "dummyMesh"));
+			topMeshNum = int.Parse(TextReader.getAttribute(setting, "topMesh"));
+			bottomsMeshNum = int.Parse(TextReader.getAttribute(setting, "bottomsMesh"));
+			shoesMeshNum = int.Parse(TextReader.getAttribute(setting, "shoesMesh"));
+			socksMeshNum = int.Parse(TextReader.getAttribute(setting, "socksMesh"));
+			headbandMeshNum = int.Parse(TextReader.getAttribute(setting, "headbandMesh"));
+			sleeveMeshNum = int.Parse(TextReader.getAttribute(setting, "sleeveMesh"));
+			dummyMaterialNum = int.Parse(TextReader.getAttribute(setting, "dummyMaterial"));
+			topMaterialNum = int.Parse(TextReader.getAttribute(setting, "topMaterial"));
+			bottomsMaterialNum = int.Parse(TextReader.getAttribute(setting, "bottomsMaterial"));
+			shoesMaterialNum = int.Parse(TextReader.getAttribute(setting, "shoesMaterial"));
+			socksMaterialNum = int.Parse(TextReader.getAttribute(setting, "socksMaterial"));
+			headbandMaterialNum = int.Parse(TextReader.getAttribute(setting, "headbandMaterial"));
+			sleeveMaterialNum = int.Parse(TextReader.getAttribute(setting, "sleeveMaterial"));
+			dummyColor = new Color(float.Parse(TextReader.getAttribute(setting, "dummyColorR")), float.Parse(TextReader.getAttribute(setting, "dummyColorG")), float.Parse(TextReader.getAttribute(setting, "dummyColorB")));
+			topColor = new Color(float.Parse(TextReader.getAttribute(setting, "topColorR")), float.Parse(TextReader.getAttribute(setting, "topColorG")), float.Parse(TextReader.getAttribute(setting, "topColorB")));
+			bottomsColor = new Color(float.Parse(TextReader.getAttribute(setting, "bottomsColorR")), float.Parse(TextReader.getAttribute(setting, "bottomsColorG")), float.Parse(TextReader.getAttribute(setting, "bottomsColorB")));
+			shoesColor = new Color(float.Parse(TextReader.getAttribute(setting, "shoesColorR")), float.Parse(TextReader.getAttribute(setting, "shoesColorG")), float.Parse(TextReader.getAttribute(setting, "shoesColorB")));
+			socksColor = new Color(float.Parse(TextReader.getAttribute(setting, "socksColorR")), float.Parse(TextReader.getAttribute(setting, "socksColorG")), float.Parse(TextReader.getAttribute(setting, "socksColorB")));
+			headbandColor = new Color(float.Parse(TextReader.getAttribute(setting, "headbandColorR")), float.Parse(TextReader.getAttribute(setting, "headbandColorG")), float.Parse(TextReader.getAttribute(setting, "headbandColorB")));
+			sleeveColor = new Color(float.Parse(TextReader.getAttribute(setting, "sleeveColorR")), float.Parse(TextReader.getAttribute(setting, "sleeveColorG")), float.Parse(TextReader.getAttribute(setting, "sleeveColorB")));
 		}
 			
 		/*
@@ -389,12 +414,19 @@ public class PlayerAttributes : MonoBehaviour
 			feetScaleZ = feetZ;
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-		
 			
+			///*
+			// testing
+			torsoScaleX = .95f;
+			torsoScaleY = torsoScaleX * 1.04f;
+			torsoScaleZ = torsoScaleY * 1.08f;
+			//*/
+			/*
 			// randomize torso proportions
 			torsoScaleX = (Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f))/3f;
 			torsoScaleY = torsoScaleX * Random.Range(.9f, 1.2f);
 			torsoScaleZ = torsoScaleY * Random.Range(.9f, 1.1f);
+			*/
 		
 			// adjust head, neck, arm, leg proportions for torso
 			neckScaleX *= (1f/torsoScaleX);
@@ -407,21 +439,35 @@ public class PlayerAttributes : MonoBehaviour
 			legScaleY *= 1f;
 			legScaleZ = legScaleY;
 			
-		
+			///*
+			// testing
+			neckScaleX *= .85f;
+			neckScaleY *= 1.05f;
+			neckScaleZ = 1.05f;
+			armScaleX *= 1f;
+			legScaleX *= 1.07f;
+			///*
+			/*
 			// randomize neck, arm and leg proportions
 			neckScaleX *= Random.Range(.5f, 1.5f);
 			neckScaleY *= Random.Range(.8f, 1.2f);
 			neckScaleZ = neckScaleY;
 			armScaleX *= Random.Range(1f,1.02f);
-			legScaleX *= Random.Range(1f, 1.02f);
+			legScaleX *= Random.Range(1f, 1f);
+			*/
 	
-			
-			
+			///*
+			//testing
+			headScaleX *= (1f / neckScaleX) * (1f / torsoScaleX);
+			headScaleY *= .77f;
+			headScaleZ *= .77f;
+			//*/
+			/*
 			// adjust head proportion for neck and torso
 			headScaleX *= (1f / neckScaleX) * (1f / torsoScaleX);
 			//headScaleY *= 1f / neckScaleY;
-			//headScaleZ = 1f / neckScaleZ;
-			
+			//headScaleZ *= 1f / neckScaleZ;
+			*/
 			
 			// adjust feet proportion for legs
 			feetScaleX *= 2f-thighRight.localScale.x;
@@ -429,7 +475,26 @@ public class PlayerAttributes : MonoBehaviour
 			// -----------------
 			
 		}
-		
+		else if(setting >= 4){
+			headScaleX = float.Parse(TextReader.getAttribute(setting, "headX"));
+			headScaleY = float.Parse(TextReader.getAttribute(setting, "headY"));
+			headScaleZ = float.Parse(TextReader.getAttribute(setting, "headZ"));
+			neckScaleX = float.Parse(TextReader.getAttribute(setting, "neckX"));
+			neckScaleY = float.Parse(TextReader.getAttribute(setting, "neckY"));
+			neckScaleZ = float.Parse(TextReader.getAttribute(setting, "neckZ"));
+			torsoScaleX = float.Parse(TextReader.getAttribute(setting, "torsoX"));
+			torsoScaleY = float.Parse(TextReader.getAttribute(setting, "torsoY"));
+			torsoScaleZ = float.Parse(TextReader.getAttribute(setting, "torsoZ"));
+			armScaleX = float.Parse(TextReader.getAttribute(setting, "armX"));
+			armScaleY = float.Parse(TextReader.getAttribute(setting, "armY"));
+			armScaleZ = float.Parse(TextReader.getAttribute(setting, "armZ"));
+			legScaleX = float.Parse(TextReader.getAttribute(setting, "legX"));
+			legScaleY = float.Parse(TextReader.getAttribute(setting, "legY"));
+			legScaleZ = float.Parse(TextReader.getAttribute(setting, "legZ"));
+			feetScaleX = float.Parse(TextReader.getAttribute(setting, "feetX"));
+			feetScaleY = float.Parse(TextReader.getAttribute(setting, "feetY"));
+			feetScaleZ = float.Parse(TextReader.getAttribute(setting, "feetZ"));
+		}
 		setTorsoProportions(torsoScaleX, torsoScaleY, torsoScaleZ);
 		setHeadProportions(headScaleX, headScaleY, headScaleZ);
 		setNeckProportions(neckScaleX, neckScaleY, neckScaleZ);
@@ -439,6 +504,7 @@ public class PlayerAttributes : MonoBehaviour
 		adjustHeightAndWeight();
 		
 		updateAttributes();
+		Debug.Log(height);
 		// -----------------
 
 		void setTorsoProportions(float scaleX, float scaleY, float scaleZ){
@@ -514,19 +580,55 @@ public class PlayerAttributes : MonoBehaviour
 	}
 	
 	public void setStats(int setting){
+		
+		float power = 175f;
+		float transPivSpeed = 200f;
+		float quickness = 1f;
+		float knee_dominance = 1f;
+		float turnover = 1f;
+		float fitness = 1f;
+		
 		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
-			// TODO
+			// do nothing
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-			
-			
 			// modify stats from leg length
-			TURNOVER = Mathf.Pow((2f - thighRight.localScale.x), .5f);
-			//TURNOVER = 1f + ((1f - thighRight.localScale.x) * .28f);
-			KNEE_DOMINANCE = Mathf.Pow((2f - thighRight.localScale.x), 1f);
+			turnover = Mathf.Pow((2f - thighRight.localScale.x), .5f);
+			knee_dominance = Mathf.Pow((2f - thighRight.localScale.x), 1f);
 		}	
+		else if(setting >= 4){
+			
+			//TURNOVER = Mathf.Pow((2f - thighRight.localScale.x), .5f);
+			//KNEE_DOMINANCE = Mathf.Pow((2f - thighRight.localScale.x), 1f);
+			
+			if(setting == ATTRIBUTES_LEGEND_USAINBOLT){
+				power = 224f;
+				knee_dominance = .88f;
+				turnover = .938083152f;
+				fitness = .97f;
+			}
+			else if(setting == ATTRIBUTES_LEGEND_MICHAELJOHNSON){
+				power = 163.625f;
+				knee_dominance = .91f;
+				turnover = 1.2f;
+				fitness = 1.5f;
+			}
+			else if(setting == ATTRIBUTES_LEGEND_YOHANBLAKE){
+				power = 180f;
+				knee_dominance = .9f;
+				turnover = 1f;
+				fitness = 1.2f;
+				quickness = 1.02f;
+			}
+	
+		}
 		
-		
+		POWER = power;
+		TRANSITION_PIVOT_SPEED = transPivSpeed;
+		QUICKNESS = quickness;
+		KNEE_DOMINANCE = knee_dominance;
+		TURNOVER = turnover;
+		FITNESS = fitness;
 	}
 	
 	public void setAnimatorController(int setting){
@@ -560,6 +662,7 @@ public class PlayerAttributes : MonoBehaviour
 		}
 		if(whichAttributes == "all" || whichAttributes == "ghost data"){
 			pathLength = otherAttributes.pathLength;
+			leanLockTick = otherAttributes.leanLockTick;
 			velMagPath = otherAttributes.velMagPath;
 			velPathX = otherAttributes.velPathX;
 			velPathY = otherAttributes.velPathY;

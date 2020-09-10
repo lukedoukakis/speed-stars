@@ -6,6 +6,8 @@ using UnityEngine;
 public class PlayerAnimationV2 : MonoBehaviour
 {
 	
+	public int preset;
+	
 	public GameObject gyro;
 	public Transform root;
 	public Rigidbody rb;
@@ -60,8 +62,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float power;
 	public float powerMod;
 	float knee_dominance;
-	float knee_dominance_driveModifier;
-	float knee_dominance_curveModifier;
+	float driveModifier;
+	public float launchModifier;
+	float curveModifier;
 	public float maxPower;
 	public float maxUpSpeed;
 	float topSpeed;
@@ -70,10 +73,12 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float speedHoriz;
 	public float speedHoriz_lastFrame;
 	public float energy;
+	public float fitness;
 	
 	public bool leans;
 	public float zTilt;
 	public bool leanLock;
+	public int leanLockTick;
 	float leanThreshold;
 	public float quickness;
 	public float quicknessMod;
@@ -105,16 +110,37 @@ public class PlayerAnimationV2 : MonoBehaviour
 	}
 	
 	public void init(){
-		turnover = attributes.TURNOVER;
-		quickness = attributes.QUICKNESS;
-		maxPower = attributes.POWER;
+		
+		setPreset(attributes.racerName);
+		// -----------------
+		if(preset < 4){
+			turnover = attributes.TURNOVER;
+			quickness = attributes.QUICKNESS;
+			fitness = attributes.FITNESS;
+			maxPower = attributes.POWER;
+			knee_dominance = attributes.KNEE_DOMINANCE;
+			driveModifier = Mathf.Pow(knee_dominance, 3f);
+			launchModifier = Mathf.Pow(knee_dominance, 3f);
+			curveModifier = Mathf.Pow(knee_dominance, .1f);
+			leanThreshold = .825f * attributes.KNEE_DOMINANCE;
+			torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
+		}
+		else if(preset >= 4){
+			turnover = attributes.TURNOVER;
+			quickness = attributes.QUICKNESS;
+			fitness = attributes.FITNESS;
+			maxPower = attributes.POWER;
+			knee_dominance = attributes.KNEE_DOMINANCE;
+			driveModifier = float.Parse(TextReader.getAttribute(preset, "driveModifier"));
+			launchModifier = float.Parse(TextReader.getAttribute(preset, "launchModifier"));
+			curveModifier = float.Parse(TextReader.getAttribute(preset, "curveModifier"));
+			leanThreshold = .825f * attributes.KNEE_DOMINANCE;
+			torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
+		}
+		// -----------------
+		
 		quicknessMod = 1f;
 		powerMod = 1f;
-		knee_dominance = attributes.KNEE_DOMINANCE;
-		knee_dominance_driveModifier = Mathf.Pow(knee_dominance, 3f);
-		knee_dominance_curveModifier = Mathf.Pow(knee_dominance, .1f);
-		leanThreshold = .825f * attributes.KNEE_DOMINANCE;
-		torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
 		leanLock = false;
 		
 		if(tag.StartsWith("Ghost")){
@@ -157,7 +183,22 @@ public class PlayerAnimationV2 : MonoBehaviour
 		velocityLastFrame = rb.velocity;
 		velocityLastFrame_relative = gyro.transform.InverseTransformDirection(rb.velocity);
 		speedHoriz_lastFrame = speedHoriz;
-	}	
+	}
+	
+	void setPreset(string name){
+		if(name == "Usain Bolt"){
+			preset = PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT;
+		}
+		else if(name == "Michael Johnson"){
+			preset = PlayerAttributes.ATTRIBUTES_LEGEND_MICHAELJOHNSON;
+		}
+		else if(name == "Yohan Blake"){
+			preset = PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE;
+		}
+		else{
+			preset = PlayerAttributes.ATTRIBUTES_RANDOM;
+		}
+	}
 		
 	void runMode(){
 		
@@ -301,7 +342,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 			else if(mode == Run){
 				if(!leanLock){
-				
 				// torso lean
 					bool pushing = false;
 					bool[] inputs = new bool[2] {rightInput, leftInput};
@@ -361,6 +401,15 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	// for mapping ghost position and velocity from paths
 	public void setPositionAndVelocity(int tick){
+		Debug.Log("leanLockTick: " + attributes.leanLockTick);
+		if(tick > attributes.leanLockTick && attributes.leanLockTick > 0){
+			Debug.Log("leanLock TRUE");
+			leanLock = true;
+		} else{
+			leanLock = false;
+			Debug.Log("leanLock FALSE");
+		}
+		
 		if(tick < attributes.pathLength){
 			float vM = attributes.velMagPath[tick];
 			float vX = attributes.velPathX[tick];
@@ -427,6 +476,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		energyCost = .5f;
 		energyCost *= Mathf.Pow(speed / 27f, 2.5f);
 		energyCost *= 1f + (1f - (swingTimeBonus / 2.0736f));
+		energyCost *= (2f - fitness);
 		if(energyCost < .1f){
 			energyCost = .1f;
 		}
@@ -465,13 +515,18 @@ public class PlayerAnimationV2 : MonoBehaviour
 			modifiedPower *= modifier;
 		}
 		// -----------------
+		// modify power from torso angle
+		if(torsoAngle < 310f){
+			modifier = torsoAngle/310f;
+			modifiedPower *= modifier;
+		}
+		
+		// -----------------
 		// reduce power if on curve
 		if(onCurve){
-			//modifier = .9f * knee_dominance_curveModifier;
 			modifier = .9f;
 			modifiedPower *= modifier;
 		}
-
 		// -----------------
 		// modify power from energy
 		if(energy < 80f){
@@ -507,7 +562,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 		}
 		
-		float maxD = .475f * knee_dominance_driveModifier;
+		float maxD = .475f * driveModifier;
 		if(speedHoriz > speedHoriz_lastFrame + maxD){
 			velHoriz = Vector3.ClampMagnitude(velHoriz, speedHoriz_lastFrame + maxD);
 		}
@@ -565,6 +620,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public void setViewMode(int viewMode){
 		animator.SetInteger("viewMode", viewMode);
+		//animator.SetInteger("viewMode", 0);
 	}
 
 	
@@ -578,7 +634,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetBool("launch", true);
 		for(int i = 0; i < 8; i++){
 			float launchPower = 2500f;
-			rb.AddForce((gyro.transform.forward + (Vector3.up * knee_dominance_driveModifier * .2f)) * (launchPower) * knee_dominance_driveModifier * Time.deltaTime, ForceMode.Force);
+			rb.AddForce((gyro.transform.forward + (Vector3.up * launchModifier * .2f)) * (launchPower) * launchModifier * Time.deltaTime, ForceMode.Force);
 			yield return null;
 		}
 		for(int i = 0; i < 10; i++){

@@ -245,6 +245,7 @@ public class RaceManager : MonoBehaviour
 				Bot_AI ai = racer.GetComponent<Bot_AI>();
 				ai.raceManager = this;
 				ai.init(botDifficulty);
+				anim.init();
 				bots.Add(racer);
 				botCount++;
 			}

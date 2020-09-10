@@ -7,6 +7,7 @@ public class EnergyMeterController : MonoBehaviour
 	public GameObject energyMeter;
 		public GameObject energyBar;
 	public Material energyBarMaterial;
+	public ParticleSystem sweatParticles;
 	public GameObject root;
 	public Camera camera;
 	
@@ -29,14 +30,22 @@ public class EnergyMeterController : MonoBehaviour
 		Vector3 scale = energyBar.transform.localScale;
 		energyBar.transform.localScale = new Vector3(scale.x, scale.y, (energy*.01f));
 		updateColor(energy);
+		
+		if(energy < 60f){
+			sweatParticles.Play();
+			float sweatScale = 1f - energy/100f;
+			sweatParticles.transform.localScale = Vector3.one * sweatScale;
+		}
 	}
 	
 	public void updateOrientation(){
-		energyMeter.transform.LookAt(camera.transform.position);
-		energyMeter.transform.Rotate(transform.up, -90f);
-		Vector3 pos = root.transform.position;
-		pos.y = 2f;
-		energyMeter.transform.position = pos;
+		if(camera != null){
+			energyMeter.transform.LookAt(camera.transform.position);
+			energyMeter.transform.Rotate(transform.up, -90f);
+			Vector3 pos = root.transform.position;
+			pos.y = 2f;
+			energyMeter.transform.position = pos;
+		}
 	}
 	
 	public void updateColor(float energy){
@@ -90,8 +99,11 @@ public class EnergyMeterController : MonoBehaviour
 	}
 	
 	public void init(){
+		camera = null;
 		r = energyBar.transform.Find("Cube").gameObject.GetComponent<Renderer>();
 		r.sharedMaterial = Instantiate(energyBarMaterial);
+		
+		sweatParticles.Stop();
 	}
 	
 	

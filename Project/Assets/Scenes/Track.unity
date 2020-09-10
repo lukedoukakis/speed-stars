@@ -4921,7 +4921,7 @@ PrefabInstance:
     - target: {fileID: 6448565069943363537, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000030517578
+      value: -0.0000076293945
       objectReference: {fileID: 0}
     - target: {fileID: 6448565069943363537, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
@@ -16575,7 +16575,7 @@ PrefabInstance:
     - target: {fileID: 6448565069943363537, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000030517578
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 483d1d46b8390054885ad3ad3cc07383, type: 3}
@@ -16885,6 +16885,10 @@ PrefabInstance:
     - target: {fileID: 100002, guid: 3567dff3b0ef74b478e2513a58a4c3e7, type: 3}
       propertyPath: m_Name
       value: stadium
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 3567dff3b0ef74b478e2513a58a4c3e7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 3567dff3b0ef74b478e2513a58a4c3e7, type: 3}
       propertyPath: m_LocalPosition.x

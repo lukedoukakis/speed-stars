@@ -374,7 +374,8 @@ public class GlobalController : MonoBehaviour
 		string vM, vX, vY, vZ, pX, pY, pZ, r, l, s1P, s2P;
 		vM = vX = vY = vZ = pX = pY = pZ = r = l = s1P = s2P = "";
 		int pLength = att.pathLength;
-		Debug.Log("path length: " + pLength);
+		int leanLockTick = att.leanLockTick;
+		//Debug.Log("path length: " + pLength);
 		for(int i = 0; i < pLength; i++){
 			vM += att.velMagPath[i].ToString() + ",";
 			vX += att.velPathX[i].ToString() + ",";
@@ -416,6 +417,7 @@ public class GlobalController : MonoBehaviour
 			// -----------------
 			PlayerPrefs.SetString(id+"_pathsForEvent "+_raceEvent,
 				pLength
+			+ ":" +	leanLockTick
 			+ ":" +	vM
 			+ ":" + vX
 			+ ":" + vY
@@ -511,6 +513,7 @@ public class GlobalController : MonoBehaviour
 		
 		i = 0;
 		att.pathLength = int.Parse(pathInfo[i]); i++;
+		att.leanLockTick = int.Parse(pathInfo[i]); i++;
 		string[] vM = pathInfo[i].Split(','); i++;
 		string[] vX = pathInfo[i].Split(','); i++;
 		string[] vY = pathInfo[i].Split(','); i++;
@@ -631,19 +634,27 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	
-	public GameObject loadNewBot(string racerName, int preset){
+	public GameObject loadNewBot(int preset){
+		int usainbolt = PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT;
+		int michaeljohnson = PlayerAttributes.ATTRIBUTES_LEGEND_MICHAELJOHNSON;
+		int yohanblake = PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE;
+		int reg = preset;
+		
+		int i = reg;
+		
+		
 		GameObject bot = Instantiate(racerPrefab);
 		bot.tag = "Bot (Back End)";
 		bot.transform.SetParent(raceManager.RacersBackEndParent.transform);
 		bot.SetActive(false);
 		PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
-		att.id = PlayerAttributes.generateID(racerName);
-		att.racerName = racerName;
+		att.racerName = TextReader.getRacerName(i);
+		att.id = PlayerAttributes.generateID(att.racerName);
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
-		att.setClothing(preset);
-		att.setBodyProportions(preset);
-		att.setStats(preset);
+		att.setClothing(i);
+		att.setBodyProportions(i);
+		att.setStats(i);
 		att.setAnimatorController(preset);
 		bot.AddComponent<Bot_AI>();
 		
@@ -652,10 +663,22 @@ public class GlobalController : MonoBehaviour
 	
 	public void addBots(int _numOfBots){
 		
+		/*
 		GameObject bot;
 		int count = _numOfBots;
 		for(int i = 0; i < count; i++){
-			bot = loadNewBot("Bot " + (i).ToString(), PlayerAttributes.ATTRIBUTES_RANDOM);
+			bot = loadNewBot(PlayerAttributes.ATTRIBUTES_RANDOM);
+			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
+			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
+			racers_backEnd.Add(bot);
+		}
+		*/
+		
+		// legends
+		GameObject bot;
+		int count = _numOfBots;
+		for(int i = 4; i < count+4; i++){
+			bot = loadNewBot(i);
 			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
 			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
 			racers_backEnd.Add(bot);

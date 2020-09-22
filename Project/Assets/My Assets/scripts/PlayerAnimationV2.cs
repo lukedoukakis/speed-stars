@@ -82,6 +82,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float quickness;
 	public float quicknessMod;
 	public float turnover;
+	public float armFlex;
+	public float armExtend;
 	
 	public bool upInSet;
 	public float setPositionWeight;
@@ -122,6 +124,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 			curveModifier = Mathf.Pow(knee_dominance, .6f);
 			leanThreshold = .825f * attributes.KNEE_DOMINANCE;
 			torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
+			armFlex = attributes.armSpeedFlex;
+			armExtend = attributes.armSpeedExtend;
+			//animator.SetFloat("armFlex", 1f);
+			//animator.SetFloat("armExtend", 1f);
 		}
 		else if(preset >= 4){
 			turnover = attributes.TURNOVER;
@@ -240,7 +246,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 		if(quickness < .95f){
 			quickness = .95f;
 		}
-		animator.SetFloat("limbSpeed", quickness*quicknessMod);
+		float q = quickness*quicknessMod;
+		animator.SetFloat("limbSpeed", q);
+		animator.SetFloat("armFlex", q*armFlex);
+		animator.SetFloat("armExtend", q*armExtend);
 		//-----------------------------------------------------------------------------------------------------------
 		if(setPositionWeight >= 0f){
 			setPositionWeight -= transitionSpeed * attributes.QUICKNESS * Time.deltaTime;
@@ -414,14 +423,14 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 		if(tick < attributes.pathLength){
 			float vM = attributes.velMagPath[tick];
-			float vX = attributes.velPathX[tick];
+			//float vX = attributes.velPathX[tick];
 			float vY = attributes.velPathY[tick];
-			float vZ = attributes.velPathZ[tick];
-			float pX = attributes.posPathX[tick];
+			//float vZ = attributes.velPathZ[tick];
+			//float pX = attributes.posPathX[tick];
 			float pY = attributes.posPathY[tick];
 			float pZ = attributes.posPathZ[tick];
-			float s1P = attributes.sphere1Prog[tick];
-			float s2P = attributes.sphere2Prog[tick];
+			//float s1P = attributes.sphere1Prog[tick];
+			//float s2P = attributes.sphere2Prog[tick];
 			// -----------------
 			// set horizontal velocity magnitude to magnitude from paths
 			Vector3 vel = rb.velocity;

@@ -139,6 +139,8 @@ public class PlayerAttributes : MonoBehaviour
 	public Animator animator;
 	public RuntimeAnimatorController[] animatorControllers;
 	public int animatorNum;
+	public float armSpeedFlex;
+	public float armSpeedExtend;
 	
 	
 	
@@ -426,7 +428,7 @@ public class PlayerAttributes : MonoBehaviour
 			
 			// randomize torso proportions
 			torsoScaleX = (Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f))/3f;
-			torsoScaleY = torsoScaleX * Random.Range(.9f, 1.2f);
+			torsoScaleY = Random.Range(.9f, 1.2f);
 			torsoScaleZ = torsoScaleY * Random.Range(.9f, 1.1f);
 			
 		
@@ -662,6 +664,8 @@ public class PlayerAttributes : MonoBehaviour
 			int random = Random.Range(0, animatorControllers.Length);
 			animator.runtimeAnimatorController = animatorControllers[random];
 			this.animatorNum = random;
+			this.armSpeedFlex = Random.Range(.9f,1.1f);
+			this.armSpeedExtend = (2f-armSpeedFlex);
 		}	
 	}
 	
@@ -759,6 +763,8 @@ public class PlayerAttributes : MonoBehaviour
 			weight = otherAttributes.weight;
 			// -----------------
 			animatorNum = otherAttributes.animatorNum;
+			armSpeedFlex = otherAttributes.armSpeedFlex;
+			armSpeedExtend = otherAttributes.armSpeedExtend;
 		}
 	}
 	

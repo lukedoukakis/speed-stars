@@ -48,17 +48,9 @@ public class TimerController : MonoBehaviour
 		Vector3 pos = transform.position;
 		
 		attributes.velMagPath[tick] = velMagnitude;
-		attributes.velPathX[tick] = vel.x;
 		attributes.velPathY[tick] = y;
-		attributes.velPathZ[tick] = vel.z;
-		attributes.posPathX[tick] = pos.x;
 		attributes.posPathY[tick] = pos.y;
 		attributes.posPathZ[tick] = pos.z;
-		attributes.sphere1Prog[tick] = oc.sphere1_prog;
-		attributes.sphere2Prog[tick] = oc.sphere2_prog;
-			
-		
-		
 	}
 
 }

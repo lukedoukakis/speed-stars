@@ -386,16 +386,11 @@ public class GlobalController : MonoBehaviour
 		//Debug.Log("path length: " + pLength);
 		for(int i = 0; i < pLength; i++){
 			vM += att.velMagPath[i].ToString() + ",";
-			vX += att.velPathX[i].ToString() + ",";
 			vY += att.velPathY[i].ToString() + ",";
-			vZ += att.velPathZ[i].ToString() + ",";
-			pX += att.posPathX[i].ToString() + ",";
 			pY += att.posPathY[i].ToString() + ",";
 			pZ += att.posPathZ[i].ToString() + ",";
 			r += att.rightInputPath[i].ToString() + ",";
 			l += att.leftInputPath[i].ToString() + ",";
-			s1P += att.sphere1Prog[i].ToString() + ",";
-			s2P += att.sphere2Prog[i].ToString() + ",";
 		}
 		// -----------------
 		// clothing
@@ -427,16 +422,11 @@ public class GlobalController : MonoBehaviour
 				pLength
 			+ ":" +	leanLockTick
 			+ ":" +	vM
-			+ ":" + vX
 			+ ":" + vY
-			+ ":" + vZ
-			+ ":" + pX
 			+ ":" + pY
 			+ ":" + pZ
 			+ ":" + r
 			+ ":" + l
-			+ ":" + s1P
-			+ ":" + s2P
 			);
 		}
 		PlayerPrefs.SetString(id,
@@ -496,6 +486,8 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.height
 		+ ":" + att.weight
 		+ ":" + att.animatorNum
+		+ ":" + att.armSpeedFlex
+		+ ":" + att.armSpeedExtend
 		);
 	}
 	
@@ -525,16 +517,11 @@ public class GlobalController : MonoBehaviour
 		att.pathLength = int.Parse(pathInfo[i]); i++;
 		att.leanLockTick = int.Parse(pathInfo[i]); i++;
 		string[] vM = pathInfo[i].Split(','); i++;
-		string[] vX = pathInfo[i].Split(','); i++;
 		string[] vY = pathInfo[i].Split(','); i++;
-		string[] vZ = pathInfo[i].Split(','); i++;
-		string[] pX = pathInfo[i].Split(','); i++;
 		string[] pY = pathInfo[i].Split(','); i++;
 		string[] pZ = pathInfo[i].Split(','); i++;
 		string[] r = pathInfo[i].Split(','); i++;
 		string[] l = pathInfo[i].Split(','); i++;
-		string[] s1P = pathInfo[i].Split(','); i++;
-		string[] s2P = pathInfo[i].Split(','); i++;
 		
 		i = 0;
 		att.id = racerInfo[i]; i++;
@@ -593,20 +580,17 @@ public class GlobalController : MonoBehaviour
 		att.height = float.Parse(racerInfo[i]); i++;
 		att.weight = float.Parse(racerInfo[i]); i++;
 		att.animatorNum = int.Parse(racerInfo[i]); i++;
+		att.armSpeedFlex = float.Parse(racerInfo[i]); i++;
+		att.armSpeedExtend = float.Parse(racerInfo[i]); i++;
 		// -----------------
 		
 		// paths
 		att.setPaths(att.pathLength + 500);
 		for(int j = 0; j < att.pathLength; j++){
 			att.velMagPath[j] = float.Parse(vM[j]);
-			att.velPathX[j] = float.Parse(vX[j]);
 			att.velPathY[j] = float.Parse(vY[j]);
-			att.velPathZ[j] = float.Parse(vZ[j]);
-			att.posPathX[j] = float.Parse(pX[j]);
 			att.posPathY[j] = float.Parse(pY[j]);
 			att.posPathZ[j] = float.Parse(pZ[j]);
-			att.sphere1Prog[j] = float.Parse(s1P[j]);
-			att.sphere2Prog[j] = float.Parse(s2P[j]);
 			att.rightInputPath[j] = int.Parse(r[j]);
 			att.leftInputPath[j] = int.Parse(l[j]);
 		}

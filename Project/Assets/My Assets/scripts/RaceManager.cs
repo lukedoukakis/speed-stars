@@ -7,10 +7,10 @@ using UnityEngine.UI;
 public class RaceManager : MonoBehaviour
 {
 	
-	public static int RACE_EVENT_100M = 0;
-	public static int RACE_EVENT_200M = 1;
-	public static int RACE_EVENT_400M = 2;
-	public static int RACE_EVENT_110MH = 3;
+	public static int RACE_EVENT_60M = 0;
+	public static int RACE_EVENT_100M = 1;
+	public static int RACE_EVENT_200M = 2;
+	public static int RACE_EVENT_400M = 3;
 	// -----------------
 	public static int VIEW_MODE_LIVE = 0;
 	public static int VIEW_MODE_REPLAY = 1;
@@ -49,10 +49,12 @@ public class RaceManager : MonoBehaviour
 	public GameObject[] startingBlocks_100m;
 	public GameObject[] startingBlocks_200m;
 	public GameObject[] startingBlocks_400m;
+	public GameObject[] startingBlocks_60m;
 	public GameObject[] startingBlocks_current;
 	public GameObject[] startingLines_100m;
 	public GameObject[] startingLines_200m;
 	public GameObject[] startingLines_400m;
+	public GameObject[] startingLines_60m;
 	public GameObject[] startingLines_current;
 	
 	public GameObject finishLine;
@@ -90,6 +92,27 @@ public class RaceManager : MonoBehaviour
 	TimerController tc;
 	OrientationController oc;
 	EnergyMeterController emc;
+	// -----------------
+	PlayerAttributes playerAtt;
+	PlayerAnimationV2 playerAnim;
+	Rigidbody playerRb;
+	TimerController playerTc;
+	OrientationController playerOc;
+	EnergyMeterController playerEmc;
+	PlayerAttributes[] botAtts;
+	PlayerAnimationV2[] botAnims;
+	Rigidbody[] botRbs;
+	TimerController[] botTcs;
+	OrientationController[] botOcs;
+	EnergyMeterController[] botEmcs;
+	Bot_AI[] botAIs;
+	PlayerAttributes[] ghostAtts;
+	PlayerAnimationV2[] ghostAnims;
+	Rigidbody[] ghostRbs;
+	TimerController[] ghostTcs;
+	OrientationController[] ghostOcs;
+	EnergyMeterController[] ghostEmcs;
+	// -----------------
 	
     // Start is called before the first frame update
     void Start()
@@ -107,6 +130,8 @@ public class RaceManager : MonoBehaviour
 		
 		GameObject racer;
 		Vector3 racerPos;
+		
+		/*
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			for(int i = 0; i < racers.Count; i++){
 				racer = racers[i];
@@ -143,7 +168,8 @@ public class RaceManager : MonoBehaviour
 					}
 				}
 			}
-		}	
+		}
+		*/	
 	}
 
     void FixedUpdate()
@@ -186,6 +212,21 @@ public class RaceManager : MonoBehaviour
 		racersFinished = 0;
 		// -----------------
 		GameObject racer;
+		// -----------------
+		botAtts = new PlayerAttributes[8];
+		botAnims = new PlayerAnimationV2[8];
+		botRbs = new Rigidbody[8];
+		botTcs = new TimerController[8];
+		botOcs = new OrientationController[8];
+		botEmcs = new EnergyMeterController[8];
+		botAIs = new Bot_AI[8];
+		ghostAtts = new PlayerAttributes[8];
+		ghostAnims = new PlayerAnimationV2[8];
+		ghostRbs = new Rigidbody[8];
+		ghostTcs = new TimerController[8];
+		ghostOcs = new OrientationController[8];
+		ghostEmcs = new EnergyMeterController[8];
+		// -----------------
 
 		if(viewMode == VIEW_MODE_LIVE){
 			// calculate bot difficulty and set player
@@ -233,12 +274,16 @@ public class RaceManager : MonoBehaviour
 			tc.oc = anim.GetComponent<OrientationController>();
 			// -----------------
 			emc = racer.GetComponent<EnergyMeterController>();
-			emc.camera = gc.gameCamera.camera;
-			emc.hide();
 			// -----------------
 			racerCount++;
 			if(racer.tag == "Player"){
-				player = racer;
+				setPlayer(racer);
+				playerAtt = att;
+				playerAnim = anim;
+				playerRb = rb;
+				playerTc = tc;
+				playerOc = oc;
+				playerEmc = emc;
 				playerCount++;
 			}
 			else if(racer.tag == "Bot"){
@@ -247,14 +292,23 @@ public class RaceManager : MonoBehaviour
 				ai.init(botDifficulty);
 				anim.init();
 				bots.Add(racer);
+				botAtts[botCount] = att;
+				botAnims[botCount] = anim;
+				botRbs[botCount] = rb;
+				botTcs[botCount] = tc;
+				botOcs[botCount] = oc;
+				botEmcs[botCount] = emc;
+				botAIs[botCount] = ai;
 				botCount++;
 			}
 			else if(racer.tag == "Ghost"){
-				if(viewMode == VIEW_MODE_LIVE){
-					//setTransparency(racer, transparency_ghost_base);
-				}
-				racer.GetComponent<PlayerAnimationV2>().setPositionAndVelocity(raceTick);
 				ghosts.Add(racer);
+				ghostAtts[ghostCount] = att;
+				ghostAnims[ghostCount] = anim;
+				ghostRbs[ghostCount] = rb;
+				ghostTcs[ghostCount] = tc;
+				ghostOcs[ghostCount] = oc;
+				ghostEmcs[ghostCount] = emc;
 				ghostCount++;
 			}
 				
@@ -272,6 +326,10 @@ public class RaceManager : MonoBehaviour
 		else if(raceEvent == RACE_EVENT_400M){
 			startingLines_current = startingLines_400m;
 			startingBlocks_current = startingBlocks_400m;
+		}
+		else if(raceEvent == RACE_EVENT_60M){
+			startingLines_current = startingLines_60m;
+			startingBlocks_current = startingBlocks_60m;
 		}
 		if(viewMode == VIEW_MODE_LIVE){
 			focusRacer = player;
@@ -292,6 +350,14 @@ public class RaceManager : MonoBehaviour
 		
 	}
 	
+	public void resetCounts(){
+		racerCount = 0;
+		playerCount = 0;
+		botCount = 0;
+		ghostCount = 0;
+		racersFinished = 0;
+	}
+	
 	float calculateDifficulty(int raceEvent, float time){
 		//Debug.Log("playerPB: " + time);
 		float eliteStandard = 0f;
@@ -304,6 +370,10 @@ public class RaceManager : MonoBehaviour
 		else if(raceEvent == RACE_EVENT_400M){
 			eliteStandard = 45f;
 		}
+		else if(raceEvent == RACE_EVENT_60M){
+			eliteStandard = 6.5f;
+		}
+		
 		float difficulty = eliteStandard/time;
 		
 		if(difficulty > 0f){
@@ -352,7 +422,6 @@ public class RaceManager : MonoBehaviour
 			oc = racer.GetComponent<OrientationController>();
 			
 			if(viewMode == VIEW_MODE_LIVE){
-				Debug.Log(i);
 				lane = lanes[i];
 				if(att.personalBests[raceEvent] == float.MaxValue){
 					att.personalBests[raceEvent] = -1f;
@@ -381,7 +450,7 @@ public class RaceManager : MonoBehaviour
 			oc.sphere1 = curve1_sphere;
 			oc.sphere2 = curve2_sphere;
 			oc.sphere = oc.sphere1;
-			if(raceEvent != RACE_EVENT_100M){
+			if(raceEvent >= 2){
 				oc.updateOrientation(false);
 			}
 			oc.initRotations();
@@ -434,6 +503,7 @@ public class RaceManager : MonoBehaviour
 			startingBlocks_100m[i].SetActive(false);
 			startingBlocks_200m[i].SetActive(false);
 			startingBlocks_400m[i].SetActive(false);
+			startingBlocks_60m[i].SetActive(false);
 		}
 	}
 	
@@ -459,20 +529,8 @@ public class RaceManager : MonoBehaviour
 	
 	public void setOffRacers(){
 		if(!fStart){
-			StartCoroutine(wait(.1f));
 			raceStatus = STATUS_GO;
 			raceStarted = true;
-			
-			GameObject racer;
-			EnergyMeterController emc;
-			for(int i = 0; i < racers.Count; i++){
-				racer = racers[i];
-				emc = racer.GetComponent<EnergyMeterController>();
-				
-				emc.show();
-				
-			}
-			
 		}
 	}
 	
@@ -491,36 +549,26 @@ public class RaceManager : MonoBehaviour
 		}
 		else{
 			if(viewMode == VIEW_MODE_LIVE){
-				anim = player.GetComponent<PlayerAnimationV2>();
-				oc = player.GetComponent<OrientationController>();
-				anim.readInput(raceTick);
-				anim.applyInput(raceTick);
-				//oc.updateOrientation(true);
-				player.GetComponent<TimerController>().recordInput(raceTick);
+				playerAnim.readInput(raceTick);
+				playerAnim.applyInput(raceTick);
+				playerTc.recordInput(raceTick);
 			}
 			// -----------------
 			GameObject bot;
 			for(int i = 0; i < bots.Count; i++){
-				bot = bots[i];
-				anim = bot.GetComponent<PlayerAnimationV2>();
-				oc = bot.GetComponent<OrientationController>();
-				bot.GetComponent<Bot_AI>().runAI(raceTick);
-				anim.readInput(raceTick);
-				anim.applyInput(raceTick);
-				//oc.updateOrientation(true);
-				bot.GetComponent<TimerController>().recordInput(raceTick);
+				botAIs[i].runAI(raceTick);
+				botAnims[i].readInput(raceTick);
+				botAnims[i].applyInput(raceTick);
+				botTcs[i].recordInput(raceTick);
 			}
 			// -----------------
 			GameObject ghost;
 			for(int i = 0; i < ghosts.Count; i++){
-				ghost = ghosts[i];
-				PlayerAttributes att = ghost.GetComponent<PlayerAttributes>();
-				oc = ghost.GetComponent<OrientationController>();
-				PlayerAnimationV2 anim = ghost.GetComponent<PlayerAnimationV2>();
-				anim.readInput(raceTick);
-				anim.applyInput(raceTick);
-				//oc.updateOrientation(false);
-				anim.setPositionAndVelocity(raceTick);
+				ghostAnims[i].readInput(raceTick);
+				ghostAnims[i].applyInput(raceTick);
+				if(raceTick > 0){
+					ghostAnims[i].setPositionAndVelocity(raceTick);
+				}
 			}
 		}
 	}
@@ -592,11 +640,6 @@ public class RaceManager : MonoBehaviour
 				racer.GetComponent<PlayerAnimationV2>().upInSet = false;
 			}
 			else if(mode == STATUS_SET){
-				if(racer.GetComponent<PlayerAnimationV2>().upInSet == false){
-					if(racer == focusRacer){
-						racer.GetComponent<PlayerAnimationV2>().audio.playSound("Block Rattle");
-					}
-				}
 				racer.GetComponent<PlayerAnimationV2>().upInSet = true;
 			}
 			else if(mode == STATUS_GO){
@@ -610,6 +653,16 @@ public class RaceManager : MonoBehaviour
 		gc.clearListAndObjects(racers);
 		gc.goStartScreen();
 	}
+	
+	void setPlayer(GameObject racer){
+		player = racer;
+		playerAtt = player.GetComponent<PlayerAttributes>();
+		playerAnim = player.GetComponent<PlayerAnimationV2>();
+		playerTc = player.GetComponent<TimerController>();
+		playerOc = player.GetComponent<OrientationController>();
+		playerEmc = player.GetComponent<EnergyMeterController>();
+		playerRb = player.GetComponent<Rigidbody>();
+		}
 	
 	void updateSpeedometer(){
 		

@@ -17,6 +17,8 @@ public class PlayerAttributes : MonoBehaviour
 	public static int ATTRIBUTES_LEGEND_USAINBOLT = 4;
 	public static int ATTRIBUTES_LEGEND_MICHAELJOHNSON = 5;
 	public static int ATTRIBUTES_LEGEND_YOHANBLAKE = 6;
+	public static int ATTRIBUTES_LEGEND_JESSEOWENS = 7;
+	public static int ATTRIBUTES_LEGEND_WAYDEVANNIEKERK = 8;
 	
 	// -----------------
 	
@@ -415,18 +417,18 @@ public class PlayerAttributes : MonoBehaviour
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
 			
-			///*
-			// testing
-			torsoScaleX = .95f;
-			torsoScaleY = torsoScaleX * 1.04f;
-			torsoScaleZ = torsoScaleY * 1.08f;
-			//*/
 			/*
+			// testing
+			torsoScaleX = 1.01f;
+			torsoScaleY = torsoScaleX * .92f;
+			torsoScaleZ = torsoScaleY * .9f;
+			*/
+			
 			// randomize torso proportions
 			torsoScaleX = (Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f))/3f;
 			torsoScaleY = torsoScaleX * Random.Range(.9f, 1.2f);
 			torsoScaleZ = torsoScaleY * Random.Range(.9f, 1.1f);
-			*/
+			
 		
 			// adjust head, neck, arm, leg proportions for torso
 			neckScaleX *= (1f/torsoScaleX);
@@ -439,35 +441,35 @@ public class PlayerAttributes : MonoBehaviour
 			legScaleY *= 1f;
 			legScaleZ = legScaleY;
 			
-			///*
-			// testing
-			neckScaleX *= .85f;
-			neckScaleY *= 1.05f;
-			neckScaleZ = 1.05f;
-			armScaleX *= 1f;
-			legScaleX *= 1.07f;
-			///*
 			/*
+			// testing
+			neckScaleX *= 1.3f;
+			neckScaleY *= 1;
+			neckScaleZ = 1;
+			armScaleX *= 1f;
+			legScaleX *= 1f;
+			/*
+			
 			// randomize neck, arm and leg proportions
 			neckScaleX *= Random.Range(.5f, 1.5f);
 			neckScaleY *= Random.Range(.8f, 1.2f);
 			neckScaleZ = neckScaleY;
 			armScaleX *= Random.Range(1f,1.02f);
 			legScaleX *= Random.Range(1f, 1f);
-			*/
+			
 	
-			///*
+			/*
 			//testing
 			headScaleX *= (1f / neckScaleX) * (1f / torsoScaleX);
-			headScaleY *= .77f;
-			headScaleZ *= .77f;
-			//*/
-			/*
+			headScaleY *= .98f;
+			headScaleZ *= .98f;
+			*/
+			
 			// adjust head proportion for neck and torso
 			headScaleX *= (1f / neckScaleX) * (1f / torsoScaleX);
 			//headScaleY *= 1f / neckScaleY;
 			//headScaleZ *= 1f / neckScaleZ;
-			*/
+			
 			
 			// adjust feet proportion for legs
 			feetScaleX *= 2f-thighRight.localScale.x;
@@ -504,7 +506,7 @@ public class PlayerAttributes : MonoBehaviour
 		adjustHeightAndWeight();
 		
 		updateAttributes();
-		Debug.Log(height);
+		//Debug.Log(height);
 		// -----------------
 
 		void setTorsoProportions(float scaleX, float scaleY, float scaleZ){
@@ -589,12 +591,19 @@ public class PlayerAttributes : MonoBehaviour
 		float fitness = 1f;
 		
 		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
-			// do nothing
+			power = this.POWER;
+			transPivSpeed = this.TRANSITION_PIVOT_SPEED;
+			quickness = this.QUICKNESS;
+			knee_dominance = this.KNEE_DOMINANCE;
+			turnover = this.TURNOVER;
+			fitness = this.FITNESS;
 		}
 		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
 			// modify stats from leg length
+			quickness = Mathf.Pow((2f - thighRight.localScale.x), .5f);
 			turnover = Mathf.Pow((2f - thighRight.localScale.x), .5f);
 			knee_dominance = Mathf.Pow((2f - thighRight.localScale.x), 1f);
+			fitness = Mathf.Pow((2f - thighRight.localScale.x), .3f);
 		}	
 		else if(setting >= 4){
 			
@@ -619,6 +628,20 @@ public class PlayerAttributes : MonoBehaviour
 				turnover = 1f;
 				fitness = 1.2f;
 				quickness = 1.02f;
+			}
+			else if(setting == ATTRIBUTES_LEGEND_JESSEOWENS){
+				power = 130f;
+				knee_dominance = .7f;
+				turnover = 1.25f;
+				fitness = 1.2f;
+				quickness = .9f;
+			}
+			else if(setting == ATTRIBUTES_LEGEND_WAYDEVANNIEKERK){
+				power = 280f;
+				knee_dominance = .7f;
+				turnover = .8f;
+				fitness = 1.4f;
+				quickness = .975f;
 			}
 	
 		}

@@ -13,7 +13,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Rigidbody rb;
 	public BoxCollider chestCollider;
 	public Animator animator;
-	public RacerAudio audio;
 	
 	public Transform rightFoot;
 	public Transform leftFoot;
@@ -89,8 +88,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float leanWeight;
 	public float runWeight;
 	public float driveWeight;
-
-	
+	public float cruiseWeight;
 	
     // Start is called before the first frame update
     void Start()
@@ -120,8 +118,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 			maxPower = attributes.POWER;
 			knee_dominance = attributes.KNEE_DOMINANCE;
 			driveModifier = Mathf.Pow(knee_dominance, 3f);
-			launchModifier = Mathf.Pow(knee_dominance, 3f);
-			curveModifier = Mathf.Pow(knee_dominance, .1f);
+			launchModifier = Mathf.Pow(knee_dominance, 1.5f);
+			curveModifier = Mathf.Pow(knee_dominance, .6f);
 			leanThreshold = .825f * attributes.KNEE_DOMINANCE;
 			torsoAngle_ideal = torsoAngle_neutral - ((1f-attributes.KNEE_DOMINANCE) * 10f);
 		}
@@ -195,6 +193,12 @@ public class PlayerAnimationV2 : MonoBehaviour
 		else if(name == "Yohan Blake"){
 			preset = PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE;
 		}
+		else if(name == "Jesse Owens"){
+			preset = PlayerAttributes.ATTRIBUTES_LEGEND_JESSEOWENS;
+		}
+		else if(name == "Wayde van Niekerk"){
+			preset = PlayerAttributes.ATTRIBUTES_LEGEND_WAYDEVANNIEKERK;
+		}
 		else{
 			preset = PlayerAttributes.ATTRIBUTES_RANDOM;
 		}
@@ -202,10 +206,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 	void runMode(){
 		
-		audio.as_wind.volume = (speedHoriz) / (28f);
-		audio.as_wind.pitch = 1f * ((speedHoriz) / (28f));
-		
-		if(raceManager.raceEvent != RaceManager.RACE_EVENT_100M){
+		if(raceManager.raceEvent >= 2){
+			Debug.Log("raceEvent: " + raceManager.raceEvent);
 			oc.updateOrientation(true);
 			if(oc.trackSegment == 1 || oc.trackSegment == 3){
 				if(!onCurve){
@@ -289,7 +291,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 					mode = 2;
 				}
 				else{
-					if(upInSet){
+					if(raceManager.raceStatus == RaceManager.STATUS_SET){
 						mode = 2;
 						//Debug.Log("false start");
 						StartCoroutine(raceManager.falseStart());
@@ -429,34 +431,12 @@ public class PlayerAnimationV2 : MonoBehaviour
 			vel.y = vY;
 			rb.velocity = vel;
 			// -----------------
-			// set position from paths
-			/*
-			if(oc.sphere != null){
-				float progressInDegrees = 0f;
-				float targetRotY = 0f;
-				Vector3 sphereEulers;
-				Vector3 targetPos;
-				// -----------------
-				if(oc.trackSegment == 1){
-					progressInDegrees = (oc.rotY_complete_sphere1 - oc.rotY_initial_sphere1) * s1P;
-					targetRotY = oc.rotY_initial_sphere1 + progressInDegrees;
-				
-					sphereEulers = oc.sphere1.transform.rotation.eulerAngles;
-					sphereEulers.y = targetRotY;
-					oc.sphere.transform.rotation = Quaternion.Euler(sphereEulers);
-				}
-				else if(oc.trackSegment == 3){
-					progressInDegrees = (oc.rotY_initial_sphere2 - oc.rotY_complete_sphere2) * s1P;
-					targetRotY = oc.rotY_initial_sphere2 - progressInDegrees;
-				
-					sphereEulers = oc.sphere1.transform.rotation.eulerAngles;
-					sphereEulers.y = targetRotY;
-					oc.sphere.transform.rotation = Quaternion.Euler(sphereEulers);
-				}
-				targetPos = oc.sphere.transform.forward * oc.distance;
-				//transform.position = targetPos;
-			}
-			*/
+			// set y-position from path
+			Vector3 pos = transform.position;
+			pos.y = pY;
+			transform.position = pos;
+			
+			
 			if(oc.trackSegment == 4){
 				Vector3 targetPos = new Vector3(transform.position.x, pY, pZ);
 				if(Vector3.Distance(transform.position, globalController.raceManager.finishLine.transform.position) > 20f){
@@ -473,10 +453,11 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public void updateEnergy(float speed, float swingTimeBonus){
 		float energyCost;
-		energyCost = .5f;
+		energyCost = 50f * Time.deltaTime;
 		energyCost *= Mathf.Pow(speed / 27f, 2.5f);
 		energyCost *= 1f + (1f - (swingTimeBonus / 2.0736f));
 		energyCost *= (2f - fitness);
+		energyCost *= (1f - cruiseWeight/5f);
 		if(energyCost < .1f){
 			energyCost = .1f;
 		}
@@ -486,7 +467,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			energy = 0f;
 		}
 		
-		emc.setEnergyLevel(energy);
+		emc.adjustForEnergyLevel(energy);
 
 	}
 	
@@ -494,7 +475,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	void applyFriction(){
 		friction = gyro.transform.forward*-1f * speedHoriz * frictionMagnitude * 100f;
 		if(rightFootScript.groundContact || leftFootScript.groundContact){
-			rb.AddForce(friction * Time.deltaTime);
+			rb.AddForce(friction * .011f, ForceMode.Force);
 		}
 	}
 	
@@ -516,7 +497,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 		// -----------------
 		// modify power from torso angle
-		if(torsoAngle < 310f){
+		if(torsoAngle < 313f){
 			modifier = torsoAngle/310f;
 			modifiedPower *= modifier;
 		}
@@ -524,7 +505,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		// -----------------
 		// reduce power if on curve
 		if(onCurve){
-			modifier = .9f;
+			modifier = .9f * curveModifier;
 			modifiedPower *= modifier;
 		}
 		// -----------------
@@ -571,7 +552,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			velY = maxUpSpeed;
 		}
 		
-
+		
 		
 		
 		
@@ -597,14 +578,28 @@ public class PlayerAnimationV2 : MonoBehaviour
 				12	left arm (drive)
 			*/ // -----------------
 		
-		//driveWeight = leanWeight * (1f-(speedHoriz/(attributes.TRANSITION_PIVOT_SPEED*.1425f))) * knee_dominance;
 		driveWeight = leanWeight * (1f-(speedHoriz/(attributes.TRANSITION_PIVOT_SPEED*.1425f)));
 		if(driveWeight > .8f){
 			driveWeight = .8f;
 		}
 		
+		
+		if(speedHoriz > speedHoriz_lastFrame){
+			cruiseWeight -= .7f * Time.deltaTime;
+			if(cruiseWeight < 0f){
+				cruiseWeight = 0f;
+			}
+		}else{
+			if(speedHoriz > 20f){
+				//cruiseWeight += .005f*(2f-driveModifier);
+				cruiseWeight += .7f * Time.deltaTime;
+				if(cruiseWeight > 1f){
+					cruiseWeight = 1f;
+				}
+			}
+		}
 	
-		animator.SetLayerWeight(1,0f);
+		animator.SetLayerWeight(1,cruiseWeight*runWeight);
 		animator.SetLayerWeight(2,setPositionWeight);
 		animator.SetLayerWeight(3,(1f-leanWeight)*runWeight);
 		animator.SetLayerWeight(4,leanWeight*runWeight);
@@ -616,25 +611,24 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetLayerWeight(10,(1-driveWeight)*runWeight);
 		animator.SetLayerWeight(11,driveWeight*runWeight);
 		animator.SetLayerWeight(12,driveWeight*runWeight);
+		
+		animator.SetFloat("horizSpeed", speedHoriz/28f);
 	}
 	
 	public void setViewMode(int viewMode){
 		animator.SetInteger("viewMode", viewMode);
-		//animator.SetInteger("viewMode", 0);
 	}
 
 	
 	public IEnumerator launch(){
-		if(this.gameObject == raceManager.focusRacer){
-			audio.playSound("Block Exit");
-			audio.playSound("Wind");
-		}
 		raceManager.startingBlocks_current[attributes.lane-1].GetComponent<StartingBlockController>().addLaunchForce();
 		
 		animator.SetBool("launch", true);
-		for(int i = 0; i < 8; i++){
-			float launchPower = 2500f;
-			rb.AddForce((gyro.transform.forward + (Vector3.up * launchModifier * .2f)) * (launchPower) * launchModifier * Time.deltaTime, ForceMode.Force);
+		cruiseWeight = 0f;
+		for(int i = 0; i < 12; i++){
+			float launchPower = 1666f;
+			//if(raceManager.raceEvent == RaceManager.RACE_EVENT_60M){ launchPower *= 1.1f; }
+			rb.AddForce((gyro.transform.forward + (Vector3.up * launchModifier * .2f)) * (launchPower) * launchModifier * .0165f, ForceMode.Force);
 			yield return null;
 		}
 		for(int i = 0; i < 10; i++){

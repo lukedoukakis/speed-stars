@@ -132,9 +132,9 @@ public class SetupManager : MonoBehaviour
 		else{
 			// <alert max racers>
 		}
-		Debug.Log("botCount_max: " + botCount_max);
-		Debug.Log("botCount: " + botCount);
-		Debug.Log("---");
+		//Debug.Log("botCount_max: " + botCount_max);
+		//Debug.Log("botCount: " + botCount);
+		//Debug.Log("---");
 	}
 	
 

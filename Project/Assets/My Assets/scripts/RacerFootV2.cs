@@ -23,7 +23,6 @@ public class RacerFootV2 : MonoBehaviour
 	public bool input;
 	bool touchDown;
 	public bool groundContact;
-	float groundFrames;
 	float groundBit;
 	public float swingFrames;
 	
@@ -46,12 +45,12 @@ public class RacerFootV2 : MonoBehaviour
 	Vector3 forceDirVert;
 	float forceHoriz;
 	
-
     // Start is called before the first frame update
     void Start()
     {
 		attributes = GetComponent<PlayerAttributes>();
 		knee_dominance = attributes.KNEE_DOMINANCE;
+		transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
 		if(knee_dominance <= 1f){
 			knee_dominance_powerModifier = Mathf.Pow(2f - knee_dominance, 1.5f);
 		}
@@ -59,26 +58,23 @@ public class RacerFootV2 : MonoBehaviour
 			knee_dominance_powerModifier = Mathf.Pow(2f - knee_dominance, 1.5f*(Mathf.Pow(1f/knee_dominance,6f)));
 		}
 		swingFrames = 0f;
-		groundFrames = 0f;
-		
 		zTiltMinAbs = Mathf.Abs(-45f);
 		zTiltMaxAbs = Mathf.Abs(45f);
-
+		turnoverFactor = 150f * (2f-animation.turnover);
 		torsoAngle_max = animation.torsoAngle_max;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+		
 		if(animation.mode == 1){
 			swingTimeBonus = 1f;
 		}
 		else if(animation.mode == 2){
 			power = animation.power;
-			turnoverFactor = 150f * (2f-animation.turnover);
 			leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
 			torsoAngle = animation.torsoAngle;
-			transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
 			zSpeed = animation.speedHoriz;
 			ySpeed = rb.velocity.y;
 			zSpeedOverTransitionPivotSpeed = zSpeed/transitionPivotSpeed;
@@ -99,7 +95,8 @@ public class RacerFootV2 : MonoBehaviour
 				else{
 					swingTimeBonus = .065f;
 				}
-				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 10000f;
+				//swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 10000f;
+				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 1000000f * Time.deltaTime;
 			}
 			//Debug.Log(animation.zTilt);
 			//Debug.Log(leanMagnitude);
@@ -113,13 +110,13 @@ public class RacerFootV2 : MonoBehaviour
 			if(g.tag.StartsWith("Ground")){
 				touchDown = true;
 				// -----------------
-				
 				float f = (torsoAngle)/(torsoAngle_max);
 				f *= f*f;
 				float driveBonus = f * (1f - (zSpeed/(40f))) * 12f;
 				if(driveBonus > 1f){
 					if(driveBonus > 12f){ driveBonus = 12f; }
 				}else{ driveBonus = 1f; }
+				
 				// -----------------
 				forceHoriz = 1f;
 				forceHoriz *= power * (1f-zSpeedOverTransitionPivotSpeed) * knee_dominance_powerModifier;
@@ -149,9 +146,6 @@ public class RacerFootV2 : MonoBehaviour
 		if(animation.mode == 2){
 			if(g.tag.StartsWith("Ground")){
 				touchDown = false;
-				if(groundFrames < 15f){
-					groundFrames++;
-				}
 			}
 		}
 	}
@@ -163,16 +157,14 @@ public class RacerFootV2 : MonoBehaviour
 			groundContact = false;
 		}
 		if(animation.mode == 2){
-			if(g.tag.StartsWith("Ground")){
-				groundFrames = 0f;
-			}
+		
 		}
 	}
 	
 	public IEnumerator applyForce(float forceMagnitude){
 		for(int i = 0; i < 5; i++){
 			forceDirHoriz = animation.gyro.transform.forward;
-			rb.AddForce(forceDirHoriz * forceMagnitude * Time.deltaTime, ForceMode.Force);
+			rb.AddForce(forceDirHoriz * forceMagnitude * .0165f, ForceMode.Force);
 			yield return null;
 		}
 	}

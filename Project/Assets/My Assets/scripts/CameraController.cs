@@ -27,6 +27,7 @@ public class CameraController : MonoBehaviour
 	// -----------------
 	Vector3 cameraStartPos_cinematic;
 	Vector3 cameraFinishPos_cinematic;
+	Vector3 cameraStartPos_tv_60m;
 	Vector3 cameraStartPos_tv_100m;
 	Vector3 cameraStartPos_tv_200m;
 	Vector3 cameraStartPos_tv_400m;
@@ -36,12 +37,12 @@ public class CameraController : MonoBehaviour
 	Vector3 finishLinePos;
 	
 	
-	
     // Start is called before the first frame update
     void Start()
     {
 		cameraStartPos_cinematic = new Vector3(10.5f, 2.1f, -70f);
 		cameraFinishPos_cinematic = new Vector3(10.5f, 1.6f, 128f);
+		cameraStartPos_tv_60m = new Vector3(12f, 4f, -70f);
 		cameraStartPos_tv_100m = new Vector3(12f, 4f, -70f);
 		cameraStartPos_tv_200m = new Vector3(12f, 4f, -70f);
 		cameraStartPos_tv_400m = new Vector3(12f, 4f, -70f);
@@ -54,6 +55,7 @@ public class CameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+		
 		if(referenceObject == null){
 			referenceObject = finishLine;
 		}
@@ -89,6 +91,9 @@ public class CameraController : MonoBehaviour
 		}
 		else if(_raceEvent == RaceManager.RACE_EVENT_400M){
 			cameraStartPos_tv = cameraStartPos_tv_400m;
+		}
+		else if(_raceEvent == RaceManager.RACE_EVENT_60M){
+			cameraStartPos_tv = cameraStartPos_tv_60m;
 		}
 	}
 	
@@ -149,6 +154,12 @@ public class CameraController : MonoBehaviour
 			}
 			
 			x = referenceObjectPos.x + (distanceFromFinishX*.015f + (cameraDistance*2f));
+			y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
+			z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
+			transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);
+		}
+		else if(raceEvent == RaceManager.RACE_EVENT_60M){
+			x = cameraStartPos_tv.x + (referenceObjectPos.x*.2f) + ((cameraFinishPos_cinematic.x - cameraStartPos_cinematic.x) * pathProgress);
 			y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
 			z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
 			transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);

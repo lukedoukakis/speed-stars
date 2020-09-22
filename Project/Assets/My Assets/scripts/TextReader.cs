@@ -68,6 +68,12 @@ public class TextReader : MonoBehaviour
 		else if(preset == PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE){
 			reader = new StreamReader("Assets/Resources/txt_attributes_yohanblake.txt");
 		}
+		else if(preset == PlayerAttributes.ATTRIBUTES_LEGEND_JESSEOWENS){
+			reader = new StreamReader("Assets/Resources/txt_attributes_jesseowens.txt");
+		}
+		else if(preset == PlayerAttributes.ATTRIBUTES_LEGEND_WAYDEVANNIEKERK){
+			reader = new StreamReader("Assets/Resources/txt_attributes_waydevanniekerk.txt");
+		}
 	}
 	
 	public static string getAttribute(int preset, string attributeName){

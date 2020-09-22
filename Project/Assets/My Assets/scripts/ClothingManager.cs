@@ -192,12 +192,29 @@ public class ClothingManager : MonoBehaviour
 		// -----------------
 		
 		// dummy
+		/*
 		Color dummy = Color.white;
 		Color c;
 		string s = skinTones[Random.Range(0, skinTones.Length)];
 		if(ColorUtility.TryParseHtmlString(s, out c)){
 			 dummy = c;
 		}
+		*/
+		
+		Color dummy;
+		int r = Random.Range(0,3);
+		float h,s,v;
+		float x;
+		h = Random.Range(.35f, .37f);
+		x = Random.Range(-.4f, .4f);
+		s = .60f + x;
+		v = .60f - x;
+		Mathf.Clamp(s, .20f, 1f);
+		Mathf.Clamp(v, .20f, 1f);
+		
+		h -= .3f;
+		Color c = Color.HSVToRGB(h, s, v);
+		dummy = c;
 		
 		// top
 		Color top = new Color(Random.Range(0f,1f),Random.Range(0f,1f),Random.Range(0f,1f));
@@ -268,4 +285,88 @@ public class ClothingManager : MonoBehaviour
 		randomClothingColors = new Color[]{dummy, top, bottoms, shoes, socks, headband, sleeve};
 		return randomClothingColors;
 	}
+	
+	
+	
+	/*
+	bool circleCollision(Circle a, Circle b){
+		float d = Sqrt(
+					Pow(a.center.x - b.center.x, 2) +
+					Pow(a.center.y - b.center.y, 2) );
+		return d <= a.radius + b.radius;
+	}
+	
+	
+	
+	bool circlePointCollision(Circle c, Point p){
+		float d = Sqrt(Pow(c.center.x - p.x, 2) + (Pow(c.center.y - p.y, 2));
+		return d <= c.radius;
+	}
+	
+	
+	
+	bool pointInRect(Point p, Rect r){
+		return 	inRange(p.x, r.x, r.x + r.width) &&
+				inRange(p.y, r.y, r.y + r.height)
+	}
+	bool inRange(float val, float min, float max){
+		return (val <= Min(min, max) && (val <= Max(min, max));
+	}
+	
+	
+	bool RectCollision(Rect r1, Rect r2){
+		return	rangeIntersect(	r0.x, r0.x + r0.width,
+								r1.x, r1.x + r1.width ) &&
+				rangeIntersect(	r0.y, r0.y + r0.height,
+								r1.y, r1.y + r1.height );
+	}
+	
+	bool rangeInteresect(min0, max0, min1, max1){
+		return 	Max(min0, max0) >= Min(min1, max1) &&
+				Min(min0, max0) >= Max(min1, max1);
+	}
+	*/
+	
+	/*
+	Class Horse {
+		
+		Mesh mesh
+		Material material
+		Transform transform
+		Animator animator
+		
+		Start(){
+			mesh = horseMesh
+			material = brownMaterial
+			animator = horseAnimator
+			transform.position = (0,0,0)
+		}
+		
+		Update() {
+			animator.runAnimation("eat hay")
+		}
+	}
+	*/
+	
+	/*
+	Object[] nodes
+	Object centerNode
+	Object lastNode
+	
+	Object node
+	for (i = 0; i < nodes.length; i++)
+		node = nodes[i]
+		if(node != centerNode){
+			node.addComponent(Joint).attachedObject = centerNode
+			if(i != nodes.length - 1){
+				node.addComponent(Joint).attachedObject = nodes[i+1]
+			}
+			else{
+				node.addComponent(Joint).attachedObject = nodes[0]
+			}
+		}
+	}
+	*/
+	
+	
 }

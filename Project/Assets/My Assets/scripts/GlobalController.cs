@@ -169,7 +169,6 @@ public class GlobalController : MonoBehaviour
 		//Debug.Log("Going to race screen");
 		StartCoroutine(screenTransition("Race Screen", true));
 		// -----------------
-		raceManager.focusRacer.GetComponent<RacerAudio>().playSound("Starting Gun");
 		raceManager.setOffRacers();
 	}
 	
@@ -265,7 +264,7 @@ public class GlobalController : MonoBehaviour
 	}
 	public void startRace(int raceEvent, int viewMode){
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
-			addBots(setupManager.botCount - raceManager.botCount);
+			//loadBots(setupManager.botCount - raceManager.botCount);
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			
@@ -308,8 +307,17 @@ public class GlobalController : MonoBehaviour
 	//-----------------------------------------------------------------------------------------------------------
 	public void clearListAndObjects(List<GameObject> list){
 		list.Clear();
-		foreach(Transform child in raceManager.RacersFieldParent.transform){
-			Destroy(child.gameObject);
+		Transform parent = null;
+		if(list == racers_backEnd){
+			parent = raceManager.RacersBackEndParent.transform;
+		}
+		else if(list == racers){
+			parent = raceManager.RacersFieldParent.transform;
+		}
+		if(parent != null){
+			foreach(Transform child in parent){
+				Destroy(child.gameObject);
+			}
 		}
 	}
 	
@@ -407,7 +415,7 @@ public class GlobalController : MonoBehaviour
 		// -----------------
 		int[] raceEvents = new int[0];
 		if(raceEvent == -1){
-			raceEvents = new int[3]{0,1,2};
+			raceEvents = new int[4]{0,1,2,3};
 		}
 		else{
 			raceEvents = new int[1]{raceEvent};
@@ -438,6 +446,7 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.personalBests[0]
 		+ ":" + att.personalBests[1]
 		+ ":" + att.personalBests[2]
+		+ ":" + att.personalBests[3]
 		+ ":" + att.resultString
 		+ ":" + att.POWER
 		+ ":" + att.TRANSITION_PIVOT_SPEED
@@ -505,13 +514,14 @@ public class GlobalController : MonoBehaviour
 			id += "_REPLAY";
 		}
 		
-		att.personalBests = new float[3];
+		att.personalBests = new float[4];
 		string[] racerInfo = PlayerPrefs.GetString(id).Split(':');
 		string[] pathInfo = PlayerPrefs.GetString(id+"_pathsForEvent "+raceEvent).Split(':');
 		int i;
 		// -----------------
 		
 		i = 0;
+		Debug.Log("PATHLENGTH: " + pathInfo[i]);
 		att.pathLength = int.Parse(pathInfo[i]); i++;
 		att.leanLockTick = int.Parse(pathInfo[i]); i++;
 		string[] vM = pathInfo[i].Split(','); i++;
@@ -533,6 +543,7 @@ public class GlobalController : MonoBehaviour
 		att.personalBests[0] = float.Parse(racerInfo[i]); i++;
 		att.personalBests[1] = float.Parse(racerInfo[i]); i++;
 		att.personalBests[2] = float.Parse(racerInfo[i]); i++;
+		att.personalBests[3] = float.Parse(racerInfo[i]); i++;
 		att.resultString = racerInfo[i]; i++;
 		att.POWER = float.Parse(racerInfo[i]); i++;
 		att.TRANSITION_PIVOT_SPEED = float.Parse(racerInfo[i]); i++;
@@ -634,10 +645,12 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	
-	public GameObject loadNewBot(int preset){
+	public GameObject createBot(int preset){
 		int usainbolt = PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT;
 		int michaeljohnson = PlayerAttributes.ATTRIBUTES_LEGEND_MICHAELJOHNSON;
 		int yohanblake = PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE;
+		int jesseowens = PlayerAttributes.ATTRIBUTES_LEGEND_JESSEOWENS;
+		int waydevanniekerk = PlayerAttributes.ATTRIBUTES_LEGEND_WAYDEVANNIEKERK;
 		int reg = preset;
 		
 		int i = reg;
@@ -661,34 +674,33 @@ public class GlobalController : MonoBehaviour
 		return bot;
 	}
 	
-	public void addBots(int _numOfBots){
+	public void loadBots(){
+		int numOfBots = setupManager.botCount - raceManager.botCount;
+		GameObject bot;
+		for(int i = 0; i < numOfBots; i++){
+			bot = createBot(PlayerAttributes.ATTRIBUTES_RANDOM);
+			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
+			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f,-1f};
+			racers_backEnd.Add(bot);
+		}
+		
 		
 		/*
+		// legends
 		GameObject bot;
 		int count = _numOfBots;
-		for(int i = 0; i < count; i++){
-			bot = loadNewBot(PlayerAttributes.ATTRIBUTES_RANDOM);
+		for(int i = 4; i < count+4; i++){
+			bot = createBot(i);
 			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
 			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
 			racers_backEnd.Add(bot);
 		}
 		*/
 		
-		// legends
-		GameObject bot;
-		int count = _numOfBots;
-		for(int i = 4; i < count+4; i++){
-			bot = loadNewBot(i);
-			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
-			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
-			racers_backEnd.Add(bot);
-		}
-		
-		
 		/*
 		// all same bot
 		GameObject bot;
-		bot = loadNewBot("Bot Clone");
+		bot = createBot("Bot Clone");
 		bot.GetComponent<PlayerAttributes>().finishTime = -1f;
 		bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
 		int count = 8 - racers_backEnd.Count;
@@ -751,7 +763,7 @@ public class GlobalController : MonoBehaviour
 		att.setAnimatorController(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.finishTime = -1f;
-		att.personalBests = new float[]{-1f, -1f, -1f};
+		att.personalBests = new float[]{-1f, -1f, -1f, -1f};
 		// -----------------
 		saveRacer(newRacer, -1, new string[]{PLAYABLE_RACER_MEMORY}, false);
 		Destroy(newRacer);
@@ -860,7 +872,7 @@ public class GlobalController : MonoBehaviour
 		gameCamera.GetComponent<CameraController>().setForRaceEvent(selectedRaceEvent);
 	}
 	
-	void clearRacersFromScene(){
+	public void clearRacersFromScene(){
 		Debug.Log("CLEAR RACERS FROM SCENE");
 		clearListAndObjects(racers);
 		clearListAndObjects(racers_backEnd);

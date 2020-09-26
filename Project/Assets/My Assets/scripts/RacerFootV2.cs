@@ -23,7 +23,6 @@ public class RacerFootV2 : MonoBehaviour
 	public bool input;
 	bool touchDown;
 	public bool groundContact;
-	float groundBit;
 	public float swingFrames;
 	
 	float power;
@@ -34,12 +33,9 @@ public class RacerFootV2 : MonoBehaviour
 	float transitionPivotSpeed;
 	float zSpeedOverTransitionPivotSpeed;
 	float turnoverFactor;
-	float torsoAngle_ideal;
 	
 	float torsoAngle_max;
 	float torsoAngle;
-	float strength;
-	float bounce;
 	
 	Vector3 forceDirHoriz;
 	Vector3 forceDirVert;
@@ -98,8 +94,6 @@ public class RacerFootV2 : MonoBehaviour
 				//swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 10000f;
 				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 1000000f * Time.deltaTime;
 			}
-			//Debug.Log(animation.zTilt);
-			//Debug.Log(leanMagnitude);
 		}
 	}
 	
@@ -125,11 +119,6 @@ public class RacerFootV2 : MonoBehaviour
 				// -----------------
 				StartCoroutine(applyForce(forceHoriz));
 				animation.updateEnergy(zSpeed, swingTimeBonus);
-				
-				if(swingFrames > 10f){
-					//AudioManager.playSound(audioSource, "Footfall 0");
-				}
-				
 				// -----------------
 				swingTimeBonus = 0f;
 				swingFrames = 0;
@@ -156,15 +145,12 @@ public class RacerFootV2 : MonoBehaviour
 		if(g.tag.StartsWith("Ground")){
 			groundContact = false;
 		}
-		if(animation.mode == 2){
-		
-		}
 	}
 	
 	public IEnumerator applyForce(float forceMagnitude){
 		for(int i = 0; i < 5; i++){
 			forceDirHoriz = animation.gyro.transform.forward;
-			rb.AddForce(forceDirHoriz * forceMagnitude * .0165f, ForceMode.Force);
+			rb.AddForce(forceDirHoriz * forceMagnitude, ForceMode.Force);
 			yield return null;
 		}
 	}

@@ -68,6 +68,7 @@ public class GlobalController : MonoBehaviour
 	// finish screen ghost
 	public List<int> checkedRacerIndexes;
 	
+	public GameObject legends;
 	
     // Start is called before the first frame update
     void Start()
@@ -77,7 +78,7 @@ public class GlobalController : MonoBehaviour
 		
 		musicSource.Play(0);
 		
-		Application.targetFrameRate = 20;
+		Application.targetFrameRate = 10;
 		
 		racers_backEnd = new List<GameObject>();
 		racers_backEnd_replay = new List<GameObject>();
@@ -264,7 +265,7 @@ public class GlobalController : MonoBehaviour
 	}
 	public void startRace(int raceEvent, int viewMode){
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
-			//loadBots(setupManager.botCount - raceManager.botCount);
+			//loadBots();
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			
@@ -444,6 +445,8 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.KNEE_DOMINANCE
 		+ ":" + att.TURNOVER
 		+ ":" + att.FITNESS
+		+ ":" + att.LAUNCH_POWER
+		+ ":" + att.CURVE_POWER
 		+ ":" + att.dummyMeshNumber
 		+ ":" + att.topMeshNumber
 		+ ":" + att.bottomsMeshNumber
@@ -538,6 +541,8 @@ public class GlobalController : MonoBehaviour
 		att.KNEE_DOMINANCE = float.Parse(racerInfo[i]); i++;
 		att.TURNOVER = float.Parse(racerInfo[i]); i++;
 		att.FITNESS = float.Parse(racerInfo[i]); i++;
+		att.LAUNCH_POWER = float.Parse(racerInfo[i]); i++;
+		att.CURVE_POWER = float.Parse(racerInfo[i]); i++;
 		att.dummyMeshNumber = int.Parse(racerInfo[i]); i++;
 		att.topMeshNumber = int.Parse(racerInfo[i]); i++;
 		att.bottomsMeshNumber = int.Parse(racerInfo[i]); i++;
@@ -623,75 +628,60 @@ public class GlobalController : MonoBehaviour
 		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		att.setStats(PlayerAttributes.ATTRIBUTES_FROM_THIS);
-		att.setAnimatorController(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setAnimations(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		// -----------------
 		return racer;
 	}
 	
+	public void loadBots(){
+		int numOfBots = setupManager.botCount - raceManager.botCount;
+		for(int i = 0; i < numOfBots; i++){
+			if(UnityEngine.Random.Range(1,2) == 1){
+				racers_backEnd.Add(createSpecialGhost(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT, raceManager.raceEvent));
+			}
+			else{
+				racers_backEnd.Add(createBot());
+			}
+		}
+	}
 	
-	public GameObject createBot(int preset){
-		int usainbolt = PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT;
-		int michaeljohnson = PlayerAttributes.ATTRIBUTES_LEGEND_MICHAELJOHNSON;
-		int yohanblake = PlayerAttributes.ATTRIBUTES_LEGEND_YOHANBLAKE;
-		int jesseowens = PlayerAttributes.ATTRIBUTES_LEGEND_JESSEOWENS;
-		int waydevanniekerk = PlayerAttributes.ATTRIBUTES_LEGEND_WAYDEVANNIEKERK;
-		int reg = preset;
-		
-		int i = reg;
-		
-		
+	
+	public GameObject createBot(){
 		GameObject bot = Instantiate(racerPrefab);
 		bot.tag = "Bot (Back End)";
 		bot.transform.SetParent(raceManager.RacersBackEndParent.transform);
 		bot.SetActive(false);
 		PlayerAttributes att = bot.GetComponent<PlayerAttributes>();
-		att.racerName = TextReader.getRacerName(i);
-		att.id = PlayerAttributes.generateID(att.racerName);
+		att.setInfo(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.finishTime = -1f;
+		att.personalBests = new float[]{-1f,-1f,-1f,-1f};
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
-		att.setClothing(i);
-		att.setBodyProportions(i);
-		att.setStats(i);
-		att.setAnimatorController(preset);
+		att.setClothing(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setAnimations(PlayerAttributes.ATTRIBUTES_RANDOM);
 		bot.AddComponent<Bot_AI>();
-		
+		// -----------------
 		return bot;
 	}
 	
-	public void loadBots(){
-		int numOfBots = setupManager.botCount - raceManager.botCount;
-		GameObject bot;
-		for(int i = 0; i < numOfBots; i++){
-			bot = createBot(PlayerAttributes.ATTRIBUTES_RANDOM);
-			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
-			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f,-1f};
-			racers_backEnd.Add(bot);
-		}
-		
-		
-		/*
-		// legends
-		GameObject bot;
-		int count = _numOfBots;
-		for(int i = 4; i < count+4; i++){
-			bot = createBot(i);
-			bot.GetComponent<PlayerAttributes>().finishTime = -1f;
-			bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
-			racers_backEnd.Add(bot);
-		}
-		*/
-		
-		/*
-		// all same bot
-		GameObject bot;
-		bot = createBot("Bot Clone");
-		bot.GetComponent<PlayerAttributes>().finishTime = -1f;
-		bot.GetComponent<PlayerAttributes>().personalBests = new float[]{-1f,-1f,-1f};
-		int count = 8 - racers_backEnd.Count;
-		for(int i = 0; i < count; i++){
-			racers_backEnd.Add(bot);
-		}
-		*/
+	public GameObject createSpecialGhost(int preset, int raceEvent){
+		GameObject ghost = Instantiate(racerPrefab);
+		ghost.tag = "Ghost (Back End)";
+		ghost.transform.SetParent(raceManager.RacersBackEndParent.transform);
+		ghost.SetActive(false);
+		PlayerAttributes att = ghost.GetComponent<PlayerAttributes>();
+		att.setInfo(preset);
+		//att.setPaths(preset);
+		att.setPathsFromSpecial(preset, raceEvent);
+		att.pathLength = PlayerAttributes.DEFAULT_PATH_LENGTH;
+		att.setClothing(preset);
+		att.setBodyProportions(preset);
+		att.setStats(preset);
+		att.setAnimations(preset);
+		// -----------------
+		return ghost;
 	}
 	
 	
@@ -744,7 +734,8 @@ public class GlobalController : MonoBehaviour
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
 		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_FROM_THIS);
-		att.setAnimatorController(PlayerAttributes.ATTRIBUTES_RANDOM);
+		//att.setAnimations(PlayerAttributes.ATTRIBUTES_RANDOM);
+		att.setAnimations(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
 		att.setStats(PlayerAttributes.ATTRIBUTES_RANDOM);
 		att.finishTime = -1f;
 		att.personalBests = new float[]{-1f, -1f, -1f, -1f};

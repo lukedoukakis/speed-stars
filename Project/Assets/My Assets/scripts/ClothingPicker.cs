@@ -46,8 +46,11 @@ public class ClothingPicker : MonoBehaviour
 	public void cycleMesh(string article){
 		int meshNum;
 		// -----------------
+		
+		
 		if(article == "dummy"){
-			att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+			//att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+			att.setBodyProportions(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
 		}
 		else if(article == "headband"){
 			meshNum = att.headbandMeshNumber;
@@ -102,6 +105,9 @@ public class ClothingPicker : MonoBehaviour
 	}
 	
 	public void setRandomClothing(){
+		
+		int i = PlayerAttributes.ATTRIBUTES_RANDOM;
+		
 		PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
 		int[] meshNumbers = att.clothingManager.getRandomMeshNumbers();
 		// -----------------
@@ -114,8 +120,11 @@ public class ClothingPicker : MonoBehaviour
 		att.headbandMeshNumber = meshNumbers[j]; j++;
 		att.sleeveMeshNumber = meshNumbers[j]; j++;
 		// -----------------
-		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
-		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
+		//att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		
+		att.setClothing(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
+		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
+		att.setAnimations(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
 	}
 	
 	public void resetPreviewPosition(){

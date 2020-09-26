@@ -43,7 +43,7 @@ public class SetupManager : MonoBehaviour
 		float x0, y0;
 		float x1, y1;
 		
-        setSelectedRaceEvent(0);
+        setSelectedRaceEvent(1);
     }
 
     // Update is called once per frame

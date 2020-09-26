@@ -186,6 +186,10 @@ public class RaceManager : MonoBehaviour
 		}
     }
 	
+	public void setRaceEvent(int e){
+		raceEvent = e;
+	}
+	
 	
 	public List<GameObject> setupRace(List<GameObject> backEndRacers, int raceEvent, int viewMode){
 		resultsText.text = "100m Dash Finals\n==========================\nWorld Record: 9.58 U. Bolt\nLocal Record: x.xx N. Name\n==========================\n\nFinals";
@@ -266,7 +270,6 @@ public class RaceManager : MonoBehaviour
 			anim.mode = PlayerAnimationV2.Set;
 			anim.energy = 100f;
 			anim.launchFlag = false;
-			anim.setViewMode(viewMode);
 			// --
 			tc = racer.GetComponent<TimerController>();
 			tc.attributes = att;

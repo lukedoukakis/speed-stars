@@ -5405,7 +5405,7 @@ PrefabInstance:
     - target: {fileID: 6448565069943363537, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.00009918213
+      value: 0.000030517578
       objectReference: {fileID: 0}
     - target: {fileID: 6448565069943363537, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
@@ -17268,6 +17268,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1738763328}
+        m_MethodName: setRaceEvent
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 3
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1068522064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17622,7 +17633,7 @@ PrefabInstance:
     - target: {fileID: 6448565069943363537, guid: 483d1d46b8390054885ad3ad3cc07383,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 0.000091552734
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 483d1d46b8390054885ad3ad3cc07383, type: 3}
@@ -18369,6 +18380,17 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 908741075}
         m_MethodName: setSelectedRaceEvent
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1738763328}
+        m_MethodName: setRaceEvent
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -25893,6 +25915,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1738763328}
+        m_MethodName: setRaceEvent
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1636030755
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26504,6 +26537,7 @@ MonoBehaviour:
   racers: []
   selectedRaceEvent: 0
   checkedRacerIndexes: 
+  legends: {fileID: 4253848155564156530, guid: 8a8d7cf848578a74b8811e17a6497cee, type: 3}
 --- !u!114 &1738763325
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30037,6 +30071,17 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 908741075}
         m_MethodName: setSelectedRaceEvent
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1738763328}
+        m_MethodName: setRaceEvent
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

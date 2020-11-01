@@ -6,6 +6,9 @@ public class FinishLineController : MonoBehaviour
 {
 	
 	public RaceManager raceManager;
+	public ParticleSystem yayParticles;
+	
+	int finishers;
 	
     // Start is called before the first frame update
     void Start()
@@ -19,6 +22,9 @@ public class FinishLineController : MonoBehaviour
         
     }
 	
+	public void init(){
+		finishers = 0;
+	}
 	
 	void OnTriggerEnter(Collider col){
 		GameObject g = col.gameObject;
@@ -26,6 +32,13 @@ public class FinishLineController : MonoBehaviour
 			GameObject racer = g.transform.parent.parent.parent.parent.parent.parent.parent.gameObject;
 			if(raceManager.raceTick > 500f){
 				raceManager.addFinisher(racer);
+				if(finishers == 0){
+					if(racer == raceManager.player){
+						yayParticles.transform.position = racer.transform.position;
+						yayParticles.Play();
+					}
+				}
+				finishers++;
 			}
 		}
 	}

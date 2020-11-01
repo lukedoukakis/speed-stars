@@ -6,195 +6,178 @@ public class CameraController : MonoBehaviour
 {
 	
 	public int mode;
-	int raceEvent;
-	public static int CAMERA_MODE_SIDESCROLL = 1;
-	public static int CAMERA_MODE_CINEMATIC = 2;
-	public static int CAMERA_MODE_TV = 3;
-	public static int CAMERA_MODE_THIRDPERSON = 4;
+	public static int STATIONARY = 0;
+	public static int SIDE = 1;
+	public static int CINEMATIC = 2;
+	public static int TV = 3;
+	public static int THIRDPERSON = 4;
 	
 	public static float FOV_STANDARD = 75f;
+	
+	public static float posX_base = 24f;
 	// -----------------
 	public GlobalController gc;
 	public Camera camera;
 	public GameObject referenceObject;
-	public GameObject startLine_100m;
-	public GameObject finishLine;
+	public PlayerAnimationV2 referenceAnim;
+	public bool referenceHasAnim;
+	public float referenceSpeed;
 	public float cameraDistance;
 	// -----------------
-	Vector3 referenceObjectPos;
-	Vector3 referenceObjectVelocity;
-	public bool referenceObjectFinished;
+	public GameObject trackReferenceObject_start_60m;
+	public GameObject trackReferenceObject_start_100m;
+	public GameObject trackReferenceObject_start_200m;
+	public GameObject trackReferenceObject_start_400m;
 	// -----------------
-	Vector3 cameraStartPos_cinematic;
-	Vector3 cameraFinishPos_cinematic;
-	Vector3 cameraStartPos_tv_60m;
-	Vector3 cameraStartPos_tv_100m;
-	Vector3 cameraStartPos_tv_200m;
-	Vector3 cameraStartPos_tv_400m;
-	Vector3 cameraStartPos_tv;
-	Vector3 cameraFinishPos_tv;
-	Vector3 startLinePos_100m;
-	Vector3 finishLinePos;
+	Vector3 currentPos, referencePos, targetPos;
+	Quaternion currentRot, referenceRot, targetRot;
+	Vector3 posOffset, rotTargetOffset;
+	float posSpeed, rotSpeed;
 	
-	
-    // Start is called before the first frame update
-    void Start()
-    {
-		cameraStartPos_cinematic = new Vector3(10.5f, 2.1f, -70f);
-		cameraFinishPos_cinematic = new Vector3(10.5f, 1.6f, 128f);
-		cameraStartPos_tv_60m = new Vector3(12f, 4f, -70f);
-		cameraStartPos_tv_100m = new Vector3(12f, 4f, -70f);
-		cameraStartPos_tv_200m = new Vector3(12f, 4f, -70f);
-		cameraStartPos_tv_400m = new Vector3(12f, 4f, -70f);
-		cameraFinishPos_tv = new Vector3(12f, 4f, 128f);
-		
-		startLinePos_100m = startLine_100m.transform.position;
-		finishLinePos = finishLine.transform.position;
-    }
+	// -----------------
+	float dTime;
 
     // Update is called once per frame
     void Update()
     {
+		dTime = Time.deltaTime;
+		currentPos = transform.position;
+		referencePos = referenceObject.transform.position;
+		referenceRot = referenceObject.transform.rotation;
+		currentRot = transform.rotation;
+		if(referenceHasAnim){
+			referenceSpeed = Mathf.Pow(referenceAnim.speedHoriz, .4f);
+			if(referenceSpeed < 1f){
+				referenceSpeed = 1f;
+			}
+		}
+		else{
+			referenceSpeed = 1f;
+		}
 		
-		if(referenceObject == null){
-			referenceObject = finishLine;
-		}
-		referenceObjectPos = referenceObject.transform.position;
-		referenceObjectVelocity = referenceObject.GetComponent<Rigidbody>().velocity;
 		
-		if(mode == CAMERA_MODE_SIDESCROLL){
-			lockOn();
+		if(mode == STATIONARY){
+			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
+			targetRot = referenceRot;
 		}
-		else if(mode == CAMERA_MODE_CINEMATIC){
-			cinematic();
+		else if(mode == SIDE){
+			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset*cameraDistance) + referenceObject.transform.right*referenceSpeed;
+			targetRot = Quaternion.LookRotation(referenceObject.transform.right*-1f, Vector3.up);
 		}
-		else if(mode == CAMERA_MODE_TV){
-			tv();
+		else if(mode == CINEMATIC){
+			referencePos.y = 0f;
+			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
+			targetRot = Quaternion.LookRotation(referencePos - transform.position);
 		}
-		else if(mode == CAMERA_MODE_THIRDPERSON){
-			thirdPerson();
+		else if(mode == TV){
+			float xFromBase = posX_base-referencePos.x;
+			referencePos.y = 0f;
+			targetPos = referencePos + posOffset*cameraDistance + Vector3.right*xFromBase*.03f;
+			targetRot = Quaternion.LookRotation(referencePos - transform.position);
+			setFov(50f - (xFromBase*.1f));
 		}
+		else if(mode == THIRDPERSON){
+			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
+			targetRot = referenceRot;
+		}
+			
+		
+		transform.position = Vector3.Lerp(currentPos, targetPos, posSpeed * dTime);
+		transform.rotation = Quaternion.Slerp(currentRot, targetRot, rotSpeed * dTime);
 			
     }
 	
-	public void setFieldOfView(float fov){
+	public void setCameraFocusOnStart(){
+		int raceEvent = gc.setupManager.selectedRaceEvent;
+		
+		if(raceEvent == RaceManager.RACE_EVENT_60M){
+			setCameraFocus("60m Start", CameraController.STATIONARY);
+		}
+		else if(raceEvent == RaceManager.RACE_EVENT_100M){
+			setCameraFocus("100m Start", CameraController.STATIONARY);
+		}
+		if(raceEvent == RaceManager.RACE_EVENT_200M){
+			setCameraFocus("200m Start", CameraController.STATIONARY);
+		}
+		if(raceEvent == RaceManager.RACE_EVENT_400M){
+			setCameraFocus("400m Start", CameraController.STATIONARY);
+		}
+	}
+	
+	public void setCameraFocus(GameObject g, int cameraMode){
+		referenceObject = g;
+		mode = cameraMode;
+		// -----------------
+		if(mode == STATIONARY){
+			setFov(100f);
+			posOffset = new Vector3(0f, .5f, -5f);
+			posSpeed = 7f;
+			rotSpeed = .2f;
+		}
+		else if(mode == SIDE){
+			setFov(100f);
+			posOffset = new Vector3(1.55f, 1.25f, 1.75f);
+			posSpeed = 8f;
+			rotSpeed = 10f;
+		}
+		else if(mode == CINEMATIC){
+			setFov(100f);
+			posOffset = new Vector3(5f, 1f, 2f);
+			posSpeed = 10f;
+			rotSpeed = .5f;
+		}
+		if(mode == TV){
+			setFov(50f);
+			posOffset = new Vector3(10f, 4f, 4f);
+			posSpeed = 8f;
+			rotSpeed = 10f;
+		}
+		if(mode == THIRDPERSON){
+			setFov(100f);
+			posOffset = new Vector3(0f, 1.5f, -2f);
+			posSpeed = 10f;
+			rotSpeed = 2f;
+		}
+		
+		PlayerAnimationV2 anim = g.GetComponent<PlayerAnimationV2>();
+		if(anim != null){
+			referenceHasAnim = true;
+			referenceAnim = anim;
+		}
+		else{
+			referenceHasAnim = false;
+			referenceAnim = null;
+		}
+	}
+	
+	public void setCameraFocus(string s, int cameraMode){
+		if(s == "60m Start"){
+			setCameraFocus(trackReferenceObject_start_60m, cameraMode);
+		}
+		else if(s == "100m Start"){
+			setCameraFocus(trackReferenceObject_start_100m, cameraMode);
+		}
+		else if(s == "200m Start"){
+			setCameraFocus(trackReferenceObject_start_200m, cameraMode);
+		}
+		else if(s == "400m Start"){
+			setCameraFocus(trackReferenceObject_start_400m, cameraMode);
+		}
+	}
+	
+	public void setFov(float fov){
 		camera.fieldOfView = fov;
 	}
-	
-	public void setForRaceEvent(int _raceEvent){
-		raceEvent = _raceEvent;
-		if(_raceEvent == RaceManager.RACE_EVENT_100M){
-			cameraStartPos_tv = cameraStartPos_tv_100m;
-		}
-		else if(_raceEvent == RaceManager.RACE_EVENT_200M){
-			cameraStartPos_tv = cameraStartPos_tv_200m;
-		}
-		else if(_raceEvent == RaceManager.RACE_EVENT_400M){
-			cameraStartPos_tv = cameraStartPos_tv_400m;
-		}
-		else if(_raceEvent == RaceManager.RACE_EVENT_60M){
-			cameraStartPos_tv = cameraStartPos_tv_60m;
-		}
-	}
-	
-	void lockOn(){
-		transform.position = Vector3.Lerp(transform.position, referenceObjectPos + (referenceObject.transform.right*cameraDistance) + (referenceObject.transform.right * cameraDistance * new Vector3(referenceObjectVelocity.x, 0f, referenceObjectVelocity.z).magnitude * .05f) + (Vector3.up*1.25f) + (referenceObject.transform.forward * 1.25f), 9f * Time.deltaTime);
-		Quaternion targetRot = Quaternion.LookRotation(referenceObject.transform.right*-1f, Vector3.up);
-		transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
-		
-		
-		//transform.position = Vector3.Lerp(transform.position, referenceObjectPos + new Vector3(cameraDistance + (new Vector3(referenceObjectVelocity.x, 0f, referenceObjectVelocity.z).magnitude)*.15f, 1.25f, cameraDistance*.2f), .15f);
-		//transform.rotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
-	}
 
-	void cinematic(){
-		float pathProgress = (referenceObjectPos.z - startLinePos_100m.z) / ((finishLinePos.z - startLinePos_100m.z) + 0f);
-		float x,y,z;
-		// -----------------
-		x = cameraStartPos_cinematic.x + (referenceObjectPos.x*.2f) + ((cameraFinishPos_cinematic.x - cameraStartPos_cinematic.x) * pathProgress);
-		y = cameraStartPos_cinematic.y + ((cameraFinishPos_cinematic.y - cameraStartPos_cinematic.y) * pathProgress);
-		z = cameraStartPos_cinematic.z + ((cameraFinishPos_cinematic.z - cameraStartPos_cinematic.z) * pathProgress);
-		transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), 7f * Time.deltaTime);
-		// -----------------
+	// Start is called before the first frame update
+    void Start()
+    {
 		
-		Quaternion targetRot = Quaternion.LookRotation((referenceObject.transform.position - transform.position) + (Vector3.forward*1f));
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, .7f * Time.deltaTime);
-		
-		referenceObjectFinished = pathProgress >= 1f;
-		if(referenceObjectFinished){
-			//referenceObject = finishLine;
-		}
-	}
 	
-	void tv(){
-		float pathProgress = (referenceObjectPos.z - startLinePos_100m.z) / ((finishLinePos.z - startLinePos_100m.z) + 0f);
-		float x,y,z;
-		
-		if(raceEvent == RaceManager.RACE_EVENT_100M){
-			x = cameraStartPos_tv.x + (referenceObjectPos.x*.2f) + ((cameraFinishPos_cinematic.x - cameraStartPos_cinematic.x) * pathProgress);
-			y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
-			z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
-			transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);
-		}
-		else if(raceEvent == RaceManager.RACE_EVENT_200M){
-			float distanceFromFinishX = Mathf.Abs(referenceObjectPos.x - (finishLinePos.x + 60f));
-			if(distanceFromFinishX < 40f){
-				//distanceFromFinishX = 40f;
-			}
-			
-			x = referenceObjectPos.x + (distanceFromFinishX*.015f + (cameraDistance*2f));
-			y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
-			z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
-			transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);
-		}
-		else if(raceEvent == RaceManager.RACE_EVENT_400M){
-			float distanceFromFinishX = Mathf.Abs(referenceObjectPos.x - (finishLinePos.x + 60f));
-			if(distanceFromFinishX < 40f){
-				//distanceFromFinishX = 40f;
-			}
-			
-			x = referenceObjectPos.x + (distanceFromFinishX*.015f + (cameraDistance*2f));
-			y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
-			z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
-			transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);
-		}
-		else if(raceEvent == RaceManager.RACE_EVENT_60M){
-			x = cameraStartPos_tv.x + (referenceObjectPos.x*.2f) + ((cameraFinishPos_cinematic.x - cameraStartPos_cinematic.x) * pathProgress);
-			y = cameraStartPos_tv.y + ((cameraFinishPos_tv.y - cameraStartPos_tv.y) * pathProgress);
-			z = cameraStartPos_tv.z + ((cameraFinishPos_tv.z - cameraStartPos_tv.z) * pathProgress);
-			transform.position = Vector3.Lerp(transform.position, new Vector3(x,y,z), .3f);
-		}
-		
-		/*
-		float distanceAway = Vector3.Distance(camera.transform.position, referenceObjectPos);
-		Vector3 dVec = (camera.transform.position - referenceObjectPos).normalized;
-		
-		float fov;
-		fov = FOV_STANDARD * ((cameraDistance+5f)/distanceAway);
-		if(fov > FOV_STANDARD){
-			fov = FOV_STANDARD;
-		}
-		setFieldOfView(fov);
-		transform.position = new Vector3(transform.position.x, transform.position.y + (distanceAway * .05f), transform.position.z);
-		
-		
-		
-		//Vector3 targetPos = referenceObjectPos + (dVec*10f) + (Vector3.up * (Mathf.Abs(referenceObjectPos.x - finishLinePos.x) * .03f));
-		//transform.position = targetPos;
-
-		*/
-		
-		referenceObjectPos.y = 1f;
-		Quaternion targetRot = Quaternion.LookRotation((referenceObject.transform.position - transform.position) + (referenceObject.transform.forward*1f));
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 2f * Time.deltaTime);
-		
-		referenceObjectFinished = (pathProgress >= 1f);
-		if(referenceObjectFinished){
-			//referenceObject = finishLine;
-		}
-	}
 	
-	void thirdPerson(){
-		
-	}
+    }
+	
+	
+	
+	
 }

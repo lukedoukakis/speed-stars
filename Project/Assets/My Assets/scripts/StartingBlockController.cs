@@ -13,7 +13,6 @@ public class StartingBlockController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -22,9 +21,14 @@ public class StartingBlockController : MonoBehaviour
         
     }
 	
-	public void adjustPedals(float legX){
-		Vector3 leftPedalPos = leftPedal.transform.position;
-		Vector3 rightPedalPos = (leftPedalPos) + (transform.forward*-.21f*Mathf.Pow(legX, 6f)) + (transform.right*.3f);
+	public void adjustPedals(PlayerAnimationV2 anim){
+		
+		Transform leftFoot = anim.leftFoot;
+		Transform rightFoot = anim.rightFoot;
+		
+		Vector3 leftPedalPos = new Vector3(leftFoot.transform.position.x, leftPedal.transform.position.y, leftFoot.transform.position.z);
+		Vector3 rightPedalPos = new Vector3(rightFoot.transform.position.x, rightPedal.transform.position.y, rightFoot.transform.position.z);
+		leftPedal.transform.position = leftPedalPos;
 		rightPedal.transform.position = rightPedalPos;
 	}
 	

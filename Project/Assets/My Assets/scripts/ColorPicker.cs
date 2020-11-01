@@ -9,6 +9,7 @@ public class ColorPicker : MonoBehaviour
 
 	public Camera camera;
 	public GameObject previewRacer;
+	public GameObject colorButtonGrid;
 	public GameObject colorPicker_skin;
 		public GameObject skinTextureObject;
 	public GameObject colorPicker_clothing;
@@ -92,7 +93,7 @@ public class ColorPicker : MonoBehaviour
 								att.socksRGB = new float[]{selectedColor.r,  selectedColor.g,  selectedColor.b};
 							}
 							
-							att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+							att.setClothing(PlayerAttributes.FROM_THIS);
 						
 						}
 					}
@@ -127,22 +128,33 @@ public class ColorPicker : MonoBehaviour
 		else if(selectedArticle == "socks"){
 			yOffset *= 7f;
 		}
-		Vector3 colorPickerPos = new Vector3(34f, 177f - yOffset, 0f);
-		//colorPicker_skin.transform.position = colorPickerPos;
-		//colorPicker_clothing.transform.position = colorPickerPos;
 	}
 	
 
-	public void openColorPicker(string type){
+	public void openColorPicker(string s){
+		
+		string[] arr = s.Split('_');
+		string type = arr[0];
+		int buttonIndex = int.Parse(arr[1]);
+		GameObject referenceButton = colorButtonGrid.transform.Find("ColorPickerButton (" + buttonIndex + ")").gameObject;
+		
+		
 		if(colorPickerOpen){
 			closeColorPicker();
 		}
+		
+		GameObject colorPicker = null;
 		if(type == "skin"){
-			colorPicker_skin.SetActive(true);
+			colorPicker = colorPicker_skin;
 		}
 		else if(type == "clothing"){
-			colorPicker_clothing.SetActive(true);
+			colorPicker = colorPicker_clothing;
 		}
+		
+		colorPicker.GetComponent<RectTransform>().anchoredPosition = new Vector2(colorPicker.GetComponent<RectTransform>().anchoredPosition.x, referenceButton.GetComponent<RectTransform>().anchoredPosition.y + 100f);
+		//referenceButton.GetComponent<RectTransform>().anchoredPosition + new Vector2(160f, 100f);
+		colorPicker.SetActive(true);
+		
 		colorPickerOpen = true;
 	}
 	
@@ -173,6 +185,6 @@ public class ColorPicker : MonoBehaviour
 		c = colors[j];
 		att.sleeveRGB = new float[]{ c.r, c.g, c.b}; j++;
 		// -----------------
-		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setClothing(PlayerAttributes.FROM_THIS);
 	}
 }

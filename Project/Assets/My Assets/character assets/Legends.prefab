@@ -45,3 +45,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   legendPrefabs:
   - {fileID: 7034995590358346630, guid: bf00fcb68d72b8f48b07f000a86c2fa1, type: 3}
+  - {fileID: 256812350986865059, guid: 2840b8b0e75bd7f40a59f28c3a8fd2a6, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 44283762094421856, guid: dd573b7779c5f1b4e9c4487fbd19a9c5, type: 3}

@@ -11,15 +11,15 @@ public class PlayerAttributes : MonoBehaviour
 	public static int DEFAULT_PATH_LENGTH = 10000;
 	// -----------------
 
-	public static int ATTRIBUTES_RANDOM = 1;
-	public static int ATTRIBUTES_FROM_THIS = 2;
-	public static int ATTRIBUTES_DEFAULT = 3;
+	public static int RANDOM = 1;
+	public static int FROM_THIS = 2;
+	public static int DEFAULT = 3;
 	
-	public static int ATTRIBUTES_LEGEND_USAINBOLT = 4;
-	public static int ATTRIBUTES_LEGEND_MICHAELJOHNSON = 5;
-	public static int ATTRIBUTES_LEGEND_YOHANBLAKE = 6;
-	public static int ATTRIBUTES_LEGEND_JESSEOWENS = 7;
-	public static int ATTRIBUTES_LEGEND_WAYDEVANNIEKERK = 8;
+	public static int USAINBOLT = 4;
+	public static int MICHAELJOHNSON = 5;
+	public static int YOHANBLAKE = 6;
+	public static int JESSEOWENS = 7;
+	public static int WAYDEVANNIEKERK = 8;
 	
 	// -----------------
 	
@@ -135,6 +135,7 @@ public class PlayerAttributes : MonoBehaviour
 	public float FITNESS;							// base 1
 	public float LAUNCH_POWER;						// base 1
 	public float CURVE_POWER;						// base 1
+	public float CRUISE;							// base 1
 	
 	// -----------------
 	
@@ -142,6 +143,7 @@ public class PlayerAttributes : MonoBehaviour
 	public Animator animator;
 	public RuntimeAnimatorController[] animatorControllers;
 	public int animatorNum;
+	public int leadLeg;
 	public float armSpeedFlex;
 	public float armSpeedExtend;
 	
@@ -168,19 +170,13 @@ public class PlayerAttributes : MonoBehaviour
 		// -----------------
 
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-	
-    }
 	
 	public void setInfo(int setting){
-		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
+		if(setting == PlayerAttributes.FROM_THIS){
 			// do nothing
 		}
-		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-			racerName = TextReader.getRacerName(PlayerAttributes.ATTRIBUTES_RANDOM);
+		else if(setting == PlayerAttributes.RANDOM){
+			racerName = TextReader.getRandomName();
 		}	
 		else if(setting >= 4){
 			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "info");
@@ -192,118 +188,74 @@ public class PlayerAttributes : MonoBehaviour
 		
 		Mesh mesh;
 		Material material;
-		int dummyMeshNum = 0;
-		int topMeshNum = 0;
-		int bottomsMeshNum = 0;
-		int shoesMeshNum = 0;
-		int socksMeshNum = 0;
-		int headbandMeshNum = 0;
-		int sleeveMeshNum = 0;
-		int dummyMaterialNum = 0;
-		int topMaterialNum = 0;
-		int bottomsMaterialNum = 0;
-		int shoesMaterialNum = 0;
-		int socksMaterialNum = 0;
-		int headbandMaterialNum = 0;
-		int sleeveMaterialNum = 0;
-		Color dummyColor; ColorUtility.TryParseHtmlString(clothingManager.skinTones[Random.Range(0, clothingManager.skinTones.Length)], out dummyColor);
-		Color topColor = Color.red;
-		Color bottomsColor = Color.white;
-		Color shoesColor = Color.white;
-		Color socksColor = Color.white;
-		Color headbandColor = Color.white;
-		Color sleeveColor = Color.red;
 		// -----------------
-		if(setting == ATTRIBUTES_DEFAULT){
-			// do nothing
+		if(setting == DEFAULT){
+			dummyMeshNumber = 0;
+			topMeshNumber = 0;
+			bottomsMeshNumber = 0;
+			shoesMeshNumber = 0;
+			socksMeshNumber = 0;
+			headbandMeshNumber = 0;
+			sleeveMeshNumber = 2;
+			dummyMaterialNumber = 0;
+			topMaterialNumber = 0;
+			bottomsMaterialNumber = 0;
+			shoesMaterialNumber = 0;
+			socksMaterialNumber = 0;
+			headbandMaterialNumber = 0;
+			sleeveMaterialNumber = 0;
+			dummyRGB = new float[]{.62f,.5f,.25f};
+			topRGB = new float[]{1f,1f,1f};
+			bottomsRGB = new float[]{1f,1f,1f};
+			shoesRGB = new float[]{1f,1f,1f};
+			socksRGB = new float[]{1f,1f,1f};
+			headbandRGB = new float[]{1f,1f,1f};
+			sleeveRGB = new float[]{1f,1f,1f};
 		}	
-		else if(setting == ATTRIBUTES_FROM_THIS){
-			// get values for meshes, materials, and colors from self
-			dummyMeshNum = this.dummyMeshNumber;
-			topMeshNum = this.topMeshNumber;
-			bottomsMeshNum = this.bottomsMeshNumber;
-			shoesMeshNum = this.shoesMeshNumber;
-			socksMeshNum = this.socksMeshNumber;
-			headbandMeshNum = this.headbandMeshNumber;
-			sleeveMeshNum = this.sleeveMeshNumber;
-			dummyMaterialNum = this.dummyMaterialNumber;
-			topMaterialNum = this.topMaterialNumber;
-			bottomsMaterialNum = this.bottomsMaterialNumber;
-			shoesMaterialNum = this.shoesMaterialNumber;
-			socksMaterialNum = this.socksMaterialNumber;
-			headbandMaterialNum = this.headbandMaterialNumber;
-			sleeveMaterialNum = this.sleeveMaterialNumber;
-			dummyColor = new Color(this.dummyRGB[0], this.dummyRGB[1], this.dummyRGB[2]);
-			topColor = new Color(this.topRGB[0], this.topRGB[1], this.topRGB[2]);
-			bottomsColor = new Color(this.bottomsRGB[0], this.bottomsRGB[1], this.bottomsRGB[2]);
-			shoesColor = new Color(this.shoesRGB[0], this.shoesRGB[1], this.shoesRGB[2]);
-			socksColor = new Color(this.socksRGB[0], this.socksRGB[1], this.socksRGB[2]);
-			headbandColor = new Color(this.headbandRGB[0], this.headbandRGB[1], this.headbandRGB[2]);
-			sleeveColor = new Color(this.sleeveRGB[0], this.sleeveRGB[1], this.sleeveRGB[2]);
+		else if(setting == FROM_THIS){
+			// do nothing
 		}
-		else if(setting == ATTRIBUTES_RANDOM){
+		else if(setting == RANDOM){
 			
 			// get random values for meshes, materials, and colors
 			int i;
-			
 			int[] randomMeshes = clothingManager.getRandomMeshNumbers();
 			i = 0;
-			dummyMeshNum = randomMeshes[i]; i++;
-			topMeshNum = randomMeshes[i]; i++;
-			bottomsMeshNum = randomMeshes[i]; i++;
-			shoesMeshNum = randomMeshes[i]; i++;
-			socksMeshNum = randomMeshes[i]; i++;
-			headbandMeshNum = randomMeshes[i]; i++;
-			sleeveMeshNum = randomMeshes[i]; i++;
-				
+			dummyMeshNumber = randomMeshes[i]; i++;
+			topMeshNumber = randomMeshes[i]; i++;
+			bottomsMeshNumber = randomMeshes[i]; i++;
+			shoesMeshNumber = randomMeshes[i]; i++;
+			socksMeshNumber = randomMeshes[i]; i++;
+			headbandMeshNumber = randomMeshes[i]; i++;
+			sleeveMeshNumber = randomMeshes[i]; i++;	
 			int[] randomMaterials = clothingManager.getRandomMaterialNumbers();
 			i = 0;
-			dummyMaterialNum = randomMaterials[i]; i++;
-			topMaterialNum = randomMaterials[i]; i++;
-			bottomsMaterialNum = randomMaterials[i]; i++;
-			shoesMaterialNum = randomMaterials[i]; i++;
-			socksMaterialNum = randomMaterials[i]; i++;
-			headbandMaterialNum = randomMaterials[i]; i++;
-			sleeveMaterialNum = randomMaterials[i]; i++;
-			
-			// get random colors
+			dummyMaterialNumber = randomMaterials[i]; i++;
+			topMaterialNumber = randomMaterials[i]; i++;
+			bottomsMaterialNumber = randomMaterials[i]; i++;
+			shoesMaterialNumber = randomMaterials[i]; i++;
+			socksMaterialNumber = randomMaterials[i]; i++;
+			headbandMaterialNumber = randomMaterials[i]; i++;
+			sleeveMaterialNumber = randomMaterials[i]; i++;
 			Color[] randomColors = clothingManager.getRandomColors();
-			int j = 0;
-			dummyColor = randomColors[j]; j++;
-			topColor = randomColors[j]; j++;
-			bottomsColor = randomColors[j]; j++;
-			shoesColor = randomColors[j]; j++;
-			socksColor = randomColors[j]; j++;
-			headbandColor = randomColors[j]; j++;
-			sleeveColor = randomColors[j]; j++;
+			i = 0;
+			dummyRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
+			topRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
+			bottomsRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
+			shoesRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
+			socksRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
+			headbandRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
+			sleeveRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
 		}
 		else if(setting >= 4){
-			dummyMeshNum = int.Parse(TextReader.getAttribute(setting, "dummyMesh"));
-			topMeshNum = int.Parse(TextReader.getAttribute(setting, "topMesh"));
-			bottomsMeshNum = int.Parse(TextReader.getAttribute(setting, "bottomsMesh"));
-			shoesMeshNum = int.Parse(TextReader.getAttribute(setting, "shoesMesh"));
-			socksMeshNum = int.Parse(TextReader.getAttribute(setting, "socksMesh"));
-			headbandMeshNum = int.Parse(TextReader.getAttribute(setting, "headbandMesh"));
-			sleeveMeshNum = int.Parse(TextReader.getAttribute(setting, "sleeveMesh"));
-			dummyMaterialNum = int.Parse(TextReader.getAttribute(setting, "dummyMaterial"));
-			topMaterialNum = int.Parse(TextReader.getAttribute(setting, "topMaterial"));
-			bottomsMaterialNum = int.Parse(TextReader.getAttribute(setting, "bottomsMaterial"));
-			shoesMaterialNum = int.Parse(TextReader.getAttribute(setting, "shoesMaterial"));
-			socksMaterialNum = int.Parse(TextReader.getAttribute(setting, "socksMaterial"));
-			headbandMaterialNum = int.Parse(TextReader.getAttribute(setting, "headbandMaterial"));
-			sleeveMaterialNum = int.Parse(TextReader.getAttribute(setting, "sleeveMaterial"));
-			dummyColor = new Color(float.Parse(TextReader.getAttribute(setting, "dummyColorR")), float.Parse(TextReader.getAttribute(setting, "dummyColorG")), float.Parse(TextReader.getAttribute(setting, "dummyColorB")));
-			topColor = new Color(float.Parse(TextReader.getAttribute(setting, "topColorR")), float.Parse(TextReader.getAttribute(setting, "topColorG")), float.Parse(TextReader.getAttribute(setting, "topColorB")));
-			bottomsColor = new Color(float.Parse(TextReader.getAttribute(setting, "bottomsColorR")), float.Parse(TextReader.getAttribute(setting, "bottomsColorG")), float.Parse(TextReader.getAttribute(setting, "bottomsColorB")));
-			shoesColor = new Color(float.Parse(TextReader.getAttribute(setting, "shoesColorR")), float.Parse(TextReader.getAttribute(setting, "shoesColorG")), float.Parse(TextReader.getAttribute(setting, "shoesColorB")));
-			socksColor = new Color(float.Parse(TextReader.getAttribute(setting, "socksColorR")), float.Parse(TextReader.getAttribute(setting, "socksColorG")), float.Parse(TextReader.getAttribute(setting, "socksColorB")));
-			headbandColor = new Color(float.Parse(TextReader.getAttribute(setting, "headbandColorR")), float.Parse(TextReader.getAttribute(setting, "headbandColorG")), float.Parse(TextReader.getAttribute(setting, "headbandColorB")));
-			sleeveColor = new Color(float.Parse(TextReader.getAttribute(setting, "sleeveColorR")), float.Parse(TextReader.getAttribute(setting, "sleeveColorG")), float.Parse(TextReader.getAttribute(setting, "sleeveColorB")));
+			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "clothing");
 		}
 		
-		int[] meshNumbers = new int[]{ shoesMeshNum, socksMeshNum, topMeshNum, bottomsMeshNum, sleeveMeshNum, headbandMeshNum, dummyMeshNum};
-		int[] materialNumbers = new int[]{ shoesMaterialNum, socksMaterialNum, topMaterialNum, bottomsMaterialNum, sleeveMaterialNum, headbandMaterialNum, dummyMaterialNum};
-		Color[] clothingColors = new Color[]{shoesColor, socksColor, topColor, bottomsColor, sleeveColor, headbandColor, dummyColor};
+		// apply attributes to model
+		
+		int[] meshNumbers = new int[]{ shoesMeshNumber, socksMeshNumber, topMeshNumber, bottomsMeshNumber, sleeveMeshNumber, headbandMeshNumber, dummyMeshNumber};
+		int[] materialNumbers = new int[]{ shoesMaterialNumber, socksMaterialNumber, topMaterialNumber, bottomsMaterialNumber, sleeveMaterialNumber, headbandMaterialNumber, dummyMaterialNumber};
+		float[][] clothingRGBs = new float[][]{shoesRGB, socksRGB, topRGB, bottomsRGB, sleeveRGB, headbandRGB, dummyRGB};
 		string[] articles = new string[]{ "shoes", "socks", "top", "bottoms", "sleeve", "headband", "dummy"};
 		SkinnedMeshRenderer[] renderers = new SkinnedMeshRenderer[]{smr_shoes, smr_socks, smr_top, smr_bottoms, smr_sleeve, smr_headband, smr_dummy};
 		
@@ -314,8 +266,10 @@ public class PlayerAttributes : MonoBehaviour
 			// -----------------
 			mesh = clothingManager.getMesh(articles[j], meshNumbers[j]);
 			// -----------------
+			//Material oldMat = renderer.sharedMaterial;
 			material = Instantiate(clothingManager.getMaterial(articles[j], materialNumbers[j]));
-			material.color = clothingColors[j];
+			material.color = new Color(clothingRGBs[j][0],clothingRGBs[j][1],clothingRGBs[j][2]);
+			//Destroy(oldMat);
 			// ~~~~
 				material.SetFloat("_Mode", 2);
 				material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
@@ -328,66 +282,25 @@ public class PlayerAttributes : MonoBehaviour
 			// ~~~~
 			// -----------------
 			renderer.sharedMesh = mesh;
-			renderer.materials = new Material[]{material};
-			renderer.materials[0] = material;
+			
+			renderer.sharedMaterial = material;
+			//renderer.materials = new Material[]{material};
+			//renderer.materials[0] = material;
 		}
-		// -----------------
-		
-		// update attributes
-		
-		Color c;
-
-		this.dummyMeshNumber = dummyMeshNum;
-		this.dummyMaterialNumber = dummyMaterialNum;
-		c = dummyColor;
-		this.dummyRGB = new float[]{ c.r, c.g, c.b};
-		
-		this.topMeshNumber = topMeshNum;
-		this.topMaterialNumber = topMaterialNum;
-		c = topColor;
-		this.topRGB = new float[]{ c.r, c.g, c.b};
-		
-		this.bottomsMeshNumber = bottomsMeshNum;
-		this.bottomsMaterialNumber = bottomsMaterialNum;
-		c = bottomsColor;
-		this.bottomsRGB = new float[]{ c.r, c.g, c.b};
-		
-		this.shoesMeshNumber = shoesMeshNum;
-		this.shoesMaterialNumber = shoesMaterialNum;
-		c = shoesColor;
-		this.shoesRGB = new float[]{ c.r, c.g, c.b};
-		
-		this.socksMeshNumber = socksMeshNum;
-		this.socksMaterialNumber = socksMaterialNum;
-		c = socksColor;
-		this.socksRGB = new float[]{ c.r, c.g, c.b};
-		
-		this.headbandMeshNumber = headbandMeshNum;
-		this.headbandMaterialNumber = headbandMaterialNum;
-		c = headbandColor;
-		this.headbandRGB = new float[]{ c.r, c.g, c.b};
-		
-		this.sleeveMeshNumber = sleeveMeshNum;
-		this.sleeveMaterialNumber = sleeveMaterialNum;
-		c = sleeveColor;
-		this.sleeveRGB = new float[]{ c.r, c.g, c.b};
-		// -----------------
-		
 	}
 	
-	// x: length
-	// y: width
-	// z: depth
+
 	public void setBodyProportions(int setting){
-		if(setting == ATTRIBUTES_DEFAULT){
+		if(setting == DEFAULT){
 			headX = 1f;neckX = 1f;torsoX = 1f;armX = 1f;legX = 1f;feetX = 1f;
 			headY = 1f;neckY = 1f;torsoY = 1f;armY = 1f;legY = 1f;feetY = 1f;
 			headZ = 1f;neckZ = 1f;torsoZ = 1f;armZ = 1f;legZ = 1f;feetZ = 1f;
 		}
-		else if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
+		else if(setting == PlayerAttributes.FROM_THIS){
 			// do nothing
 		}
-		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
+		else if(setting == PlayerAttributes.RANDOM){
+			
 			
 			headX = 1f;neckX = 1f;torsoX = 1f;armX = 1f;legX = 1f;feetX = 1f;
 			headY = 1f;neckY = 1f;torsoY = 1f;armY = 1f;legY = 1f;feetY = 1f;
@@ -395,27 +308,30 @@ public class PlayerAttributes : MonoBehaviour
 			
 			/*
 			// testing
-			torsoX = 1.01f;
-			torsoY = torsoX * .92f;
-			torsoZ = torsoY * .9f;
+			int r = Random.Range(1, 3);
+			if(r == 1){
+				torsoX = 1.05f;
+			} else { torsoX = .95f; }
+			torsoY = torsoX;
+			torsoZ = torsoY;
 			*/
 			
+			
 			// randomize torso proportions
-			torsoX = (Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f)+Random.Range(.9f, 1.1f))/3f;
-			torsoY = Random.Range(.9f, 1.2f);
-			torsoZ = torsoY * Random.Range(.9f, 1.1f);
+			torsoX = (Random.Range(.95f, 1.05f)+Random.Range(.95f, 1.05f))/2f;
+			torsoY = Random.Range(.9f, 1.1f);
+			torsoZ = torsoY * Random.Range(.8f, 1.2f);
+			
 			
 		
 			// adjust head, neck, arm, leg proportions for torso
 			neckX *= (1f/torsoX);
 			neckY *= (1f/torsoY);
 			neckZ *= (1f/torsoZ);
-			armX *= Mathf.Pow((1f/torsoY), .5f);
-			armY *= Mathf.Pow(torsoY, .5f);
-			armZ *= Mathf.Pow(torsoY, .5f);
 			legX *= torsoX;
 			legY *= 1f;
-			legZ = legY;
+			legZ = 1f;
+			armX *= Mathf.Pow((1f/torsoY), .75f);
 			
 			/*
 			// testing
@@ -424,14 +340,14 @@ public class PlayerAttributes : MonoBehaviour
 			neckZ = 1;
 			armX *= 1f;
 			legX *= 1f;
-			/*
+			*/
+			
 			
 			// randomize neck, arm and leg proportions
 			neckX *= Random.Range(.5f, 1.5f);
-			neckY *= Random.Range(.8f, 1.2f);
-			neckZ = neckY;
-			armX *= Random.Range(1f,1.02f);
-			legX *= Random.Range(1f, 1f);
+			float lankiness = Random.Range(.95f,1.05f);
+			armX *= lankiness;
+			legX *= lankiness;
 			
 	
 			/*
@@ -516,8 +432,20 @@ public class PlayerAttributes : MonoBehaviour
 		float fitness = 1f;
 		float launch_power = 1f;
 		float curve_power = 1f;
+		float cruise = 1f;
 		
-		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
+		if(setting == PlayerAttributes.DEFAULT){
+			POWER = power;
+			TRANSITION_PIVOT_SPEED = transPivSpeed;
+			QUICKNESS = quickness;
+			KNEE_DOMINANCE = knee_dominance;
+			TURNOVER = turnover;
+			FITNESS = fitness;
+			LAUNCH_POWER = launch_power;
+			CURVE_POWER = curve_power;
+			CRUISE = cruise;
+		}
+		else if(setting == PlayerAttributes.FROM_THIS){
 			power = this.POWER;
 			transPivSpeed = this.TRANSITION_PIVOT_SPEED;
 			quickness = this.QUICKNESS;
@@ -526,51 +454,55 @@ public class PlayerAttributes : MonoBehaviour
 			fitness = this.FITNESS;
 			launch_power = this.LAUNCH_POWER;
 			curve_power = this.CURVE_POWER;
+			cruise = this.CRUISE;
+			
+			POWER = power;
+			TRANSITION_PIVOT_SPEED = transPivSpeed;
+			QUICKNESS = quickness;
+			KNEE_DOMINANCE = knee_dominance;
+			TURNOVER = turnover;
+			FITNESS = fitness;
+			LAUNCH_POWER = launch_power;
+			CURVE_POWER = curve_power;
+			CRUISE = cruise;
 		}
-		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
-			
-			
+		else if(setting == PlayerAttributes.RANDOM){
 			// modify stats from leg length
-			quickness = Mathf.Pow((2f - thighRight.localScale.x), .5f);
-			turnover = Mathf.Pow((2f - thighRight.localScale.x), .5f);
-			knee_dominance = Mathf.Pow((2f - thighRight.localScale.x), 1f);
-			fitness = Mathf.Pow((2f - thighRight.localScale.x), .3f);
-			launch_power = Mathf.Pow(knee_dominance, 1.5f);
-			curve_power = Mathf.Pow(knee_dominance, .6f);
+			quickness = .95f * Mathf.Pow((2f - legX), .1f);
+			turnover = Mathf.Pow((2f - legX), .5f);
+			knee_dominance = Mathf.Pow((2f - legX), 1f);
+			launch_power = Mathf.Pow(knee_dominance, 1f);
+			cruise = (Random.Range(.2f, 1f));
+			power *= Mathf.Pow(legX, .3f) * Mathf.Pow(2f-(cruise+.8f), .05f);
+			fitness *= Mathf.Pow(legX, 0f) * Mathf.Pow(cruise, .15f);
 			
+			POWER = power;
+			TRANSITION_PIVOT_SPEED = transPivSpeed;
+			QUICKNESS = quickness;
+			KNEE_DOMINANCE = knee_dominance;
+			TURNOVER = turnover;
+			FITNESS = fitness;
+			LAUNCH_POWER = launch_power;
+			CURVE_POWER = curve_power;
+			CRUISE = cruise;
 		}	
 		else if(setting >= 4){
-			// modify stats from leg length
-			quickness = Mathf.Pow((2f - thighRight.localScale.x), .5f);
-			turnover = Mathf.Pow((2f - thighRight.localScale.x), .5f);
-			knee_dominance = Mathf.Pow((2f - thighRight.localScale.x), 1f);
-			fitness = Mathf.Pow((2f - thighRight.localScale.x), .3f);
-			launch_power = Mathf.Pow(knee_dominance, 1.5f);
-			curve_power = Mathf.Pow(knee_dominance, .6f);
-			
-	
+			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "stats");
 		}
 		
-		POWER = power;
-		TRANSITION_PIVOT_SPEED = transPivSpeed;
-		QUICKNESS = quickness;
-		KNEE_DOMINANCE = knee_dominance;
-		TURNOVER = turnover;
-		FITNESS = fitness;
-		LAUNCH_POWER = launch_power;
-		CURVE_POWER = curve_power;
+		
 	}
 	
 	public void setAnimations(int setting){
-		if(setting == PlayerAttributes.ATTRIBUTES_FROM_THIS){
+		if(setting == PlayerAttributes.FROM_THIS){
 			// do nothing
 		}
-		else if(setting == PlayerAttributes.ATTRIBUTES_RANDOM){
+		else if(setting == PlayerAttributes.RANDOM){
 			int random = Random.Range(0, animatorControllers.Length);
-			random = 0;
 			animator.runtimeAnimatorController = animatorControllers[random];
 			animatorNum = random;
-			armSpeedFlex = Random.Range(.9f,1.1f);
+			leadLeg = Random.Range(0,2);
+			armSpeedFlex = Random.Range(.91f, 1.09f);
 			armSpeedExtend = (2f-armSpeedFlex);
 		}
 		else if(setting >= 4){
@@ -604,7 +536,7 @@ public class PlayerAttributes : MonoBehaviour
 		leanLockTick = specialAtt.leanLockTick;
 		velMagPath = specialAtt.velMagPath;
 		velPathX = specialAtt.velPathX;
-		velPathY = new float[DEFAULT_PATH_LENGTH];
+		velPathY = specialAtt.velPathY;
 		velPathZ = specialAtt.velPathZ;
 		posPathX = specialAtt.posPathX;
 		posPathY = specialAtt.posPathY;
@@ -637,12 +569,14 @@ public class PlayerAttributes : MonoBehaviour
 		}
 		else if(whichAttributes == "stats"){
 			POWER = otherAttributes.POWER;
+			QUICKNESS = otherAttributes.QUICKNESS;
 			TRANSITION_PIVOT_SPEED = otherAttributes.TRANSITION_PIVOT_SPEED;
 			KNEE_DOMINANCE = otherAttributes.KNEE_DOMINANCE;
 			TURNOVER = otherAttributes.TURNOVER;
 			FITNESS = otherAttributes.FITNESS;
 			LAUNCH_POWER = otherAttributes.LAUNCH_POWER;
 			CURVE_POWER = otherAttributes.CURVE_POWER;
+			CRUISE = otherAttributes.CRUISE;
 			// -----------------
 		}
 		else if(whichAttributes == "ghost data"){
@@ -707,6 +641,7 @@ public class PlayerAttributes : MonoBehaviour
 		}
 		else if(whichAttributes == "animation properties"){
 			animatorNum = otherAttributes.animatorNum;
+			leadLeg = otherAttributes.leadLeg;
 			armSpeedFlex = otherAttributes.armSpeedFlex;
 			armSpeedExtend = otherAttributes.armSpeedExtend;
 		}

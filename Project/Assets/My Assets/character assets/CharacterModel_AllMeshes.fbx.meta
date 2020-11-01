@@ -93,6 +93,9 @@ ModelImporter:
     100174: Top_short
     100176: Empty
     100178: Top_loose
+    100180: Hair_base
+    100182: Head_base
+    100184: Hair_0
     400000: Armature
     400002: ArmSleeve_double
     400004: ArmSleeve_single
@@ -183,6 +186,9 @@ ModelImporter:
     400174: Top_short
     400176: Empty
     400178: Top_loose
+    400180: Hair_base
+    400182: Head_base
+    400184: Hair_0
     2100000: Dummy_material
     2300000: Empty
     2300002: Top_loose
@@ -201,6 +207,9 @@ ModelImporter:
     4300020: ArmSleeve_single
     4300022: Empty
     4300024: Top_loose
+    4300026: Head_base
+    4300028: Hair_base
+    4300030: Hair_0
     9500000: //RootNode
     13700000: ArmSleeve_double
     13700002: ArmSleeve_single
@@ -213,6 +222,9 @@ ModelImporter:
     13700016: Socks_short
     13700018: Top_long
     13700020: Top_short
+    13700022: Hair_base
+    13700024: Head_base
+    13700026: Hair_0
     2186277476908879412: ImportLogs
   externalObjects: {}
   materials:

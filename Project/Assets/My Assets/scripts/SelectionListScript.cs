@@ -22,6 +22,10 @@ public class SelectionListScript : MonoBehaviour
 	public GameObject previewRacer;
 	public GameObject previewPlatform;
 	
+	public GameObject deleteDialog;
+	public DeleteDialogController ddc;
+	public SelectionButtonScript buttonToDelete;
+	
 	
     // Start is called before the first frame update
     void Start()
@@ -49,9 +53,14 @@ public class SelectionListScript : MonoBehaviour
 		return null;
 	}
 	
+	public GameObject getFirst(){
+		return grid.transform.GetChild(0).gameObject;
+	}
 	
-	public GameObject addButton(string id, int raceEvent){
+	
+	public GameObject addButton(string id, int raceEvent, Color32 color32){
 		GameObject button = Instantiate(selectionButtonPrefab);
+		button.GetComponent<Image>().color = color32;
 		SelectionButtonScript buttonScript = button.GetComponent<SelectionButtonScript>();
 		buttonScript.init(this);
 		buttonScript.setFromRacer(id, raceEvent);
@@ -101,6 +110,7 @@ public class SelectionListScript : MonoBehaviour
 			}
 		}
 		buttonIDs.Clear();
+		selectedButtonIDs.Clear();
 	}
 	
 	public void setPreviewRacer(string id){
@@ -111,12 +121,12 @@ public class SelectionListScript : MonoBehaviour
 		att.copyAttributesFromOther(temp, "clothing");
 		att.copyAttributesFromOther(temp, "stats");
 		
-		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
-		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_FROM_THIS);
-		att.setStats(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setClothing(PlayerAttributes.FROM_THIS);
+		att.setBodyProportions(PlayerAttributes.FROM_THIS);
+		att.setStats(PlayerAttributes.FROM_THIS);
 		
 		//att.renderInForeground();
-		previewRacer.transform.position = previewPlatform.transform.position + Vector3.up*.5f;
+		previewRacer.transform.position = previewPlatform.transform.position + Vector3.up*.3f;
 		previewRacer.GetComponent<PlayerAnimationV2>().energy = 100f;
 		Destroy(temp);
 	
@@ -125,6 +135,7 @@ public class SelectionListScript : MonoBehaviour
 	public void init(int _raceEvent, string _sourceMemory, int _maxSelectable, int _minSelectable, bool _replaceLastSelection, bool _showIfNoTime){
 		clear();
 		buttonIDs = new List<string>();
+		selectedButtonIDs = new List<string>();
 		// -----------------
 		this.maxSelectable = _maxSelectable;
 		this.minSelectable = _minSelectable;
@@ -132,27 +143,43 @@ public class SelectionListScript : MonoBehaviour
 		this.replaceLastSelection = _replaceLastSelection;
 		this.sourceMemory = _sourceMemory;
 		// -----------------
-		
 		string[] playerIDs = PlayerPrefs.GetString(_sourceMemory).Split(':');
 		if(playerIDs.Length > 0){
-			foreach(string playerID in playerIDs){
+			Color32 buttonColor = new Color32(0,0,0,0);
+			if(_replaceLastSelection){
+				buttonColor = SelectionButtonScript.playerButtonColor;
+			}
+			else{
+				buttonColor = SelectionButtonScript.ghostButtonColor;
+			}
+			string playerID = "";
+			for(int i = 0; i < playerIDs.Length; i++){
+				playerID = playerIDs[i];
 				if(playerID != ""){
 					GameObject button;
 					if(_showIfNoTime || PlayerPrefs.GetString(playerID).Split(':')[3 + _raceEvent] != "-1"){
-						button = addButton(playerID, _raceEvent);
-						if(numSelected < _minSelectable){
-							button.GetComponent<SelectionButtonScript>().toggle();
-						}
+						button = addButton(playerID, _raceEvent, buttonColor);
 					}
 				}
 			}
 		}
-		
+		if(replaceLastSelection){
+			setPreviewRacerVisibility();
+		}
 		previewRacer.GetComponent<EnergyMeterController>().enabled = false;
 	}
 	
+	public void setPreviewRacerVisibility(){
+		if(numSelected == 0){
+			previewRacer.SetActive(false);
+		}else{
+			previewRacer.SetActive(true);
+		}
+	}
 	
-	
-	
+	public void deleteButtonToDelete(){
+		buttonToDelete.removeThisButtonAndForgetAssociatedRacer();
+		ddc.hide();
+	}
 	
 }

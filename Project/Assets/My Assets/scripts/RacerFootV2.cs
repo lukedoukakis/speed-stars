@@ -47,12 +47,8 @@ public class RacerFootV2 : MonoBehaviour
 		attributes = GetComponent<PlayerAttributes>();
 		knee_dominance = attributes.KNEE_DOMINANCE;
 		transitionPivotSpeed = attributes.TRANSITION_PIVOT_SPEED;
-		if(knee_dominance <= 1f){
-			knee_dominance_powerModifier = Mathf.Pow(2f - knee_dominance, 1.5f);
-		}
-		else{
-			knee_dominance_powerModifier = Mathf.Pow(2f - knee_dominance, 1.5f*(Mathf.Pow(1f/knee_dominance,6f)));
-		}
+		knee_dominance_powerModifier = Mathf.Pow(2f-knee_dominance, 1.5f);
+		knee_dominance_powerModifier = 1f;
 		swingFrames = 0f;
 		zTiltMinAbs = Mathf.Abs(-45f);
 		zTiltMaxAbs = Mathf.Abs(45f);

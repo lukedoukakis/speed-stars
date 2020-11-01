@@ -5194,7 +5194,10 @@ MonoBehaviour:
   - 1
   - 1
   - 1
-  sleeveRGB: []
+  sleeveRGB:
+  - 1
+  - 1
+  - 1
   head: {fileID: 8176422958227916214}
   neck: {fileID: 8176422958227916208}
   torso: {fileID: 8176422958227916260}
@@ -5236,6 +5239,7 @@ MonoBehaviour:
   FITNESS: 1
   LAUNCH_POWER: 1
   CURVE_POWER: 1
+  CRUISE: 1
   animator: {fileID: 8176422958220241414}
   animatorControllers:
   - {fileID: 9100000, guid: 1bd9b8bcc3319724ca5ea0f0b1ba0656, type: 2}

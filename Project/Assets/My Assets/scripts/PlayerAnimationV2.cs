@@ -7,6 +7,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 {
 	
 	public GameObject gyro;
+	public MeshRenderer hudIndicatorRenderer;
 	public Transform root;
 	public Rigidbody rb;
 	public BoxCollider chestCollider;
@@ -18,6 +19,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Transform leftUpperArm;
 	public Transform pushLeg;
 	public Quaternion pushRotation;
+	
+	public ParticleSystem dustParticles;
+	bool showDust;
 	
 	Vector3 rightFootPos_lastFrame;
 	Vector3 leftFootPos_lastFrame;
@@ -46,9 +50,11 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public bool rightInput;
 	public bool leftInput;
 	
+	public bool isPlayer;
 	public bool onCurve;
 	public bool launchFlag;
 	Vector3 friction;
+	bool canFalseStart;
 	public float frictionMagnitude;
 	public float torsoAngle;
 	public float torsoAngle_upright;
@@ -56,9 +62,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float power;
 	public float powerMod;
 	float knee_dominance;
-	float driveModifier;
+	public float driveModifier;
 	public float launch_power;
 	float curve_power;
+	float cruise;
 	public float maxPower;
 	public float maxUpSpeed;
 	float topSpeed;
@@ -68,6 +75,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float speedHoriz_lastFrame;
 	public float energy;
 	public float fitness;
+	float energyCost_base;
+	float energyBurnoutMod;
+	float energyBurnoutThreshold;
 	
 	public int pathLength;
 	public float[] velMagPath;
@@ -87,6 +97,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float armFlex;
 	public float armExtend;
 	
+	public int leadLeg;
 	public bool upInSet;
 	public float setPositionWeight;
 	public float leanWeight;
@@ -99,21 +110,13 @@ public class PlayerAnimationV2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-	
-		
+
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
+		//energyCost_base = 100f;
 
     }
 	
-	
-    // Update is called once per frame
-	void Update()
-	{
-		
-		
-	}
-	
-	public void init(){
+	public void init(int raceEvent){
 		
 		// ghost attributes
 		pathLength = attributes.pathLength;
@@ -130,17 +133,40 @@ public class PlayerAnimationV2 : MonoBehaviour
 		knee_dominance = attributes.KNEE_DOMINANCE;
 		launch_power = attributes.LAUNCH_POWER;
 		curve_power = attributes.CURVE_POWER;
+		cruise = attributes.CRUISE;
 		
 		// animation stats
+		leadLeg = attributes.leadLeg;
+		animator.SetInteger("leadLeg", leadLeg);
 		armFlex = attributes.armSpeedFlex;
 		armExtend = attributes.armSpeedExtend;
 		
 		// special stats
-		driveModifier = Mathf.Pow(knee_dominance, 3f);
+		driveModifier = .9f * Mathf.Pow(knee_dominance, 1.2f);
 		leanThreshold = .825f * knee_dominance;
 		torsoAngle_max = 355f;
-		//torsoAngle_upright = 313f * Mathf.Pow(knee_dominance,.01f);
-		torsoAngle_upright = 313f * Mathf.Pow(knee_dominance,.01f);
+		torsoAngle_upright = 320f * Mathf.Pow(knee_dominance,.01f);
+		
+		// energy
+		energyCost_base = 48f;
+		energyBurnoutMod = 1f;
+		energyBurnoutThreshold = 20f;
+		
+		// particles
+		showDust = false;
+	
+		if(gameObject.tag.StartsWith("Player")){
+			isPlayer = true;
+			hudIndicatorRenderer.material = globalController.hudIndicatorMat_player;
+			if(raceManager.viewMode == RaceManager.VIEW_MODE_LIVE){
+				canFalseStart = true;
+			}
+		}
+		else{
+			isPlayer = false;
+			hudIndicatorRenderer.material = globalController.hudIndicatorMat_nonPlayer;
+			canFalseStart = false;
+		}
 		
 		// -----------------
 		
@@ -194,8 +220,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 	void runMode(){
 		
+		
 		if(raceManager.raceEvent >= 2){
-			Debug.Log("raceEvent: " + raceManager.raceEvent);
+			//Debug.Log("raceEvent: " + raceManager.raceEvent);
 			oc.updateOrientation(true);
 			if(oc.trackSegment == 1 || oc.trackSegment == 3){
 				if(!onCurve){
@@ -208,6 +235,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 					animator.SetBool("onCurve", false);
 				}
 				onCurve = false;
+			}
+		}
+		
+		// regenerate energy if going slow enough
+		if(speedHoriz < 10f){
+			if(energy < 100f){
+				energy += 1f*Time.deltaTime;
 			}
 		}
 		
@@ -225,13 +259,29 @@ public class PlayerAnimationV2 : MonoBehaviour
 		if(energy < 70f){
 			quickness *= Mathf.Pow(energy/70f, .075f);
 		}
+		
 		if(quickness < .95f){
 			quickness = .95f;
 		}
-		float q = quickness*quicknessMod;
-		animator.SetFloat("limbSpeed", q);
-		animator.SetFloat("armFlex", q*armFlex);
-		animator.SetFloat("armExtend", q*armExtend);
+		float animSpeedMod = quickness*quicknessMod;
+		animator.SetFloat("limbSpeed", animSpeedMod);
+		animator.SetFloat("armFlex", armFlex*animSpeedMod);
+		animator.SetFloat("armExtend", armExtend*animSpeedMod);
+		//-----------------------------------------------------------------------------------------------------------
+		// particles
+		
+		if(speedHoriz >= 5f){
+			if(!showDust){
+				showDust = true;
+				dustParticles.Play();
+			}
+		}
+		else{
+			if(showDust){
+				showDust = false;
+				dustParticles.Stop();
+			}
+		}
 		//-----------------------------------------------------------------------------------------------------------
 		if(setPositionWeight >= 0f){
 			setPositionWeight -= transitionSpeed * quickness_base * dTime;
@@ -270,12 +320,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public void applyInput(int tick){
 		if(mode == Set){
 			if(rightInput || leftInput){
-				if(attributes.isRacing){
-					mode = 2;
-				}
-				else{
-					if(raceManager.raceStatus == RaceManager.STATUS_SET){
-						mode = 2;
+				mode = Run;
+				if(canFalseStart){
+					if(tick <= 1){
 						//Debug.Log("false start");
 						StartCoroutine(raceManager.falseStart());
 					}
@@ -295,7 +342,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				animator.SetBool("right", true);
 				
 				if(!launchFlag){
-					StartCoroutine(launch());
+					StartCoroutine(launch(leadLeg == 1));
 					launchFlag = true;
 				}
 				
@@ -308,7 +355,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 				animator.SetBool("left", true);
 				
 				if(!launchFlag){
-					StartCoroutine(launch());
+					StartCoroutine(launch(leadLeg == 0));
 					launchFlag = true;
 				}
 			}else{
@@ -384,7 +431,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	// for mapping ghost position and velocity from paths
 	public void setPositionAndVelocity(int tick){
-		Debug.Log("leanLockTick: " + attributes.leanLockTick);
 		if(tick > attributes.leanLockTick && attributes.leanLockTick > 0){
 			leanLock = true;
 		} else{
@@ -427,11 +473,11 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public void updateEnergy(float speed, float swingTimeBonus){
 		float energyCost;
-		energyCost = 62f * dTime;
+		energyCost = energyCost_base * dTime;
 		energyCost *= Mathf.Pow(speed / 27f, 2.5f);
 		energyCost *= 1f + (1f - (swingTimeBonus / 2.0736f));
 		energyCost *= (2f - fitness);
-		energyCost *= (1f - cruiseWeight/5f);
+		energyCost *= (1f - cruiseWeight/4f);
 		if(energyCost < .1f){
 			energyCost = .1f;
 		}
@@ -471,28 +517,48 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 		// -----------------
 		// modify power from torso angle
-		if(torsoAngle < 313f){
-			modifier = torsoAngle/310f;
+		if(torsoAngle < torsoAngle_upright){
+			modifier = torsoAngle/torsoAngle_upright;
 			modifiedPower *= modifier;
 		}
 		// -----------------
 		// reduce power if on curve
 		if(onCurve){
-			modifier = .9f * curve_power;
+			modifier = .925f * curve_power;
 			modifiedPower *= modifier;
 		}
 		// -----------------
 		// modify power from energy
+		
 		if(energy < 80f){
-			if(energy >= 30f){
+			if(energy >= energyBurnoutThreshold) {
 				modifier *= (energy / 80f);
 			}
 			else{
-				modifier *= (30f / 80f);
+				energyBurnoutMod = Mathf.Lerp(energyBurnoutMod, .5f, .25f*(speedHoriz/27f)*dTime);
+				modifier *= ((50f*energyBurnoutMod) / 80f);
 			}
-			modifier = Mathf.Pow(modifier, .75f);
+			modifier = Mathf.Pow(modifier, .95f);
 			modifiedPower *= modifier;
 		}
+		
+		/*
+		if(energy < 80f){
+			if(energy >= energyBurnoutThreshold) {
+				if(energy >= 50f){
+					modifier *= (energy / 80f);
+				}
+				else{
+					modifier *= (50f / 80f);
+				}
+			} else{
+				energyBurnoutMod = Mathf.Lerp(energyBurnoutMod, .5f, .25f*(speedHoriz/27f)*dTime);
+				modifier *= ((50f*energyBurnoutMod) / 80f);
+			}
+			modifier = Mathf.Pow(modifier, .95f);
+			modifiedPower *= modifier;
+		}
+		*/
 		// -----------------
 		power = modifiedPower;
 		power *= powerMod;
@@ -516,7 +582,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 		}
 		
-		float maxD = .475f * driveModifier + speedHoriz_lastFrame;
+		float maxD = .5f * driveModifier + speedHoriz_lastFrame;
 		if(speedHoriz > maxD){
 			velHoriz = Vector3.ClampMagnitude(velHoriz, maxD);
 		}
@@ -561,12 +627,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 				cruiseWeight = 0f;
 			}
 		}else{
-			if(speedHoriz > 20f){
-				cruiseWeight += 1f * dTime;
-				if(cruiseWeight > 1f){
-					cruiseWeight = 1f;
-				}
+			if(speedHoriz > 15f){
+				cruiseWeight += cruise * dTime;
 			}
+		}
+		cruiseWeight *= 313f/torsoAngle;
+		if(cruiseWeight > 1f){
+			cruiseWeight = 1f;
 		}
 	
 		animator.SetLayerWeight(1,cruiseWeight*runWeight);
@@ -586,13 +653,21 @@ public class PlayerAnimationV2 : MonoBehaviour
 	}
 	
 	
-	public IEnumerator launch(){
+	public IEnumerator launch(bool leadLegLaunch){
 		raceManager.startingBlocks_current[attributes.lane-1].GetComponent<StartingBlockController>().addLaunchForce();
+		
+		if(isPlayer){ globalController.audioController.playSound(AudioController.BLOCK_EXIT); }
 		
 		animator.SetBool("launch", true);
 		cruiseWeight = 0f;
 		float launchPower = 27.489f * launch_power;
-		Vector3 launchVecVert = Vector3.up * launch_power * .2f;
+		
+		// reduce launch power if launched with non-dominant leg
+		if(!leadLegLaunch){
+			launchPower *= .2f;
+		}
+		
+		Vector3 launchVecVert = Vector3.up * launch_power * .35f;
 		
 		for(int i = 0; i < 12; i++){
 			rb.AddForce((gyro.transform.forward + launchVecVert) * launchPower, ForceMode.Force);

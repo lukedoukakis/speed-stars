@@ -6,7 +6,6 @@ public class OrientationController : MonoBehaviour
 {
 	
 	public PlayerAnimationV2 animation;
-	public PlayerAttributes attributes;
 	public Rigidbody rb;
 	
 	public float distance;
@@ -18,6 +17,11 @@ public class OrientationController : MonoBehaviour
 	public GameObject sphere2;
 	public Vector3 sphere1_pos;
 	public Vector3 sphere2_pos;
+	public float sphere1_z;
+	public float sphere2_z;
+	public float sphere1_x;
+	public float sphere2_x;
+	
 	public float sphere1_prog;
 	public float sphere2_prog;
 	
@@ -37,23 +41,12 @@ public class OrientationController : MonoBehaviour
     {
 		sphere1_pos = sphere1.transform.position;
 		sphere2_pos = sphere2.transform.position;
+		sphere1_z = sphere1_pos.z;
+		sphere2_z = sphere2_pos.z;
+		sphere1_x = sphere1_pos.x;
+		sphere2_x = sphere2_pos.x;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-	
-	 void FixedUpdate()
-    {
-		
-    }
-	
-	
-	
-	
-	
 	public void updateOrientation(bool enforcePosition){
 	
 		checkOrientationPosition();
@@ -86,17 +79,17 @@ public class OrientationController : MonoBehaviour
 		Vector3 pos = transform.position;
 		float zPos = pos.z;
 		// -----------------
-		if(zPos > sphere2_pos.z){
-			if(zPos > sphere1_pos.z){
+		if(zPos > sphere2_z){
+			if(zPos > sphere1_z){
 				sphere = sphere1;
-				trackSegment = 3;
+				trackSegment = 1;
 			}
 			else{
 				if(sphere != null){
+					sphere = null;
 					pos = adjustForStraight(pos);
 					transform.position = pos;
-					sphere = null;
-					if(pos.x > sphere1_pos.x){
+					if(pos.x > sphere1_x){
 						trackSegment = 4;
 					}
 					else{
@@ -107,25 +100,23 @@ public class OrientationController : MonoBehaviour
 		}
 		else{
 			sphere = sphere2;
-			trackSegment = 1;
+			trackSegment = 3;
 		}
 	}
 	
 	Vector3 adjustForStraight(Vector3 _pos){
 		Vector3 adjustedPos = _pos;
 		// -----------------
-		if(adjustedPos.x > sphere1_pos.x){
-			adjustedPos.x = (sphere1_pos.x + distance);
+		if(adjustedPos.x > sphere1_x){
+			adjustedPos.x = (sphere1_x + distance);
 		}
 		else{
-			adjustedPos.x = (sphere1_pos.x - distance);
+			adjustedPos.x = (sphere1_x - distance);
 		}
 				
 		Vector3 velocity = rb.velocity;
-		if(Mathf.Abs(velocity.x) > 0f){
-			velocity.x = 0f;
-			rb.velocity = velocity;
-		}
+		velocity.x = 0f;
+		rb.velocity = velocity;
 		
 		return adjustedPos;
 	}

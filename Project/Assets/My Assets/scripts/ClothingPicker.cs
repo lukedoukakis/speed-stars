@@ -49,8 +49,7 @@ public class ClothingPicker : MonoBehaviour
 		
 		
 		if(article == "dummy"){
-			//att.setBodyProportions(PlayerAttributes.ATTRIBUTES_RANDOM);
-			att.setBodyProportions(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
+			att.setBodyProportions(PlayerAttributes.RANDOM);
 		}
 		else if(article == "headband"){
 			meshNum = att.headbandMeshNumber;
@@ -101,12 +100,12 @@ public class ClothingPicker : MonoBehaviour
 			att.socksMeshNumber = meshNum;
 		}
 		// -----------------
-		att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
+		att.setClothing(PlayerAttributes.FROM_THIS);
 	}
 	
 	public void setRandomClothing(){
 		
-		int i = PlayerAttributes.ATTRIBUTES_RANDOM;
+		int i = PlayerAttributes.RANDOM;
 		
 		PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
 		int[] meshNumbers = att.clothingManager.getRandomMeshNumbers();
@@ -120,15 +119,17 @@ public class ClothingPicker : MonoBehaviour
 		att.headbandMeshNumber = meshNumbers[j]; j++;
 		att.sleeveMeshNumber = meshNumbers[j]; j++;
 		// -----------------
-		//att.setClothing(PlayerAttributes.ATTRIBUTES_FROM_THIS);
-		
-		att.setClothing(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
-		att.setBodyProportions(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
-		att.setAnimations(PlayerAttributes.ATTRIBUTES_LEGEND_USAINBOLT);
+		att.setClothing(PlayerAttributes.FROM_THIS);
+	}
+	
+	public void setRandomBodyProportions(){
+		PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
+		// -----------------
+		att.setBodyProportions(PlayerAttributes.RANDOM);
 	}
 	
 	public void resetPreviewPosition(){
-		previewRacer.transform.position = previewPlatform.transform.position + Vector3.up*.5f;
+		previewRacer.transform.position = previewPlatform.transform.position + Vector3.up*1f;
 		//previewRacer.GetComponent<PlayerAnimationV2>().energy = 100f;
 	}
 }

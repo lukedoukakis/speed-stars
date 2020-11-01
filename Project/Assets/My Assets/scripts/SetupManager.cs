@@ -9,6 +9,7 @@ public class SetupManager : MonoBehaviour
 	public int selectedRaceEvent;
 	
 	public GlobalController gc;
+	public CameraController cameraController;
 	public Canvas canvas;
 	float canvasWidth;
 	float canvasHeight;
@@ -35,94 +36,29 @@ public class SetupManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		canvasWidth = canvas.GetComponent<RectTransform>().rect.size.x;
-		canvasHeight = canvas.GetComponent<RectTransform>().rect.size.y;
-		screenWidth = Screen.width;
-		screenHeight = Screen.height;
-		
-		float x0, y0;
-		float x1, y1;
-		
-        setSelectedRaceEvent(1);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-		
-        
     }
 	
 	public void setSelectedRaceEvent(int raceEvent){
 		
-		selectedRaceEvent = raceEvent;
-		gc.selectedRaceEvent = raceEvent;
-		toggleSelectionLists(selectedRaceEvent);
+		if(selectedRaceEvent != raceEvent){
+			selectedRaceEvent = raceEvent;
+			gc.selectedRaceEvent = raceEvent;
+			toggleSelectionLists(selectedRaceEvent);
+		}
 		
+		gc.cameraController.setCameraFocusOnStart();
 	}
 	
 	void toggleSelectionLists(int raceEvent){
 		
-		playerSelectButtonList.GetComponent<SelectionListScript>().setForEvent(raceEvent);
-		ghostSelectButtonList.GetComponent<SelectionListScript>().init(raceEvent, GlobalController.SAVED_RACER_MEMORY, 7, 0, false, false);
+		SelectionListScript ps = playerSelectButtonList.GetComponent<SelectionListScript>();
+		SelectionListScript gs = ghostSelectButtonList.GetComponent<SelectionListScript>();
 		
-		//playerSelectButtonList.GetComponent<SelectionListScript>().toggleAllOff();
-		//ghostSelectButtonList.GetComponent<SelectionListScript>().toggleAllOff();
+		ps.setForEvent(raceEvent);
+		gs.init(raceEvent, GlobalController.SAVED_RACER_MEMORY, 7, 0, false, false);
 
 	}
 	
-	
-	public void moveUIElement(string way){
-		/*
-		StartCoroutine(move());
-		// -----------------
-		IEnumerator move(){
-			movingElement = true;
-			// -----------------
-			GameObject element = this.gameObject;
-			RectTransform rectTransform = element.GetComponent<RectTransform>();
-			Vector2 position = rectTransform.anchoredPosition;
-			float targetX = 0f;
-			float targetY = 0f;
-			if(way == "center"){
-				targetX = 0f;
-				targetY = 0f;
-			}
-			else if(way == "left"){
-				targetX = canvasWidth * -1f;
-				targetY = 0f;
-			}
-			else if(way == "right"){
-				targetX = canvasWidth;
-				targetY = 0f;
-			}
-			else if(way == "up"){
-				targetX = 0f;
-				targetY = canvasHeight;
-			}
-			else if(way == "down"){
-				targetX = 0f;
-				targetY = canvasHeight * -1f;
-			}
-			float x, y;
-			// -----------------
-			while(Mathf.Abs(position.x - targetX) > .2f){
-				position = rectTransform.anchoredPosition;
-				x = Mathf.Lerp(position.x, targetX, swapSpeed * Time.deltaTime);
-				y = Mathf.Lerp(position.y, targetY, swapSpeed * Time.deltaTime);
-				position.x = x;
-				position.y = y;
-				rectTransform.anchoredPosition = position;
-				yield return null;
-			}
-			Debug.Log("done");
-			position.x = targetX;
-			position.y = targetY;
-			rectTransform.anchoredPosition = new Vector2(targetX, targetY);
-			movingElement = false;
-		}
-		*/
-	}
 	
 	public void incrementBotCount(int n){
 		if((botCount + n >= 0) && (botCount + n <= botCount_max)){
@@ -135,6 +71,20 @@ public class SetupManager : MonoBehaviour
 		//Debug.Log("botCount_max: " + botCount_max);
 		//Debug.Log("botCount: " + botCount);
 		//Debug.Log("---");
+	}
+	
+	public void init(){
+		canvasWidth = canvas.GetComponent<RectTransform>().rect.size.x;
+		canvasHeight = canvas.GetComponent<RectTransform>().rect.size.y;
+		screenWidth = Screen.width;
+		screenHeight = Screen.height;
+		
+		incrementBotCount(7);
+		
+		float x0, y0;
+		float x1, y1;
+		
+        setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
 	}
 	
 

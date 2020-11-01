@@ -9,11 +9,12 @@ public class SelectionButtonScript : MonoBehaviour
 	public SelectionListScript list;
 
 	public bool selected;
-	public string selectedColorCode = "#B96481";
-	public string unselectedColorCode = "#CDB6CF";
 	public string id;
 	public string name;
 	public string time;
+	
+	public static Color32 playerButtonColor = new Color32(250, 196, 192, 255);
+	public static Color32 ghostButtonColor = new Color32(207, 255, 236, 255);
 	
     // Start is called before the first frame update
     void Start()
@@ -37,7 +38,7 @@ public class SelectionButtonScript : MonoBehaviour
 		if(float.Parse(time) == -1f){
 			gameObject.transform.Find("TimeText").GetComponent<Text>().text = "--";
 		}else{
-			gameObject.transform.Find("TimeText").GetComponent<Text>().text = time;
+			gameObject.transform.Find("TimeText").GetComponent<Text>().text = float.Parse(time).ToString("F2");
 		}	
 	}
 	
@@ -58,7 +59,7 @@ public class SelectionButtonScript : MonoBehaviour
 			// select if numSelected less than maxSelectable
 			if(list.numSelected < list.maxSelectable){
 				if(!list.getButton(id).GetComponent<SelectionButtonScript>().selected){
-					setColor(selectedColorCode);
+					setColor("selected");
 					list.numSelected++;
 					list.selectedButtonIDs.Add(id);
 					if(list == list.gc.playerSelectButtonList){
@@ -67,39 +68,32 @@ public class SelectionButtonScript : MonoBehaviour
 					selected = true;
 				}
 			}
-			// else, if replaceLastSelection true, unselect first selected button and select this one
+			// else, if replaceLastSelection true, unselect last selected button
 			else{
 				if(list.replaceLastSelection){
-					Debug.Log("replacing last selection");
-					Debug.Log("replaced button id: " + list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().id);
-					list.minSelectable--;
-					list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().toggle(false);
-					list.minSelectable++;
-					setColor(selectedColorCode);
-					list.numSelected++;
-					list.selectedButtonIDs.Add(id);
-					if(list == list.gc.playerSelectButtonList){
-						list.setPreviewRacer(id);
+					if(list.selectedButtonIDs != null){
+						if(list.selectedButtonIDs.Count != 0){
+						Debug.Log("replacing last selection");
+						Debug.Log("replaced button id: " + list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().id);
+						list.minSelectable--;
+						list.getButton(list.selectedButtonIDs[list.selectedButtonIDs.Count-1]).GetComponent<SelectionButtonScript>().toggle(false);
+						list.minSelectable++;
+						}
 					}
-					selected = true;
-					
-					
-					string s = "selectedButtonIDs: ";
-					for(int i = 0; i < list.selectedButtonIDs.Count; i++){
-						s += list.selectedButtonIDs[i] + ", ";
-					}
-					Debug.Log(s);
-					
 				}
-				else{
-					
+				setColor("selected");
+				list.numSelected++;
+				list.selectedButtonIDs.Add(id);
+				if(list == list.gc.playerSelectButtonList){
+					list.setPreviewRacer(id);
 				}
+				selected = true;
 			}
 		}
-		// else, deselect if numSelected greater than minSelectable, otherwise do nothing
+		// if trying to deselect, deselect if numSelected greater than minSelectable, otherwise do nothing
 		else{
 			if(list.numSelected > list.minSelectable){
-				setColor(unselectedColorCode);
+				setColor("unselected");
 				list.numSelected--;
 				list.selectedButtonIDs.Remove(id);
 				selected = false;
@@ -116,6 +110,9 @@ public class SelectionButtonScript : MonoBehaviour
 				//list.gc.setupManager.botCountText.text = list.gc.setupManager.botCount.ToString();
 			}
 		}
+		if(list.replaceLastSelection){
+			list.setPreviewRacerVisibility();
+		}
 	}
 	
 	public void toggle(bool setting){
@@ -126,13 +123,31 @@ public class SelectionButtonScript : MonoBehaviour
 	
 	
 	
-	public void setColor(string colorCode){
-		Color color;
-		if(ColorUtility.TryParseHtmlString(colorCode, out color)){
-			GetComponent<Image>().color = color;
-			transform.Find("Delete Button").gameObject.GetComponent<Image>().color = color;
-		}
+	public void setColor(string state){
+		Image image = GetComponent<Image>();
+		float h,s,v;
+		Color.RGBToHSV(image.color, out h, out s, out v);
+		
+		if(state == "selected"){
+			s *= 3f;
+		} else{ s /= 3f; }
+		
+		image.color = Color.HSVToRGB(h, s, v);
 	}
+	
+	
+	public void showDeleteDialog(){
+		SelectionButtonScript button_list1 = list.ddc.list1.getButton(this.id).GetComponent<SelectionButtonScript>();
+		list.ddc.list1.buttonToDelete = list.ddc.list1.getButton(this.id).GetComponent<SelectionButtonScript>();
+		
+		if(list.ddc.list2.getButton(this.id) != null){
+			SelectionButtonScript button_list2 = list.ddc.list2.getButton(this.id).GetComponent<SelectionButtonScript>();
+			list.ddc.list2.buttonToDelete = list.ddc.list2.getButton(this.id).GetComponent<SelectionButtonScript>();
+		}
+	
+		list.ddc.show();
+	}
+	
 	
 	public void init(SelectionListScript s){
 		list = s;

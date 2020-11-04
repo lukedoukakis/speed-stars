@@ -31,7 +31,6 @@ public class Bot_AI : MonoBehaviour
 	float cadenceModifier;
 	float quicknessModifier;
 	float powerModifier;
-	float knee_dominance_modifier;
 	// -----------------
 	float torsoAngle_upright;
 	float torsoAngle_forward;
@@ -180,14 +179,13 @@ public class Bot_AI : MonoBehaviour
 		rightInputPath = att.rightInputPath;
 		// -----------------
 		reaction = false;
-		reactionTime = Random.Range(.01f, .11f) * (2f - difficulty);
+		reactionTime = Random.Range(.01f, .03f);
 		reactionTime = Random.Range(.01f, .01f + (2f-Mathf.Pow(difficulty,10f))/10f) * Mathf.Pow((2f - difficulty), 4f);
 		// -----------------
 		topEndFlag = false;
 		maintenanceFlag = false;
 		forward = false;
 		transitionPivotSpeed = att.TRANSITION_PIVOT_SPEED;
-		knee_dominance_modifier = 1f;
 		modifierCapSpeed = 23f * difficulty;
 		// -----------------
 		freeTicks = 2650f * (2f - cadenceModifier);
@@ -250,5 +248,79 @@ public class Bot_AI : MonoBehaviour
 		// -----------------
 		torsoAngle_back = torsoAngle_upright;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	string[] rooms = new string[rowsNum, columnsNum];
+	
+	for(int row = 0; row < museumX; i++){
+		for(int col = 0; col < museumY; i++){
+			if(rooms[row][col] = "g"){
+				markVisibleRooms(row, col);
+			}
+		}	
+	}
+	
+	for(int row = 0; row < museumX; i++){
+		for(int col = 0; col < museumY; i++){
+			string s = rooms[row][col];
+			if(s != "g" || s != "w" || s != "CAN_SEE"){
+				// print coordinates of invisible room
+				print(row + " " + col);
+			}
+		}
+	}
+	
+	
+	
+	// method that marks rooms that are visible from a certain spot
+	void markVisibleRooms(int row, int col){
+		// search row
+		for(int i = col; i < columnsNum; i++){
+			if(rooms[row][i] != "w"){
+				rooms[row][i] == "CAN_SEE";
+			} else{ break; }
+		}
+		for(int i = 0; i < col; i++){
+			if(rooms[row][i] != "w"){
+				rooms[row][i] == "CAN_SEE";
+			}
+			else{ break; }
+		}
+		// search column
+		for(int i = row; i < rowsNum; i++){
+			if(rooms[i][col] != "w"){
+				rooms[i][col] == "CAN_SEE";
+			}
+			else{ break;
+		}
+		for(int i = 0; i < col; i++){
+			if(rooms[i][col] != "w"){
+				rooms[i][col] == "CAN_SEE";
+			} else{ break; }
+		}
+	}
+	
+	*/
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }

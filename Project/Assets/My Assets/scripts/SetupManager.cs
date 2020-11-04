@@ -80,10 +80,7 @@ public class SetupManager : MonoBehaviour
 		screenHeight = Screen.height;
 		
 		incrementBotCount(7);
-		
-		float x0, y0;
-		float x1, y1;
-		
+
         setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
 	}
 	

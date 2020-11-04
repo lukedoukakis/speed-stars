@@ -18,14 +18,23 @@ public class TextReader : MonoBehaviour
 		string name = "";
 		
 		int index;
-		reader = new StreamReader("Assets/Resources/txt_first_names.txt");
+		
+		// webGL
+		//reader = new StreamReader("Assets/Resources/txt_first_names.txt");
+		
+		// standalone
+		reader = new StreamReader(Path.Combine(Application.streamingAssetsPath, "txt_first_names.txt"));
 		index = Random.Range(0, 2943);
 		for(int i = 0; i < index; i++){
 			reader.ReadLine();
 		}
 		name += reader.ReadLine();
 		
-		reader = new StreamReader("Assets/Resources/txt_last_names.txt");
+		// webGL;
+		//reader = new StreamReader("Assets/Resources/txt_last_names.txt");
+		
+		// standalone;
+		reader = new StreamReader(Path.Combine(Application.streamingAssetsPath, "txt_last_names.txt"));
 		index = Random.Range(0, 2000);
 		for(int i = 0; i < index; i++){
 			reader.ReadLine();

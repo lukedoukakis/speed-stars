@@ -49,6 +49,11 @@ public class UnlockManager : MonoBehaviour
 	public static float AVERAGE_TIME_200M = 24f;
 	public static float AVERAGE_TIME_400M = 52f;
 	public static float AVERAGE_TIME_60M = 7.5f;
+	
+	public static float NOOB_TIME_100M = 15f;
+	public static float NOOB_TIME_200M = 30f;
+	public static float NOOB_TIME_400M = 60f;
+	public static float NOOB_TIME_60M = 10f;
 	// -----------------
 	public List<string> unlockReqList_200m;
 	public List<string> unlockReqList_400m;
@@ -67,20 +72,23 @@ public class UnlockManager : MonoBehaviour
 	// called when user PB's - updates unlocks during runtime
 	public void updateUnlocks(int raceEvent, float time){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
-			if(time < AVERAGE_TIME_100M){
+			if(time < NOOB_TIME_100M){
 				if(!unlocked_200m){
 					unlockEvent(RaceManager.RACE_EVENT_200M);
 				}
-				if(time < STAR_TIME_100M){
-					if(rank_100m < STAR){
-						unlockCharacterSlot();
-					}
-					if(time < ELITE_TIME_100M){
-						if(rank_100m < ELITE){
+				if(time < AVERAGE_TIME_100M){
+					
+					if(time < STAR_TIME_100M){
+						if(rank_100m < STAR){
 							unlockCharacterSlot();
 						}
-						if(time < GOD_TIME_100M){
-							// todo
+						if(time < ELITE_TIME_100M){
+							if(rank_100m < ELITE){
+								unlockCharacterSlot();
+							}
+							if(time < GOD_TIME_100M){
+								// todo
+							}
 						}
 					}
 				}
@@ -88,20 +96,23 @@ public class UnlockManager : MonoBehaviour
 			pb_100m = time;
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_200M){
-			if(time < AVERAGE_TIME_200M){
+			if(time < NOOB_TIME_200M){
 				if(!unlocked_400m){
 					unlockEvent(RaceManager.RACE_EVENT_400M);
 				}
-				if(time < STAR_TIME_200M){
-					if(rank_200m < STAR){
-						unlockCharacterSlot();
-					}
-					if(time < ELITE_TIME_200M){
-						if(rank_200m < ELITE){
+				if(time < AVERAGE_TIME_200M){
+					
+					if(time < STAR_TIME_200M){
+						if(rank_200m < STAR){
 							unlockCharacterSlot();
 						}
-						if(time < GOD_TIME_200M){
-							// todo
+						if(time < ELITE_TIME_200M){
+							if(rank_200m < ELITE){
+								unlockCharacterSlot();
+							}
+							if(time < GOD_TIME_200M){
+								// todo
+							}
 						}
 					}
 				}
@@ -109,20 +120,23 @@ public class UnlockManager : MonoBehaviour
 			pb_200m = time;
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_400M){
-			if(time < AVERAGE_TIME_400M){
+			if(time < NOOB_TIME_400M){
 				if(!unlocked_60m){
 					unlockEvent(RaceManager.RACE_EVENT_60M);
 				}
-				if(time < STAR_TIME_400M){
-					if(rank_400m < STAR){
-						unlockCharacterSlot();
-					}
-					if(time < ELITE_TIME_400M){
-						if(rank_400m < ELITE){
+				if(time < AVERAGE_TIME_400M){
+					
+					if(time < STAR_TIME_400M){
+						if(rank_400m < STAR){
 							unlockCharacterSlot();
 						}
-						if(time < GOD_TIME_400M){
-							// todo
+						if(time < ELITE_TIME_400M){
+							if(rank_400m < ELITE){
+								unlockCharacterSlot();
+							}
+							if(time < GOD_TIME_400M){
+								// todo
+							}
 						}
 					}
 				}
@@ -130,17 +144,19 @@ public class UnlockManager : MonoBehaviour
 			pb_400m = time;
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_60M){
-			if(time < AVERAGE_TIME_60M){
-				if(time < STAR_TIME_60M){
-					if(rank_60m < STAR){
-						unlockCharacterSlot();
-					}
-					if(time < ELITE_TIME_60M){
-						if(rank_60m < ELITE){
+			if(time < NOOB_TIME_60M){
+				if(time < AVERAGE_TIME_60M){
+					if(time < STAR_TIME_60M){
+						if(rank_60m < STAR){
 							unlockCharacterSlot();
 						}
-						if(time < GOD_TIME_60M){
-							// todo
+						if(time < ELITE_TIME_60M){
+							if(rank_60m < ELITE){
+								unlockCharacterSlot();
+							}
+							if(time < GOD_TIME_60M){
+								// todo
+							}
 						}
 					}
 				}
@@ -231,19 +247,19 @@ public class UnlockManager : MonoBehaviour
 		if(raceEvent == RaceManager.RACE_EVENT_200M){
 			unlockReqList_200m = new List<string>();
 			if(rank_100m < AVERAGE){
-				unlockReqList_200m.Add("<color=green>" + AVERAGE_TIME_100M.ToString("F2") + "s</color> for 100m");
+				unlockReqList_200m.Add("<color=green>" + NOOB_TIME_100M.ToString("F2") + "s</color> for 100m");
 			}
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_400M){
 			unlockReqList_400m = new List<string>();
 			if(rank_200m < AVERAGE){
-				unlockReqList_400m.Add("<color=green>" + AVERAGE_TIME_200M.ToString("F2") + "s</color> for 200m");
+				unlockReqList_400m.Add("<color=green>" + NOOB_TIME_200M.ToString("F2") + "s</color> for 200m");
 			}
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_60M){
 			unlockReqList_60m = new List<string>();
 			if(rank_400m < AVERAGE){
-				unlockReqList_60m.Add("<color=green>" + AVERAGE_TIME_400M.ToString("F2") + "s</color> for 400m");
+				unlockReqList_60m.Add("<color=green>" + NOOB_TIME_400M.ToString("F2") + "s</color> for 400m");
 			}
 		}
 	}

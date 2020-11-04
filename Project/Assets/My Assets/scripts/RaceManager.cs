@@ -137,10 +137,7 @@ public class RaceManager : MonoBehaviour
 		updateSpeedometer();
 		
 		GameObject racer;
-		Vector3 racerPos;
-		Vector3 playerPos;
 		bool setTrans = false;
-		
 		
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			for(int i = 0; i < racers_laneOrder.Count; i++){
@@ -545,7 +542,6 @@ public class RaceManager : MonoBehaviour
 				playerTc.recordInput(raceTick);
 			}
 			// -----------------
-			GameObject bot;
 			for(int i = 0; i < bots.Count; i++){
 				botAIs[i].runAI(raceTick);
 				botAnims[i].readInput(raceTick);
@@ -553,7 +549,6 @@ public class RaceManager : MonoBehaviour
 				botTcs[i].recordInput(raceTick);
 			}
 			// -----------------
-			GameObject ghost;
 			for(int i = 0; i < ghosts.Count; i++){
 				ghostAnims[i].readInput(raceTick);
 				ghostAnims[i].applyInput(raceTick);

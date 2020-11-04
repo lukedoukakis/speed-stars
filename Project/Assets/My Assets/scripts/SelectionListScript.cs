@@ -31,7 +31,9 @@ public class SelectionListScript : MonoBehaviour
     void Start()
     {
 		numSelected = 0;
-		previewRacer.GetComponent<PlayerAnimationV2>().setIdle();
+		if(previewRacer != null){
+			previewRacer.GetComponent<PlayerAnimationV2>().setIdle();
+		}
     }
 
     // Update is called once per frame
@@ -98,8 +100,8 @@ public class SelectionListScript : MonoBehaviour
 		foreach(Transform child in grid.transform){
 			s = child.gameObject.GetComponent<SelectionButtonScript>();
 			s.toggle(false);
-			numSelected = 0;
 		}
+		numSelected = 0;
 	}
 
 	

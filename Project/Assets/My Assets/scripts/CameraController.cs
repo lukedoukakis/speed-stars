@@ -71,6 +71,7 @@ public class CameraController : MonoBehaviour
 		}
 		else if(mode == TV){
 			float xFromBase = posX_base-referencePos.x;
+			//referencePos.y = 1.35f;
 			referencePos.y = 0f;
 			targetPos = referencePos + posOffset*cameraDistance + Vector3.right*xFromBase*.03f;
 			targetRot = Quaternion.LookRotation(referencePos - transform.position);
@@ -129,8 +130,9 @@ public class CameraController : MonoBehaviour
 		if(mode == TV){
 			setFov(50f);
 			posOffset = new Vector3(10f, 4f, 4f);
-			posSpeed = 8f;
-			rotSpeed = 10f;
+			//posOffset = new Vector3(2.5f, 0f, 1f);
+			posSpeed = 100f;
+			rotSpeed = 100f;
 		}
 		if(mode == THIRDPERSON){
 			setFov(100f);

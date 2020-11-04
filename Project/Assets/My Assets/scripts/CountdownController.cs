@@ -2,25 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class CountdownController : MonoBehaviour
 {
 	
 	public RaceManager raceManager;
 	// -----------------
-	public RectTransform countdownTransform;
+	public Transform countdownTransform;
 	float targetY;
 	float y;
 	// -----------------
 	string[] strings;
-	public Text countdownText0;
-	public Text countdownText1;
+	public TextMeshProUGUI countdownText0;
+	public TextMeshProUGUI countdownText1;
 	// -----------------
 	public bool isRunning;
 	public bool finished;
 	// -----------------
-	public Text falseStartText0;
-	public Text falseStartText1;
+	public TextMeshProUGUI falseStartText0;
+	public TextMeshProUGUI falseStartText1;
 	// -----------------
 	public int state;
 		public static int MARKS = 0;
@@ -46,7 +47,7 @@ public class CountdownController : MonoBehaviour
 		
 		finished = false;
 		
-		y = 600f;
+		y = 240f;
 		targetY = 0f;
 		state = MARKS;
 		countdownText0.text = strings[0];
@@ -55,7 +56,7 @@ public class CountdownController : MonoBehaviour
 		targetY = -600f;
 		yield return new WaitForSeconds(1.5f);
 		
-		y = 600f;
+		y = 240f;
 		targetY = 0f;
 		state = SET;
 		countdownText0.text = strings[1];
@@ -72,8 +73,7 @@ public class CountdownController : MonoBehaviour
 		
 		while(!finished){
 			y = Mathf.Lerp(y, targetY, 7f*Time.deltaTime);
-			countdownTransform.anchoredPosition = new Vector3(countdownTransform.position.x, y);
-			
+			countdownTransform.position = new Vector3(countdownTransform.position.x, y, countdownTransform.position.z);
 			yield return null;
 		}
 	}
@@ -87,22 +87,30 @@ public class CountdownController : MonoBehaviour
 		
 		falseStartText0.gameObject.SetActive(true);
 		falseStartText1.gameObject.SetActive(true);
-		Color c = new Color32(255, 65, 0, 0);
-		falseStartText0.color = c;
+		Color c1 = new Color32(255, 65, 0, 0);
+		Color c0 = new Color32(0, 0, 0, 0);
+		falseStartText0.color = c0;
+		falseStartText1.color = c1;
 		
-		while(c.a < 1f){
-			c.a += 15f*Time.deltaTime/Time.timeScale;
-			falseStartText1.color = c;
+		while(c1.a < 1f){
+			c1.a += 15f*Time.deltaTime/Time.timeScale;
+			c0.a += 15f*Time.deltaTime/Time.timeScale;
+			falseStartText1.color = c1;
+			falseStartText0.color = c0;
 			yield return null;
 		}
 		yield return new WaitForSeconds(2f);
-		while(c.a > 0f){
-			c.a -= 1.75f*Time.deltaTime/Time.timeScale;
-			falseStartText1.color = c;
+		while(c1.a > 0f){
+			c1.a -= 1.75f*Time.deltaTime/Time.timeScale;
+			c0.a -= 1.75f*Time.deltaTime/Time.timeScale;
+			falseStartText1.color = c1;
+			falseStartText0.color = c0;
 			yield return null;
 		}
-		c.a = 0f;
-		falseStartText1.color = c;
+		c1.a = 0f;
+		c0.a = 0f;
+		falseStartText1.color = c1;
+		falseStartText0.color = c0;
 		
 		
 		falseStartText0.gameObject.SetActive(false);

@@ -10,7 +10,6 @@ public class GlobalController : MonoBehaviour
 {
 	
 	
-	bool write;
 	public bool ranBefore;
 	
 	public static string PLAYABLE_RACER_MEMORY = "PLAYABLE RACER IDS";
@@ -85,13 +84,8 @@ public class GlobalController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		
-		//hudIndicatorMat_player = Instantiate(hudIndicatorMat_player);
-		//hudIndicatorMat_nonPlayer = Instantiate(hudIndicatorMat_nonPlayer);
 	
-		write = false;
-		
-		
+	
 		if(PlayerPrefs.GetInt("ranBefore") == 1){
 			ranBefore = true;
 			musicManager.init(false);
@@ -107,7 +101,7 @@ public class GlobalController : MonoBehaviour
 		int charSlots = PlayerPrefs.GetInt("Character Slots");
 		unlockManager.init(charSlots);
 		
-		Application.targetFrameRate = 10;
+		Application.targetFrameRate = 60;
 		
 		racers_backEnd = new List<GameObject>();
 		racers_backEnd_replay = new List<GameObject>();
@@ -146,15 +140,14 @@ public class GlobalController : MonoBehaviour
 			PlayerPrefs.DeleteAll();
 		}
 		
+		/*
 		if(Input.GetKeyUp(KeyCode.T)){
 			Time.timeScale -= .1f;
 		}
 		if(Input.GetKeyUp(KeyCode.Y)){
 			Time.timeScale += .1f;
 		}
-		if(Input.GetKeyUp(KeyCode.W)){
-			write = true;
-		}
+		*/
 		
 		
 		if(CountdownScreenActive){
@@ -351,7 +344,7 @@ public class GlobalController : MonoBehaviour
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			backEndRacers = racers_backEnd_replay;
-			cameraMode = CameraController.CINEMATIC;
+			cameraMode = CameraController.TV;
 		}
 		// --
 		racers = raceManager.setupRace(backEndRacers, raceEvent, viewMode, newLanes);
@@ -452,8 +445,8 @@ public class GlobalController : MonoBehaviour
 		}
 		// -----------------
 		// paths
-		string vM, vX, vY, vZ, pX, pY, pZ, r, l, s1P, s2P;
-		vM = vX = vY = vZ = pX = pY = pZ = r = l = s1P = s2P = "";
+		string vM, vX, vY, vZ, pX, pY, pZ, r, l;
+		vM = vX = vY = vZ = pX = pY = pZ = r = l = "";
 		int pLength = att.pathLength;
 		int leanLockTick = att.leanLockTick;
 		//Debug.Log("path length: " + pLength);
@@ -845,8 +838,10 @@ public class GlobalController : MonoBehaviour
 		saveRacer(newRacer, -1, new string[]{PLAYABLE_RACER_MEMORY}, false);
 		Destroy(newRacer);
 		// -----------------
-		playerSelectButtonList.toggleAllOff();
+
 		GameObject b = playerSelectButtonList.GetComponent<SelectionListScript>().addButton(att.id, selectedRaceEvent, SelectionButtonScript.playerButtonColor);
+		playerSelectButtonList.numSelected = 1;
+		playerSelectButtonList.toggleAllOff();
 		b.GetComponent<SelectionButtonScript>().toggle();
 		
 		unlockManager.fillCharacterSlot();

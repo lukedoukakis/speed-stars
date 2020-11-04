@@ -39,8 +39,12 @@ public class OrientationController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		sphere1_pos = sphere1.transform.position;
-		sphere2_pos = sphere2.transform.position;
+		if(sphere1 != null){
+			sphere1_pos = sphere1.transform.position;
+		}
+		if(sphere2 != null){
+			sphere2_pos = sphere2.transform.position;
+		}
 		sphere1_z = sphere1_pos.z;
 		sphere2_z = sphere2_pos.z;
 		sphere1_x = sphere1_pos.x;

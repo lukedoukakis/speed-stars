@@ -40,11 +40,9 @@ public class SetupManager : MonoBehaviour
 	
 	public void setSelectedRaceEvent(int raceEvent){
 		
-		if(selectedRaceEvent != raceEvent){
 			selectedRaceEvent = raceEvent;
 			gc.selectedRaceEvent = raceEvent;
 			toggleSelectionLists(selectedRaceEvent);
-		}
 		
 		gc.cameraController.setCameraFocusOnStart();
 	}
@@ -80,7 +78,7 @@ public class SetupManager : MonoBehaviour
 		screenHeight = Screen.height;
 		
 		incrementBotCount(7);
-
+		
         setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
 	}
 	

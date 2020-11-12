@@ -190,17 +190,6 @@ public class ClothingManager : MonoBehaviour
 		Color[] randomClothingColors;
 		int random;
 		// -----------------
-		
-		// dummy
-		/*
-		Color dummy = Color.white;
-		Color c;
-		string s = skinTones[Random.Range(0, skinTones.Length)];
-		if(ColorUtility.TryParseHtmlString(s, out c)){
-			 dummy = c;
-		}
-		*/
-		
 		Color dummy;
 		int r = Random.Range(0,3);
 		float h,s,v;
@@ -217,7 +206,10 @@ public class ClothingManager : MonoBehaviour
 		dummy = c;
 		
 		// top
-		Color top = new Color(Random.Range(0f,1f),Random.Range(0f,1f),Random.Range(0f,1f));
+		h = Random.Range(0f,1f);
+		s = 1f;
+		v = Random.Range(1f,1f);
+		Color top = Color.HSVToRGB(h, s, v);
 		
 		// bottoms
 		Color bottoms = Color.white;

@@ -7,17 +7,19 @@ public class CameraController : MonoBehaviour
 	
 	public int mode;
 	public static int STATIONARY = 0;
+	public static int STATIONARY_SLOW = 5;
 	public static int SIDE = 1;
 	public static int CINEMATIC = 2;
 	public static int TV = 3;
 	public static int THIRDPERSON = 4;
 	
-	public static float FOV_STANDARD = 75f;
-	
 	public static float posX_base = 24f;
+	
+	public bool cameraShake;
 	// -----------------
 	public GlobalController gc;
 	public Camera camera;
+	public Animator animator;
 	public GameObject referenceObject;
 	public PlayerAnimationV2 referenceAnim;
 	public bool referenceHasAnim;
@@ -29,6 +31,7 @@ public class CameraController : MonoBehaviour
 	public GameObject trackReferenceObject_start_200m;
 	public GameObject trackReferenceObject_start_400m;
 	// -----------------
+	public Transform t;
 	Vector3 currentPos, referencePos, targetPos;
 	Quaternion currentRot, referenceRot, targetRot;
 	Vector3 posOffset, rotTargetOffset;
@@ -41,10 +44,10 @@ public class CameraController : MonoBehaviour
     void Update()
     {
 		dTime = Time.deltaTime;
-		currentPos = transform.position;
+		currentPos = t.position;
 		referencePos = referenceObject.transform.position;
 		referenceRot = referenceObject.transform.rotation;
-		currentRot = transform.rotation;
+		currentRot = t.rotation;
 		if(referenceHasAnim){
 			referenceSpeed = Mathf.Pow(referenceAnim.speedHoriz, .4f);
 			if(referenceSpeed < 1f){
@@ -60,6 +63,10 @@ public class CameraController : MonoBehaviour
 			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
 			targetRot = referenceRot;
 		}
+		else if(mode == STATIONARY_SLOW){
+			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
+			targetRot = referenceRot;
+		}
 		else if(mode == SIDE){
 			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset*cameraDistance) + referenceObject.transform.right*referenceSpeed;
 			targetRot = Quaternion.LookRotation(referenceObject.transform.right*-1f, Vector3.up);
@@ -67,24 +74,25 @@ public class CameraController : MonoBehaviour
 		else if(mode == CINEMATIC){
 			referencePos.y = 0f;
 			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
-			targetRot = Quaternion.LookRotation(referencePos - transform.position);
+			targetRot = Quaternion.LookRotation(referencePos - t.position);
 		}
 		else if(mode == TV){
 			float xFromBase = posX_base-referencePos.x;
-			//referencePos.y = 1.35f;
 			referencePos.y = 0f;
-			targetPos = referencePos + posOffset*cameraDistance + Vector3.right*xFromBase*.03f;
-			targetRot = Quaternion.LookRotation(referencePos - transform.position);
-			setFov(50f - (xFromBase*.1f));
+			//targetPos = referencePos + posOffset*cameraDistance + Vector3.right*xFromBase*.03f;
+			targetPos = referencePos + posOffset*cameraDistance;
+			targetRot = Quaternion.LookRotation(referencePos - t.position);
 		}
 		else if(mode == THIRDPERSON){
+			cameraShake = false;
 			targetPos = referencePos + referenceObject.transform.TransformDirection(posOffset);
 			targetRot = referenceRot;
 		}
-			
 		
-		transform.position = Vector3.Lerp(currentPos, targetPos, posSpeed * dTime);
-		transform.rotation = Quaternion.Slerp(currentRot, targetRot, rotSpeed * dTime);
+		animator.SetBool("shake", cameraShake);
+		
+		t.position = Vector3.Lerp(currentPos, targetPos, posSpeed * dTime);
+		t.rotation = Quaternion.Slerp(currentRot, targetRot, rotSpeed * dTime);
 			
     }
 	
@@ -110,32 +118,38 @@ public class CameraController : MonoBehaviour
 		mode = cameraMode;
 		// -----------------
 		if(mode == STATIONARY){
-			setFov(100f);
+			cameraShake = false;
 			posOffset = new Vector3(0f, .5f, -5f);
 			posSpeed = 7f;
 			rotSpeed = .2f;
 		}
+		else if(mode == STATIONARY_SLOW){
+			cameraShake = false;
+			posOffset = new Vector3(0f, .5f, -5f);
+			posSpeed = .05f;
+			rotSpeed = .05f;
+		}
 		else if(mode == SIDE){
-			setFov(100f);
+			cameraShake = false;
 			posOffset = new Vector3(1.55f, 1.25f, 1.75f);
 			posSpeed = 8f;
 			rotSpeed = 10f;
 		}
 		else if(mode == CINEMATIC){
-			setFov(100f);
+			cameraShake = false;
 			posOffset = new Vector3(5f, 1f, 2f);
 			posSpeed = 10f;
 			rotSpeed = .5f;
 		}
 		if(mode == TV){
-			setFov(50f);
-			posOffset = new Vector3(10f, 4f, 4f);
+			cameraShake = true;
+			posOffset = new Vector3(8f, 3.2f, 3.2f);
 			//posOffset = new Vector3(2.5f, 0f, 1f);
-			posSpeed = 100f;
+			posSpeed = 1000f;
 			rotSpeed = 100f;
 		}
 		if(mode == THIRDPERSON){
-			setFov(100f);
+			cameraShake = false;
 			posOffset = new Vector3(0f, 1.5f, -2f);
 			posSpeed = 10f;
 			rotSpeed = 2f;
@@ -165,10 +179,6 @@ public class CameraController : MonoBehaviour
 		else if(s == "400m Start"){
 			setCameraFocus(trackReferenceObject_start_400m, cameraMode);
 		}
-	}
-	
-	public void setFov(float fov){
-		camera.fieldOfView = fov;
 	}
 
 	// Start is called before the first frame update

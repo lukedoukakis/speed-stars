@@ -502,7 +502,7 @@ public class PlayerAttributes : MonoBehaviour
 			animator.runtimeAnimatorController = animatorControllers[random];
 			animatorNum = random;
 			leadLeg = Random.Range(0,2);
-			armSpeedFlex = Random.Range(.91f, 1.09f);
+			armSpeedFlex = Random.Range(.9f, 1.1f);
 			armSpeedExtend = (2f-armSpeedFlex);
 		}
 		else if(setting >= 4){

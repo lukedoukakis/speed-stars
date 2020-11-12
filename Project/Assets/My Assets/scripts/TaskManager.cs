@@ -9,7 +9,6 @@ public class TaskManager : MonoBehaviour
 	public List<int> tasks;
 	
 	// taskID ----------------
-	public static int SAVE_SELECTED_RACERS = 1;
 	public static int LOAD_SELECTED_RACERS = 2;
 	public static int LOAD_SELECTED_PLAYER = 3;
 	public static int CREATE_RACER = 4;
@@ -17,7 +16,8 @@ public class TaskManager : MonoBehaviour
 	public static int SAVE_PLAYER = 6;
 	public static int SETUP_REPLAY = 7;
 	public static int SAVE_USER_PB = 8;
-	public static int SET_WR = 9;
+	public static int SET_WR = 10;
+	public static int DISABLE_ANIMATION_STARTSCREEN = 11;
 	
 	// -----------------
 	

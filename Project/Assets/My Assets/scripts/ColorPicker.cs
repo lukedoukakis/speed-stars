@@ -30,6 +30,8 @@ public class ColorPicker : MonoBehaviour
 	public Button selectedButton;
 	public string selectedArticle;
 	
+	[SerializeField] TooltipController tooltipController;
+	
     // Start is called before the first frame update
     void Start()
     {
@@ -40,7 +42,7 @@ public class ColorPicker : MonoBehaviour
     void Update()
     {
 		if(colorPickerOpen){
-			if(Input.GetMouseButtonUp(0)){
+			if(Input.GetMouseButton(0)){
 				RaycastHit hit;
 				if(Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit)){
 					Renderer rend = hit.transform.GetComponent<Renderer>();

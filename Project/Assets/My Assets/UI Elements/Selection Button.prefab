@@ -365,8 +365,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   list: {fileID: 0}
   selected: 0
-  selectedColorCode: '#B96481'
-  unselectedColorCode: '#CDB6CF'
   id: 
   name: 
   time: 

@@ -15,6 +15,7 @@ TagManager:
   - Adjuster
   - GroundCurve
   - Foot
+  - Button
   layers:
   - Default
   - TransparentFX
@@ -28,10 +29,10 @@ TagManager:
   - 
   - Overhead Camera
   - Preview Racer
-  - 
-  - 
-  - 
-  - 
+  - Projection_Individual 0
+  - Projection_Individual 1
+  - Projection_Individual 2
+  - Projection_Individual 3
   - 
   - 
   - 

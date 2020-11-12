@@ -134,8 +134,10 @@ public class RaceManager : MonoBehaviour
 	
 	void Update(){
 		
-		updateSpeedometer();
-		
+		if(gc.RaceScreenActive){
+			updateSpeedometer();
+		}
+
 		GameObject racer;
 		bool setTrans = false;
 		
@@ -354,6 +356,7 @@ public class RaceManager : MonoBehaviour
 		if(viewMode == VIEW_MODE_REPLAY){
 			player = racers[gc.playerIndex];
 			setTransparency(player, 1f);
+			Time.timeScale = 2f;
 		}
 		// -----------------
 		hideStartingBlocks();
@@ -457,13 +460,11 @@ public class RaceManager : MonoBehaviour
 			anim = racer.GetComponent<PlayerAnimationV2>();
 			oc = racer.GetComponent<OrientationController>();
 			
-			
-			
 			lane = att.lane;
 			line = startingLines_current[lane - 1];
 			block = startingBlocks_current[lane - 1];
 			
-			racer.transform.position = line.transform.position + (line.transform.forward*-.13f) + Vector3.up;
+			racer.transform.position = line.transform.position + (line.transform.forward*-.13f) + Vector3.up*(Mathf.Pow(lane,.3f));
 			
 			block.SetActive(true);
 			Physics.IgnoreCollision(anim.rightFootScript.bc, block.GetComponent<BoxCollider>());
@@ -528,7 +529,7 @@ public class RaceManager : MonoBehaviour
 		if(playerFinished){
 			playerFinished = false;
 			gc.showResultsScreen();
-			gc.endRace();
+			StartCoroutine(endRaceWithDelay(1f));
 		}
 		if(allRacersFinished){
 			raceStatus = STATUS_FINISHED;
@@ -557,6 +558,11 @@ public class RaceManager : MonoBehaviour
 				}
 			}
 		}
+		
+		if(allRacersFinished){
+			StartCoroutine(squishRacers());
+		}
+		
 	}
 	
 	public void addFinisher(GameObject racer){
@@ -581,7 +587,6 @@ public class RaceManager : MonoBehaviour
 					if(t < userPB_time){
 						userPB = true;
 						userPB_time = t;
-						
 						// handle if player sets WR
 						if(t < wr_local_time){
 							playerWR = true;
@@ -626,7 +631,14 @@ public class RaceManager : MonoBehaviour
 			playerAnim.upInSet = false;
 		}
 		else if(mode == STATUS_SET){
-			if(!playerAnim.upInSet){ gc.audioController.playSound(AudioController.BLOCK_RATTLE); }
+			if(Time.timeScale != 1f){
+				Time.timeScale = 1f;
+			}
+			if(!playerAnim.upInSet){
+				if(viewMode == VIEW_MODE_LIVE){
+					gc.audioController.playSound(AudioController.BLOCK_RATTLE);
+				}
+			}
 			playerAnim.upInSet = true;
 		}
 		else if(mode == STATUS_GO){
@@ -659,7 +671,7 @@ public class RaceManager : MonoBehaviour
 	public void quitRace(){
 		gc.clearListAndObjects(racers);
 		gc.cameraController.setCameraFocusOnStart();
-		gc.goStartScreen();
+		gc.goSetupScreen();
 	}
 	
 	void setPlayer(GameObject racer){
@@ -687,12 +699,11 @@ public class RaceManager : MonoBehaviour
 		}
 		
 		// speed
-		if(playerAnim != null){
-			float speed = playerAnim.speedHoriz / 2f;
-			speed *= 2.236936f;
-			speed = (Mathf.Round(speed * 10f) / 10f);
-			speedometer.text = speed + " mph";
-		}
+		
+		float speed = player.GetComponent<PlayerAnimationV2>().speedHoriz / 2f;
+		speed *= 2.236936f;
+		speed = (Mathf.Round(speed * 10f) / 10f);
+		speedometer.text = speed + " mph";
 
 	}
 	
@@ -725,6 +736,20 @@ public class RaceManager : MonoBehaviour
 		while(!(raceStatus == STATUS_SET)){
 			block.GetComponent<StartingBlockController>().adjustPedals(racer.GetComponent<PlayerAnimationV2>());
 			yield return null;
+		}
+	}
+	
+	IEnumerator endRaceWithDelay(float seconds){
+		yield return new WaitForSeconds(seconds);
+		gc.endRace();
+	}
+	
+	IEnumerator squishRacers(){
+		PlayerAnimationV2 anim;
+		for(int i = 0; i < racers_laneOrder.Count; i++){
+			anim = racers_laneOrder[i].GetComponent<PlayerAnimationV2>();
+			anim.squish();
+			yield return new WaitForSeconds(.1f);
 		}
 	}
 	

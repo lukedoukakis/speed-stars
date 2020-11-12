@@ -20,10 +20,16 @@ public class GlobalController : MonoBehaviour
 	public GameObject canvas_camera;
 	public GameObject RaceUI;
 		bool RaceUIActive;
+		float keyPressAgo;
+		[SerializeField] float cooldown_keyPress;
 	public GameObject StartScreen;
+		[SerializeField] Animator startScreenAnimator;
+		bool startScreenAccessed;
 		bool StartScreenActive;
 	public GameObject SetupScreen;
 		bool SetupScreenActive;
+	public GameObject LeaderboardScreen;
+		bool LeaderboardScreenActive;
 	public GameObject CharacterCreatorScreen;
 		public GameObject previewRacer_creation;
 		public GameObject previewRacer_setup;
@@ -34,7 +40,7 @@ public class GlobalController : MonoBehaviour
 		bool CountdownScreenActive;
 	public GameObject RaceScreen;
 		public Image screenFlash;
-		bool RaceScreenActive;
+		public bool RaceScreenActive;
 	public GameObject FinishScreen;
 		bool FinishScreenActive;
 	public GameObject TransitionScreen;
@@ -55,6 +61,7 @@ public class GlobalController : MonoBehaviour
 	public RaceManager raceManager;
 	public SetupManager setupManager;
 	public UnlockManager unlockManager;
+	public LeaderboardManager leaderboardManager;
 	
 	// racers
 	public GameObject racerPrefab;
@@ -81,9 +88,19 @@ public class GlobalController : MonoBehaviour
 	
 	public GameObject legends;
 	
+	[SerializeField] Transform cameraStartTransform;
+	
+	// online leaderboard
+	[SerializeField] PlayFabManager playfabManager;
+	bool lbUpdate;
+	
     // Start is called before the first frame update
     void Start()
     {
+		
+		TransitionScreen.SetActive(true);
+		CanvasGroup cg = TransitionScreen.GetComponent<CanvasGroup>();
+		cg.alpha = 1f;
 	
 	
 		if(PlayerPrefs.GetInt("ranBefore") == 1){
@@ -119,6 +136,7 @@ public class GlobalController : MonoBehaviour
 		// -----------------
 		checkedRacerIndexes = new List<int>();
 		// -----------------
+		startScreenAccessed = false;
 		if(ranBefore){
 			goStartScreen();
 		}
@@ -127,7 +145,10 @@ public class GlobalController : MonoBehaviour
 			CharacterCreatorScreen.transform.Find("Back Button").gameObject.SetActive(false);
 		}
 		// -----------------
-		cameraController.setCameraFocus("100m Start", CameraController.STATIONARY);
+		cameraController.setCameraFocus("100m Start", CameraController.STATIONARY_SLOW);
+		// -----------------
+		playfabManager.login();
+		
     }
 
     // Update is called once per frame
@@ -160,14 +181,18 @@ public class GlobalController : MonoBehaviour
 		}
 		
 		if(RaceUIActive){
-			if(Input.GetKeyDown(KeyCode.R)){
-				restartRace();
-			}
-			if(Input.GetKeyDown(KeyCode.Escape)){
-				raceManager.quitRace();
+			if(keyPressAgo >= cooldown_keyPress){
+				if(Input.GetKeyDown(KeyCode.R)){
+					restartRace();
+					keyPressAgo = 0f;
+				}
+				if(Input.GetKeyDown(KeyCode.Escape)){
+					raceManager.quitRace();
+					keyPressAgo = 0f;
+				}
 			}
 		}
-		
+		keyPressAgo += Time.deltaTime;
     }
 	
 	public void goStartScreen(){
@@ -179,6 +204,11 @@ public class GlobalController : MonoBehaviour
 	public void goSetupScreen(){
 		//Debug.Log("Going to setup screen");
 		StartCoroutine(screenTransition("Setup Screen", false));
+	}
+	
+	public void goLeaderboardScreen(){
+		//Debug.Log("Going to setup screen");
+		StartCoroutine(screenTransition("Leaderboard Screen", false));
 	}
 	
 	public void goCharacterCreatorScreen(){
@@ -218,6 +248,7 @@ public class GlobalController : MonoBehaviour
 	
 	public IEnumerator screenTransition(string nextScreen, bool immediate){
 		TransitionScreen.SetActive(true);
+		GameObject[] deactivatedButtons = deactivateAllButtons();
 		CanvasGroup cg = TransitionScreen.GetComponent<CanvasGroup>();
 		if(!immediate){
 			// fade in ----------------
@@ -236,6 +267,8 @@ public class GlobalController : MonoBehaviour
 			StartScreenActive = false;
 		SetupScreen.SetActive(false);
 			SetupScreenActive = false;
+		LeaderboardScreen.SetActive(false);
+			LeaderboardScreenActive = false;
 		CharacterCreatorScreen.SetActive(false);
 			CharacterCreatorScreenActive = false;
 		CountdownScreen.SetActive(false);
@@ -251,12 +284,21 @@ public class GlobalController : MonoBehaviour
 		switch (nextScreen) {
 			case "Start Screen" :
 				StartScreen.SetActive(true);
+				if(!startScreenAccessed){
+					taskManager.addTask(TaskManager.DISABLE_ANIMATION_STARTSCREEN);
+					startScreenAccessed = true;
+				}
 				StartScreenActive = true;
 				break;
 			case "Setup Screen" :
 				SetupScreen.SetActive(true);
 				SetupScreenActive = true;
 				previewCamera_setup.gameObject.SetActive(true);
+				break;	
+			case "Leaderboard Screen" :
+				LeaderboardScreen.SetActive(true);
+				LeaderboardScreenActive = true;
+				leaderboardManager.init(RaceManager.RACE_EVENT_100M);
 				break;	
 			case "Character Creator Screen" :
 				CharacterCreatorScreen.SetActive(true);
@@ -293,6 +335,7 @@ public class GlobalController : MonoBehaviour
 			}
 			TransitionScreen.SetActive(false);
 		}
+		 activateButtons(deactivatedButtons);
 	}
 	
 	public void goScreenAfterCharacterCreation(){
@@ -324,9 +367,10 @@ public class GlobalController : MonoBehaviour
 	public void startRace(int raceEvent, int viewMode, bool newLanes){
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			StopCoroutine(raceManager.falseStart());
+			countdownController.showCountdownText();
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
-			
+			countdownController.hideCountdownText();
 		}
 		goCountDownScreen();
 		StartCoroutine(setupRaceWhenReady(raceEvent, viewMode, newLanes));
@@ -357,8 +401,10 @@ public class GlobalController : MonoBehaviour
 	}
 	public void endRace(){
 		if(raceManager.playerPB){
+			lbUpdate = false;
 			taskManager.addTask(TaskManager.SAVE_PLAYER);
 			if(raceManager.userPB){
+				lbUpdate = true;
 				Debug.Log("USER PB");
 				taskManager.addTask(TaskManager.SAVE_USER_PB);
 			}
@@ -418,7 +464,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void saveRacer(GameObject racer, int raceEvent, string[] targetMemoryLocations, bool forReplay){
+	public void saveRacer(GameObject racer, int raceEvent, string[] targetMemoryLocations, bool sendToLeaderboard, bool forReplay){
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		string id = att.id;
 		if(forReplay){
@@ -481,21 +527,26 @@ public class GlobalController : MonoBehaviour
 		else{
 			raceEvents = new int[1]{raceEvent};
 		}
+		
+		string pathsForEventString = "";
+		string attString = "";
+		
 		for(int i = 0; i < raceEvents.Length; i++){
 			int _raceEvent = raceEvents[i];
 			// -----------------
-			PlayerPrefs.SetString(id+"_pathsForEvent "+_raceEvent,
-				pLength
+			string s = 
+					pLength
 			+ ":" +	leanLockTick
 			+ ":" +	vM
 			+ ":" + vY
 			+ ":" + pY
 			+ ":" + pZ
 			+ ":" + r
-			+ ":" + l
-			);
+			+ ":" + l;
+			pathsForEventString += s;
+			PlayerPrefs.SetString(id+"_pathsForEvent "+_raceEvent, pathsForEventString);
 		}
-		PlayerPrefs.SetString(id,
+		attString =
 				id
 		+ ":" + att.racerName
 		+ ":" + att.finishTime
@@ -557,13 +608,17 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.animatorNum
 		+ ":" + att.leadLeg
 		+ ":" + att.armSpeedFlex
-		+ ":" + att.armSpeedExtend
-		);
+		+ ":" + att.armSpeedExtend;
+		PlayerPrefs.SetString(id, attString);
+		
+		if(sendToLeaderboard){
+			string data = attString + "&" + pathsForEventString;
+			playfabManager.sendLeaderboard(raceEvent, att.personalBests[raceEvent], att.racerName, data);
+		}
 	}	
 	
-	public GameObject loadRacer(string id, int raceEvent, string asTag, bool forReplay){
+	public GameObject loadRacer(string id, int raceEvent, string asTag, bool fromLeaderboard, bool forReplay){
 		// -----------------
-		
 		GameObject racer = Instantiate(racerPrefab);
 		racer.tag = asTag;
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
@@ -573,11 +628,24 @@ public class GlobalController : MonoBehaviour
 		}
 		
 		att.personalBests = new float[4];
-		string[] racerInfo = PlayerPrefs.GetString(id).Split(':');
-		string[] pathInfo = PlayerPrefs.GetString(id+"_pathsForEvent "+raceEvent).Split(':');
+		string[] racerInfo;
+		string[] pathInfo;
+		
+		if(!fromLeaderboard){
+			racerInfo = PlayerPrefs.GetString(id).Split(':');
+			pathInfo = PlayerPrefs.GetString(id+"_pathsForEvent "+raceEvent).Split(':');
+		}
+		else{
+			string[] racerData = playfabManager.racerDataString.Split('&');
+			racerInfo = racerData[0].Split(':');
+			pathInfo = racerData[1].Split(':');
+			
+			Debug.Log("racerInfo: " + racerData[0]);
+			Debug.Log("pathInfo: " + racerData[1]);
+		}
+	
 		int i;
 		// -----------------
-		
 		i = 0;
 		Debug.Log("PATHLENGTH: " + pathInfo[i]);
 		att.pathLength = int.Parse(pathInfo[i]); i++;
@@ -762,10 +830,7 @@ public class GlobalController : MonoBehaviour
 			currentTask = taskManager.tasks[i];
 			// -----------------
 			if(currentTask == TaskManager.SAVE_PLAYER){
-				savePlayer();
-			}
-			else if(currentTask == TaskManager.SAVE_SELECTED_RACERS){
-				saveSelectedRacers();
+				savePlayer(lbUpdate);
 			}
 			else if(currentTask == TaskManager.LOAD_SELECTED_PLAYER){
 				loadSelectedPlayer();
@@ -790,6 +855,11 @@ public class GlobalController : MonoBehaviour
 			}
 			else if(currentTask == TaskManager.SET_WR){
 				setWorldRecord_local(raceManager.raceEvent, raceManager.userPB_time, raceManager.player.GetComponent<PlayerAttributes>().id);
+			}
+			else if(currentTask == TaskManager.DISABLE_ANIMATION_STARTSCREEN){
+				StartScreen.SetActive(true);
+				startScreenAnimator.SetBool("startScreenAccessed", true);
+				StartScreen.SetActive(false);
 			}
 		}
 		taskManager.tasks.Clear();
@@ -835,7 +905,7 @@ public class GlobalController : MonoBehaviour
 		att.finishTime = -1f;
 		att.personalBests = new float[]{-1f, -1f, -1f, -1f};
 		// -----------------
-		saveRacer(newRacer, -1, new string[]{PLAYABLE_RACER_MEMORY}, false);
+		saveRacer(newRacer, -1, new string[]{PLAYABLE_RACER_MEMORY}, false, false);
 		Destroy(newRacer);
 		// -----------------
 
@@ -851,13 +921,13 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	void savePlayer(){
+	void savePlayer(bool sendToLeaderboard){
 		Debug.Log("SAVE PLAYER");
 		string id = raceManager.player.GetComponent<PlayerAttributes>().id;
 		GameObject b;
 		// -----------------
 		playerSelectButtonList.removeButton(id);
-		saveRacer(raceManager.player, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY, SAVED_RACER_MEMORY}, false);
+		saveRacer(raceManager.player, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY, SAVED_RACER_MEMORY}, sendToLeaderboard, false);
 		b = playerSelectButtonList.addButton(id, selectedRaceEvent, SelectionButtonScript.playerButtonColor);
 		b.GetComponent<SelectionButtonScript>().toggle();
 		// -----------------
@@ -870,20 +940,7 @@ public class GlobalController : MonoBehaviour
 		if(selected){
 			b.GetComponent<SelectionButtonScript>().toggle(true);
 		}
-	}
-	
-	void saveSelectedRacers(){
-		Debug.Log("SAVE SELECTED RACERS");
-		int racerIndex;
-		GameObject racer;
-		PlayerAttributes att;
-		for(int j = 0; j < checkedRacerIndexes.Count; j++){
-			racerIndex = checkedRacerIndexes[j];
-			racer = racers[racerIndex];
-			att = racer.GetComponent<PlayerAttributes>();
-			saveRacer(racer, selectedRaceEvent, new string[]{SAVED_RACER_MEMORY}, false);
-			ghostSelectButtonList.addButton(att.id, selectedRaceEvent, SelectionButtonScript.ghostButtonColor);
-		}	
+		this.lbUpdate = false;
 	}
 	
 	
@@ -909,7 +966,7 @@ public class GlobalController : MonoBehaviour
 		}
 			
 		// load player
-		player = loadRacer(playerID, selectedRaceEvent, "Player (Back End)", false);
+		player = loadRacer(playerID, selectedRaceEvent, "Player (Back End)", false, false);
 		player.GetComponent<PlayerAttributes>().setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
 		player.SetActive(false);
 		player.transform.SetParent(raceManager.RacersBackEndParent.transform);
@@ -927,7 +984,7 @@ public class GlobalController : MonoBehaviour
 			b = child.gameObject;
 			s = b.GetComponent<SelectionButtonScript>();
 			if(s.selected){
-				racer = loadRacer(s.id, selectedRaceEvent, "Ghost (Back End)", false);
+				racer = loadRacer(s.id, selectedRaceEvent, "Ghost (Back End)", false, false);
 				racer.transform.SetParent(raceManager.RacersBackEndParent.transform);
 				racers_backEnd.Add(racer);
 			}
@@ -947,8 +1004,8 @@ public class GlobalController : MonoBehaviour
 			
 			racer = racers[j];
 			id = racer.GetComponent<PlayerAttributes>().id;
-			saveRacer(racer, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY}, true);
-			racer_replay = loadRacer(id, selectedRaceEvent, "Ghost (Back End)", true);
+			saveRacer(racer, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY}, false, true);
+			racer_replay = loadRacer(id, selectedRaceEvent, "Ghost (Back End)", false, true);
 			racer_replay.SetActive(false);
 			racer_replay.transform.SetParent(raceManager.RacersBackEndParent.transform);
 			racer_replay.GetComponent<PlayerAttributes>().lane = racers[j].GetComponent<PlayerAttributes>().lane;
@@ -970,6 +1027,8 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	void saveUserPB(int raceEvent, float time){
+		
+		// save pb to playerPrefs
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			PlayerPrefs.SetFloat("user_PB_100m", time);
 		}
@@ -1065,6 +1124,23 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
+	public GameObject[] deactivateAllButtons(){
+		GameObject[] objs = GameObject.FindGameObjectsWithTag("Button");
+		foreach (GameObject obj in objs) {
+			obj.GetComponent<Button>().interactable = false;
+		}
+		return objs;
+     }
+	 
+	 public void activateButtons(GameObject[] objs){
+		foreach (GameObject obj in objs) {
+			if(obj != null){
+				obj.GetComponent<Button>().interactable = true;
+			 }
+		}
+	 }
+	
+	
 	void runFirstTimeOperations(){
 		saveUserPB(RaceManager.RACE_EVENT_100M, float.MaxValue);
 		saveUserPB(RaceManager.RACE_EVENT_200M, float.MaxValue);
@@ -1098,5 +1174,7 @@ public class GlobalController : MonoBehaviour
 	IEnumerator wait(float t){
 		yield return new WaitForSeconds(t);
 	}
+	
+	
 
 }

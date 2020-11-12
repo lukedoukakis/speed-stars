@@ -116,7 +116,7 @@ public class SelectionListScript : MonoBehaviour
 	}
 	
 	public void setPreviewRacer(string id){
-		GameObject temp = gc.loadRacer(id, 0, "Untagged", false);
+		GameObject temp = gc.loadRacer(id, 0, "Untagged", false, false);
 		PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
 		
 		att.copyAttributesFromOther(temp, "body proportions");

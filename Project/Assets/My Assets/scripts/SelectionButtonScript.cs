@@ -137,6 +137,10 @@ public class SelectionButtonScript : MonoBehaviour
 	
 	
 	public void showDeleteDialog(){
+		if(list.ddc == null){
+			return;
+		}
+		
 		SelectionButtonScript button_list1 = list.ddc.list1.getButton(this.id).GetComponent<SelectionButtonScript>();
 		list.ddc.list1.buttonToDelete = list.ddc.list1.getButton(this.id).GetComponent<SelectionButtonScript>();
 		
@@ -152,5 +156,10 @@ public class SelectionButtonScript : MonoBehaviour
 	public void init(SelectionListScript s){
 		list = s;
 		transform.SetParent(list.grid.transform, false);
+		
+		if(list == list.gc.ghostSelectButtonList){
+			transform.Find("Delete Button").gameObject.SetActive(false);
+		}
+		
 	}
 }

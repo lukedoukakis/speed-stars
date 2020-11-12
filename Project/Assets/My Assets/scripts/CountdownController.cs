@@ -78,6 +78,21 @@ public class CountdownController : MonoBehaviour
 		}
 	}
 	
+	public void showCountdownText(){
+		Color c0 = countdownText0.color;
+		Color c1 = countdownText1.color;
+		c0.a = c1.a = 1f;
+		countdownText0.color = c0;
+		countdownText1.color = c1;
+	}
+	public void hideCountdownText(){
+		Color c0 = countdownText0.color;
+		Color c1 = countdownText1.color;
+		c0.a = c1.a = 0f;
+		countdownText0.color = c0;
+		countdownText1.color = c1;
+	}
+	
 	public void showFalseStartText(){
 		StartCoroutine("falseStartText");
 	}

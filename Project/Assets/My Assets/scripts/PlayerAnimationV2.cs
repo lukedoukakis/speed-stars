@@ -13,6 +13,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public BoxCollider chestCollider;
 	public Animator animator;
 	
+	public Transform rootTransform;
 	public Transform rightFoot;
 	public Transform leftFoot;
 	public Transform rightUpperArm;
@@ -459,7 +460,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			
 			if(oc.trackSegment == 4){
 				Vector3 targetPos = new Vector3(transform.position.x, pY, pZ);
-				if(Vector3.Distance(transform.position, globalController.raceManager.finishLine.transform.position) > 20f){
+				if(Vector3.Distance(transform.position, globalController.raceManager.finishLine.transform.position) > 2f){
 					transform.position = Vector3.Lerp(transform.position, targetPos, 1f * dTime);
 				}
 				else{
@@ -652,11 +653,35 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetFloat("horizSpeed", speedHoriz/28f);
 	}
 	
+	public void squish(){
+		StartCoroutine(squishPlayer());
+	}
+	IEnumerator squishPlayer(){
+		yield return new WaitForSeconds(.01f);
+		float scaleFactor = 1f;
+		while(scaleFactor < 1.45f){
+			scaleFactor = Mathf.Lerp(scaleFactor, 1.5f, 30f*Time.deltaTime);
+			rootTransform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+			yield return new WaitForSeconds(.05f);
+		}
+		scaleFactor = 1.5f;
+		while(scaleFactor > .05f){
+			scaleFactor = Mathf.Lerp(scaleFactor, 0f, 40f*Time.deltaTime);
+			rootTransform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+			yield return new WaitForSeconds(.05f);
+		}
+		
+		gameObject.transform.position = Vector3.down*1000f;
+	}
 	
 	public IEnumerator launch(bool leadLegLaunch){
 		raceManager.startingBlocks_current[attributes.lane-1].GetComponent<StartingBlockController>().addLaunchForce();
 		
-		if(isPlayer){ globalController.audioController.playSound(AudioController.BLOCK_EXIT); }
+		if(isPlayer){ 
+			if(raceManager.viewMode == RaceManager.VIEW_MODE_LIVE){
+				globalController.audioController.playSound(AudioController.BLOCK_EXIT);
+			}
+		}
 		
 		animator.SetBool("launch", true);
 		cruiseWeight = 0f;

@@ -48,6 +48,7 @@ public class ButtonHandler : MonoBehaviour
 		};
 	}
 	public void setResultButtons(int amount){
+		/*
 		activeButtons = amount;
 		for(int i = 0; i < amount; i++){
 			resultButtons[i].gameObject.SetActive(true);
@@ -57,6 +58,7 @@ public class ButtonHandler : MonoBehaviour
 			resultButtons[i].gameObject.GetComponentInChildren<Text>().enabled = false;
 			resultButtons[i].gameObject.SetActive(false);
 		}
+		*/
 	}
 	public void setSelected(int buttonIndex){
 		b = resultButtons[buttonIndex];
@@ -70,9 +72,6 @@ public class ButtonHandler : MonoBehaviour
 		b.gameObject.transform.Find("Text").GetComponent<Text>().enabled = !(status);
 	}
 	// -----------------
-	public void saveSelectedAsGhosts(){
-		taskManager.addTask(TaskManager.SAVE_SELECTED_RACERS);
-	}
 	public void loadSelectedGhosts(){
 		taskManager.addTask(TaskManager.LOAD_SELECTED_RACERS);
 	}

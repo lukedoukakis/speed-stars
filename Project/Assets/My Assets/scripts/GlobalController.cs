@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
@@ -22,6 +23,8 @@ public class GlobalController : MonoBehaviour
 		bool RaceUIActive;
 		float keyPressAgo;
 		[SerializeField] float cooldown_keyPress;
+	public GameObject WelcomeScreen;
+		bool WelcomeScreenActive;
 	public GameObject StartScreen;
 		[SerializeField] Animator startScreenAnimator;
 		bool startScreenAccessed;
@@ -37,7 +40,7 @@ public class GlobalController : MonoBehaviour
 		bool CharacterCreatorScreenActive;
 		public GameObject nameInputField;
 	public GameObject CountdownScreen;
-		bool CountdownScreenActive;
+		public bool CountdownScreenActive;
 	public GameObject RaceScreen;
 		public Image screenFlash;
 		public bool RaceScreenActive;
@@ -61,7 +64,9 @@ public class GlobalController : MonoBehaviour
 	public RaceManager raceManager;
 	public SetupManager setupManager;
 	public UnlockManager unlockManager;
+	public EnvironmentController environmentController;
 	public LeaderboardManager leaderboardManager;
+	public PlayFabManager playfabManager;
 	
 	// racers
 	public GameObject racerPrefab;
@@ -91,8 +96,10 @@ public class GlobalController : MonoBehaviour
 	[SerializeField] Transform cameraStartTransform;
 	
 	// online leaderboard
-	[SerializeField] PlayFabManager playfabManager;
+	[SerializeField] Text usernameInputText;
+	public string username;
 	bool lbUpdate;
+	public int downloadedGhosts;
 	
     // Start is called before the first frame update
     void Start()
@@ -113,10 +120,14 @@ public class GlobalController : MonoBehaviour
 			runFirstTimeOperations();
 		}
 		
+		environmentController.init(PlayerPrefs.GetInt("Theme"));
+		
 		setupManager.init();
 		
 		int charSlots = PlayerPrefs.GetInt("Character Slots");
 		unlockManager.init(charSlots);
+		
+		downloadedGhosts = PlayerPrefs.GetInt("Downloaded Ghosts");
 		
 		Application.targetFrameRate = 60;
 		
@@ -131,7 +142,6 @@ public class GlobalController : MonoBehaviour
 		ghostSelectButtonList.init(RaceManager.RACE_EVENT_100M, SAVED_RACER_MEMORY, 7, 0, false, false);
 		savedRacerIDs = PlayerPrefs.GetString("SAVED RACER IDS").Split(':').ToList();
 		// -----------------
-		previewRacer_creation.GetComponent<PlayerAnimationV2>().setIdle();
 		SetupScreen.SetActive(false);
 		// -----------------
 		checkedRacerIndexes = new List<int>();
@@ -141,7 +151,7 @@ public class GlobalController : MonoBehaviour
 			goStartScreen();
 		}
 		else{
-			goCharacterCreatorScreen();
+			goWelcomeScreen();
 			CharacterCreatorScreen.transform.Find("Back Button").gameObject.SetActive(false);
 		}
 		// -----------------
@@ -159,6 +169,24 @@ public class GlobalController : MonoBehaviour
 		if(Input.GetKeyUp(KeyCode.F1)){
 			Debug.Log("Deleting PlayerPrefs");
 			PlayerPrefs.DeleteAll();
+		}
+		/*
+		if(Input.GetKeyUp(KeyCode.F2)){
+			Debug.Log("Unlinking PlayFab account");
+			playfabManager.unlinkAccount();
+		}
+		*/
+		
+		if(Input.GetKeyUp(KeyCode.F3)){
+			Time.timeScale = Time.deltaTime;
+		}
+		if(Input.GetKeyUp(KeyCode.F4)){
+			if(Time.timeScale == 0f){
+				Time.timeScale = 1f;
+			}
+			else{
+				Time.timeScale = 0f;
+			}
 		}
 		
 		/*
@@ -195,19 +223,30 @@ public class GlobalController : MonoBehaviour
 		keyPressAgo += Time.deltaTime;
     }
 	
+	public void goWelcomeScreen(){
+		//Debug.Log("Going to welcome screen");
+		StartCoroutine(screenTransition("Welcome Screen", false));
+		// -----------------
+		raceManager.raceStatus = RaceManager.STATUS_INACTIVE;
+	}
+	
 	public void goStartScreen(){
 		//Debug.Log("Going to start screen");
 		StartCoroutine(screenTransition("Start Screen", false));
+		// -----------------
 		if(countdownController.isRunning){ countdownController.cancelCountdown(); }
+		raceManager.raceStatus = RaceManager.STATUS_INACTIVE;
 	}
 	
 	public void goSetupScreen(){
 		//Debug.Log("Going to setup screen");
 		StartCoroutine(screenTransition("Setup Screen", false));
+		// -----------------
+		raceManager.raceStatus = RaceManager.STATUS_INACTIVE;
 	}
 	
 	public void goLeaderboardScreen(){
-		//Debug.Log("Going to setup screen");
+		//Debug.Log("Going to leaderboard screen");
 		StartCoroutine(screenTransition("Leaderboard Screen", false));
 	}
 	
@@ -222,7 +261,7 @@ public class GlobalController : MonoBehaviour
 	public void goCountDownScreen(){
 		//Debug.Log("Going to countdown screen");
 		StartCoroutine(screenTransition("Countdown Screen", false));
-		// -----------------
+		// -----------------;
 		if(countdownController.isRunning){ countdownController.cancelCountdown(); }
 		countdownController.startCountdown();
 	}
@@ -234,14 +273,13 @@ public class GlobalController : MonoBehaviour
 		StartCoroutine("flash");
 		raceManager.raceStatus = RaceManager.STATUS_GO;
 		raceManager.setOffRacers();
-
-	
 	}
 	
 	public void goFinishScreen(){
 		//Debug.Log("Going to finish screen");
 		StartCoroutine(screenTransition("Finish Screen", true));
 		// -----------------
+		raceManager.raceStatus = RaceManager.STATUS_FINISHED;
 		buttonHandler.setResultButtons(racers.Count);
 	}
 	
@@ -263,6 +301,8 @@ public class GlobalController : MonoBehaviour
 		canvas_camera.SetActive(false);
 		RaceUI.SetActive(false);
 			RaceUIActive = false;
+		WelcomeScreen.SetActive(false);
+			WelcomeScreenActive = false;
 		StartScreen.SetActive(false);
 			StartScreenActive = false;
 		SetupScreen.SetActive(false);
@@ -282,12 +322,17 @@ public class GlobalController : MonoBehaviour
 		previewCamera_creation.gameObject.SetActive(false);
 		previewCamera_setup.gameObject.SetActive(false);
 		switch (nextScreen) {
+			case "Welcome Screen" :
+				WelcomeScreen.SetActive(true);
+				WelcomeScreenActive = true;
+				break;	
 			case "Start Screen" :
 				StartScreen.SetActive(true);
 				if(!startScreenAccessed){
 					taskManager.addTask(TaskManager.DISABLE_ANIMATION_STARTSCREEN);
 					startScreenAccessed = true;
 				}
+				setupManager.setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
 				StartScreenActive = true;
 				break;
 			case "Setup Screen" :
@@ -298,7 +343,7 @@ public class GlobalController : MonoBehaviour
 			case "Leaderboard Screen" :
 				LeaderboardScreen.SetActive(true);
 				LeaderboardScreenActive = true;
-				leaderboardManager.init(RaceManager.RACE_EVENT_100M);
+				leaderboardManager.init(RaceManager.RACE_EVENT_100M, true);
 				break;	
 			case "Character Creator Screen" :
 				CharacterCreatorScreen.SetActive(true);
@@ -393,23 +438,38 @@ public class GlobalController : MonoBehaviour
 		// --
 		racers = raceManager.setupRace(backEndRacers, raceEvent, viewMode, newLanes);
 		cameraController.setCameraFocus(raceManager.player, cameraMode);
-		Debug.Log("camera mode: " + cameraMode);
 	}
 	//-----------------------------------------------------------------------------------------------------------
 	public void showResultsScreen(){
+		StartCoroutine(endRace());
 		goFinishScreen();
 	}
-	public void endRace(){
+	public IEnumerator endRace(){
+		Debug.Log("ending race");
 		if(raceManager.playerPB){
 			lbUpdate = false;
 			taskManager.addTask(TaskManager.SAVE_PLAYER);
+			
 			if(raceManager.userPB){
-				lbUpdate = true;
 				Debug.Log("USER PB");
+			
 				taskManager.addTask(TaskManager.SAVE_USER_PB);
+	
+				// see if score beats leaderboard score for player's PFID
+				playfabManager.userLeaderboardInfoRetrieved = false;
+				playfabManager.getLeaderboardEntryInfo(raceManager.raceEvent, playfabManager.thisUserPlayFabId);
+				yield return new WaitUntil(() => playfabManager.userLeaderboardInfoRetrieved);
+				bool beatsLeaderboardScore = (raceManager.userPB_time < (float)(playfabManager.userScore)/-100f) || (playfabManager.userScore == 0);
+				Debug.Log("Leaderboard score: " + playfabManager.userScore);
+
+				if(beatsLeaderboardScore){
+					lbUpdate = true;
+					Debug.Log("Leaderboard score: " + playfabManager.userScore);
+					Debug.Log("LEADERBOARD PB");
+				}
 			}
 			if(raceManager.playerWR){
-				taskManager.addTask(TaskManager.SET_WR);
+				taskManager.addTask(TaskManager.SET_WR_LOCAL);
 			}
 		}
 	}
@@ -546,13 +606,14 @@ public class GlobalController : MonoBehaviour
 			pathsForEventString += s;
 			PlayerPrefs.SetString(id+"_pathsForEvent "+_raceEvent, pathsForEventString);
 		}
+		
 		attString =
 				id
 		+ ":" + att.racerName
 		+ ":" + att.finishTime
 		+ ":" + att.personalBests[0]
 		+ ":" + att.personalBests[1]
-		+ ":" + att.personalBests[2]
+		+ ":" +att.personalBests[2]
 		+ ":" + att.personalBests[3]
 		+ ":" + att.resultString
 		+ ":" + att.POWER
@@ -607,11 +668,22 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.weight
 		+ ":" + att.animatorNum
 		+ ":" + att.leadLeg
-		+ ":" + att.armSpeedFlex
-		+ ":" + att.armSpeedExtend;
+		+ ":" + att.armSpeedFlexL
+		+ ":" + att.armSpeedExtendL
+		+ ":" + att.armSpeedFlexR
+		+ ":" + att.armSpeedExtendR;
 		PlayerPrefs.SetString(id, attString);
 		
 		if(sendToLeaderboard){
+			float[] timesToSend = new float[4];
+			for(int i = 0; i < 4; i++){
+				if(i == raceEvent){
+					timesToSend[i] = att.personalBests[i];
+				}
+				else{
+					timesToSend[i] = -1f;
+				}
+			}
 			string data = attString + "&" + pathsForEventString;
 			playfabManager.sendLeaderboard(raceEvent, att.personalBests[raceEvent], att.racerName, data);
 		}
@@ -636,18 +708,18 @@ public class GlobalController : MonoBehaviour
 			pathInfo = PlayerPrefs.GetString(id+"_pathsForEvent "+raceEvent).Split(':');
 		}
 		else{
-			string[] racerData = playfabManager.racerDataString.Split('&');
+			string[] racerData = playfabManager.userRacerData.Split('&');
 			racerInfo = racerData[0].Split(':');
 			pathInfo = racerData[1].Split(':');
-			
+			/*
 			Debug.Log("racerInfo: " + racerData[0]);
 			Debug.Log("pathInfo: " + racerData[1]);
+			*/
 		}
 	
 		int i;
 		// -----------------
 		i = 0;
-		Debug.Log("PATHLENGTH: " + pathInfo[i]);
 		att.pathLength = int.Parse(pathInfo[i]); i++;
 		att.leanLockTick = int.Parse(pathInfo[i]); i++;
 		string[] vM = pathInfo[i].Split(','); i++;
@@ -718,8 +790,10 @@ public class GlobalController : MonoBehaviour
 		att.weight = float.Parse(racerInfo[i]); i++;
 		att.animatorNum = int.Parse(racerInfo[i]); i++;
 		att.leadLeg = int.Parse(racerInfo[i]); i++;
-		att.armSpeedFlex = float.Parse(racerInfo[i]); i++;
-		att.armSpeedExtend = float.Parse(racerInfo[i]); i++;
+		att.armSpeedFlexL = float.Parse(racerInfo[i]); i++;
+		att.armSpeedExtendL = float.Parse(racerInfo[i]); i++;
+		att.armSpeedFlexR = float.Parse(racerInfo[i]); i++;
+		att.armSpeedExtendR = float.Parse(racerInfo[i]); i++;
 		// -----------------
 		
 		// paths
@@ -768,18 +842,8 @@ public class GlobalController : MonoBehaviour
 	
 	public void loadBots(){
 		int numOfBots = setupManager.botCount - raceManager.botCount;
-		
-		int b = 2;
 		for(int i = 0; i < numOfBots; i++){
-			
-			if(UnityEngine.Random.Range(b,2) == 1){
-				racers_backEnd.Add(getSpecialGhost(PlayerAttributes.USAINBOLT, raceManager.raceEvent));
-				
-				b = 2;
-			}
-			else{
-				racers_backEnd.Add(getRandomBot());
-			}	
+			racers_backEnd.Add(getRandomBot());
 		}
 	}
 	
@@ -803,26 +867,7 @@ public class GlobalController : MonoBehaviour
 		// -----------------
 		return bot;
 	}
-	
-	
-	
-	public GameObject getSpecialGhost(int preset, int raceEvent){
-		GameObject ghost = Instantiate(racerPrefab);
-		
-		ghost.tag = "Ghost (Back End)";
-		ghost.transform.SetParent(raceManager.RacersBackEndParent.transform);
-		ghost.SetActive(false);
-		PlayerAttributes att = ghost.GetComponent<PlayerAttributes>();
-		att.setInfo(preset);
-		att.setClothing(preset);
-		att.setBodyProportions(preset);
-		att.setStats(preset);
-		att.setAnimations(preset);
-		att.setPathsFromSpecial(preset, raceEvent);
-		// -----------------
-		return ghost;
-	}
-	
+
 	
 	void doTasks(){
 		int currentTask;
@@ -853,8 +898,8 @@ public class GlobalController : MonoBehaviour
 			else if(currentTask == TaskManager.SAVE_USER_PB){
 				saveUserPB(raceManager.raceEvent, raceManager.userPB_time);
 			}
-			else if(currentTask == TaskManager.SET_WR){
-				setWorldRecord_local(raceManager.raceEvent, raceManager.userPB_time, raceManager.player.GetComponent<PlayerAttributes>().id);
+			else if(currentTask == TaskManager.SET_WR_LOCAL){
+				setWorldRecord_local(raceManager.raceEvent, raceManager.userPB_time, raceManager.player.GetComponent<PlayerAttributes>().racerName);
 			}
 			else if(currentTask == TaskManager.DISABLE_ANIMATION_STARTSCREEN){
 				StartScreen.SetActive(true);
@@ -870,7 +915,7 @@ public class GlobalController : MonoBehaviour
 	// -----------------// -----------------// -----------------// -----------------// -----------------// -----------------// -----------------
 	
 	void createRacer(){
-		Debug.Log("CREATE RACER");
+		//Debug.Log("CREATE RACER");
 		// -----------------
 		GameObject newRacer = Instantiate(racerPrefab);
 		newRacer.tag = "Player";
@@ -878,9 +923,10 @@ public class GlobalController : MonoBehaviour
 		newRacer.SetActive(false);
 		PlayerAttributes att = newRacer.GetComponent<PlayerAttributes>();
 		
-		///*
+		string name = legalizeEnteredName(nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text);
+		
 		// random
-		att.racerName = nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text;
+		att.racerName = name;
 		att.id = PlayerAttributes.generateID(att.racerName);
 		att.copyAttributesFromOther(previewRacer_creation, "clothing");
 		att.copyAttributesFromOther(previewRacer_creation, "body proportions");
@@ -888,20 +934,6 @@ public class GlobalController : MonoBehaviour
 		att.setAnimations(PlayerAttributes.RANDOM);
 		att.pathLength = 0;
 		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
-		//*/
-
-		/*
-		// preset
-		int preset = PlayerAttributes.MICHAELJOHNSON;
-		att.racerName = nameInputField.gameObject.transform.Find("Text").GetComponent<Text>().text;
-		att.id = PlayerAttributes.generateID(att.racerName);
-		att.setClothing(preset);
-		att.setBodyProportions(preset);
-		att.setStats(preset);
-		att.setAnimations(preset);
-		att.setPaths(PlayerAttributes.DEFAULT_PATH_LENGTH);
-		*/
-		
 		att.finishTime = -1f;
 		att.personalBests = new float[]{-1f, -1f, -1f, -1f};
 		// -----------------
@@ -922,7 +954,7 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	void savePlayer(bool sendToLeaderboard){
-		Debug.Log("SAVE PLAYER");
+		//Debug.Log("SAVE PLAYER");
 		string id = raceManager.player.GetComponent<PlayerAttributes>().id;
 		GameObject b;
 		// -----------------
@@ -945,7 +977,7 @@ public class GlobalController : MonoBehaviour
 	
 	
 	void loadSelectedPlayer(){
-		Debug.Log("LOAD SELECTED PLAYER");
+		//Debug.Log("LOAD SELECTED PLAYER");
 		GameObject player;
 		GameObject b;
 		SelectionButtonScript s;
@@ -975,7 +1007,7 @@ public class GlobalController : MonoBehaviour
 	
 	
 	void loadSelectedRacers(){
-		Debug.Log("LOAD SELECTED RACERS");
+		//Debug.Log("LOAD SELECTED RACERS");
 		GameObject b;
 		SelectionButtonScript s;
 		GameObject grid = ghostSelectButtonList.grid;
@@ -992,7 +1024,6 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	void setupReplay(){
-		Debug.Log("SETUP REPLAY");
 		int numOfRacers = racers.Count;
 		playerIndex = 0;
 		// -----------------
@@ -1020,7 +1051,7 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	public void clearRacersFromScene(){
-		Debug.Log("CLEAR RACERS FROM SCENE");
+		//Debug.Log("CLEAR RACERS FROM SCENE");
 		clearListAndObjects(racers);
 		clearListAndObjects(racers_backEnd);
 		clearListAndObjects(racers_backEnd_replay);
@@ -1042,7 +1073,7 @@ public class GlobalController : MonoBehaviour
 			PlayerPrefs.SetFloat("user_PB_60m", time);
 		}
 		
-		Debug.Log("updating unlocks: " + raceEvent + " " + time);
+		//Debug.Log("updating unlocks: " + raceEvent + " " + time);
 		unlockManager.updateUnlocks(raceEvent, time);
 	}
 	
@@ -1065,18 +1096,18 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void setWorldRecord_local(int raceEvent, float time, string racerID){
+	public void setWorldRecord_local(int raceEvent, float time, string racerName){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
-			PlayerPrefs.SetString("wr_local_100m", time + ":" + racerID);
+			PlayerPrefs.SetString("wr_local_100m", time + ":" + racerName);
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_200M){
-			PlayerPrefs.SetString("wr_local_200m", time + ":" + racerID);
+			PlayerPrefs.SetString("wr_local_200m", time + ":" + racerName);
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_400M){
-			PlayerPrefs.SetString("wr_local_400m", time + ":" + racerID);
+			PlayerPrefs.SetString("wr_local_400m", time + ":" + racerName);
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_60M){
-			PlayerPrefs.SetString("wr_local_60m", time + ":" + racerID);
+			PlayerPrefs.SetString("wr_local_60m", time + ":" + racerName);
 		}
 	}
 	
@@ -1102,7 +1133,12 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public string getWorldRecordID_local(int raceEvent){
+	public void getWorldRecordInfo_leaderboard(int raceEvent){
+		playfabManager.userLeaderboardInfoRetrieved = false;
+		playfabManager.getWorldRecordInfo(raceEvent);
+	}
+	
+	public string getWorldRecordRacerName_local(int raceEvent){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			return PlayerPrefs.GetString("wr_local_100m").Split(':')[1];
 			//return "Usain Bolt";
@@ -1139,6 +1175,20 @@ public class GlobalController : MonoBehaviour
 			 }
 		}
 	 }
+	 
+	 public void setUsername(){
+		 username = usernameInputText.text;
+		 playfabManager.setUserDisplayName(username);
+	 }
+	 
+	 public static string legalizeEnteredName(string str){
+		 str = Regex.Replace(str, @"[^a-zA-Z0-9 ]", "");
+		 return str;
+	}
+	
+	public void exitGame(){
+		Application.Quit();
+	}
 	
 	
 	void runFirstTimeOperations(){
@@ -1146,11 +1196,13 @@ public class GlobalController : MonoBehaviour
 		saveUserPB(RaceManager.RACE_EVENT_200M, float.MaxValue);
 		saveUserPB(RaceManager.RACE_EVENT_400M, float.MaxValue);
 		saveUserPB(RaceManager.RACE_EVENT_60M, float.MaxValue);
-		setWorldRecord_local(RaceManager.RACE_EVENT_100M, 9.58f, "Usain Bolt_");
-		setWorldRecord_local(RaceManager.RACE_EVENT_200M, 19.19f, "Usain Bolt_");
-		setWorldRecord_local(RaceManager.RACE_EVENT_400M, 43.03f, "Wayde van Niekerk_");
-		setWorldRecord_local(RaceManager.RACE_EVENT_60M, 6.34f, "Christian Coleman_");
+		setWorldRecord_local(RaceManager.RACE_EVENT_100M, float.MaxValue, "None");
+		setWorldRecord_local(RaceManager.RACE_EVENT_200M, float.MaxValue, "None");
+		setWorldRecord_local(RaceManager.RACE_EVENT_400M, float.MaxValue, "None");
+		setWorldRecord_local(RaceManager.RACE_EVENT_60M, float.MaxValue, "None");
 		PlayerPrefs.SetInt("Character Slots", 1);
+		PlayerPrefs.SetInt("Downloaded Ghosts", 0);
+		PlayerPrefs.SetInt("Theme", EnvironmentController.SUNNY);
 	}
 	
 	IEnumerator flash(){

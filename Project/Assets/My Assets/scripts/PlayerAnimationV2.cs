@@ -21,6 +21,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public Transform pushLeg;
 	public Quaternion pushRotation;
 	
+	public ParticleSystem sweatParticles;
+	public ParticleSystem popParticles;
 	public ParticleSystem dustParticles;
 	bool showDust;
 	
@@ -31,7 +33,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public static int Set = 1;
 	public static int Run = 2;
-	public static int Idle = 3;
 	public int mode;
 	
 	int tick;
@@ -95,8 +96,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float quickness_base;
 	public float quicknessMod;
 	public float turnover;
-	public float armFlex;
-	public float armExtend;
+	public float armFlexL;
+	public float armExtendL;
+	public float armFlexR;
+	public float armExtendR;
 	
 	public int leadLeg;
 	public bool upInSet;
@@ -119,6 +122,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public void init(int raceEvent){
 		
+		this.raceManager = globalController.raceManager;
+		
 		// ghost attributes
 		pathLength = attributes.pathLength;
 		velMagPath = attributes.velMagPath;
@@ -139,8 +144,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 		// animation stats
 		leadLeg = attributes.leadLeg;
 		animator.SetInteger("leadLeg", leadLeg);
-		armFlex = attributes.armSpeedFlex;
-		armExtend = attributes.armSpeedExtend;
+		armFlexL = attributes.armSpeedFlexL;
+		armExtendL = attributes.armSpeedExtendL;
+		armFlexR = attributes.armSpeedFlexL;
+		armExtendR = attributes.armSpeedExtendL;
 		
 		// special stats
 		driveModifier = .9f * Mathf.Pow(knee_dominance, 1.2f);
@@ -169,6 +176,9 @@ public class PlayerAnimationV2 : MonoBehaviour
 			canFalseStart = false;
 		}
 		
+		leftFootScript.raceManager = raceManager;
+		rightFootScript.raceManager = raceManager;
+		
 		// -----------------
 		
 		quicknessMod = 1f;
@@ -183,8 +193,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	
 	
-    void FixedUpdate()
+    public void FixedUpdate()
     {
+		animator.SetBool("groundContact", rightFootScript.groundContact || leftFootScript.groundContact);
+		
 		dTime = Time.deltaTime;
 		
 		speedHoriz = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
@@ -193,13 +205,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 			setPositionMode();
 		}
 		else if(mode == Run){
-			//Debug.Log("RUNMODE");
 			runMode();
 		}
-		else if(mode == Idle){
-			idleMode();
-		}
-		
 		//-----------------------------------------------------------------------------------------------------------
 		adjustRotation();
 		//-----------------------------------------------------------------------------------------------------------
@@ -211,9 +218,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 		//-----------------------------------------------------------------------------------------------------------
 		applySpeedModifiers();
 		//-----------------------------------------------------------------------------------------------------------
-		
-		animator.SetBool("groundContact", rightFootScript.groundContact || leftFootScript.groundContact);
-		
 		velocityLastFrame = rb.velocity;
 		velocityLastFrame_relative = gyro.transform.InverseTransformDirection(rb.velocity);
 		speedHoriz_lastFrame = speedHoriz;
@@ -239,13 +243,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 		}
 		
-		// regenerate energy if going slow enough
-		if(speedHoriz < 10f){
-			if(energy < 100f){
-				energy += 1f*Time.deltaTime;
-			}
-		}
-		
 		// set quickness to increase with speed
 		torsoAngle = root.rotation.eulerAngles.x;
 		quickness = quickness_base * speedHoriz *.25f;
@@ -266,8 +263,11 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 		float animSpeedMod = quickness*quicknessMod;
 		animator.SetFloat("limbSpeed", animSpeedMod);
-		animator.SetFloat("armFlex", armFlex*animSpeedMod);
-		animator.SetFloat("armExtend", armExtend*animSpeedMod);
+		animator.SetFloat("armFlexL", armFlexL*animSpeedMod);
+		animator.SetFloat("armExtendL", armExtendL*animSpeedMod);
+		animator.SetFloat("armFlexR", armFlexR*animSpeedMod);
+		animator.SetFloat("armExtendR", armExtendR*animSpeedMod);
+		
 		//-----------------------------------------------------------------------------------------------------------
 		// particles
 		
@@ -299,9 +299,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 		runWeight = 0f;
 	}
 	
-	public void idleMode(){
-		animator.SetBool("idle", true);
-	}
 	
 	
 	
@@ -520,6 +517,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		// modify power from torso angle
 		if(torsoAngle < torsoAngle_upright){
 			modifier = torsoAngle/torsoAngle_upright;
+			modifier *= modifier;
 			modifiedPower *= modifier;
 		}
 		// -----------------
@@ -602,7 +600,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	void updateLayerWeights(){
 			/* // -----------------
 				layers
-				1	idle
+				1	cruise
 				2	set
 				3	torso (upright)
 				4	torso (drive)
@@ -632,6 +630,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 				cruiseWeight += cruise * dTime;
 			}
 		}
+		
+		if(speedHoriz < 10f){
+			cruiseWeight *= speedHoriz/10f;
+		}
 		cruiseWeight *= 313f/torsoAngle;
 		if(cruiseWeight > 1f){
 			cruiseWeight = 1f;
@@ -651,27 +653,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetLayerWeight(12,driveWeight*runWeight);
 		
 		animator.SetFloat("horizSpeed", speedHoriz/28f);
-	}
-	
-	public void squish(){
-		StartCoroutine(squishPlayer());
-	}
-	IEnumerator squishPlayer(){
-		yield return new WaitForSeconds(.01f);
-		float scaleFactor = 1f;
-		while(scaleFactor < 1.45f){
-			scaleFactor = Mathf.Lerp(scaleFactor, 1.5f, 30f*Time.deltaTime);
-			rootTransform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-			yield return new WaitForSeconds(.05f);
-		}
-		scaleFactor = 1.5f;
-		while(scaleFactor > .05f){
-			scaleFactor = Mathf.Lerp(scaleFactor, 0f, 40f*Time.deltaTime);
-			rootTransform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-			yield return new WaitForSeconds(.05f);
-		}
-		
-		gameObject.transform.position = Vector3.down*1000f;
 	}
 	
 	public IEnumerator launch(bool leadLegLaunch){
@@ -704,9 +685,22 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetBool("launch", false);
 	}
 	
+	public IEnumerator pop(float delay){
+		yield return new WaitForSeconds(delay);
+		popParticles.Play();
+		sweatParticles.gameObject.SetActive(false);
+		dustParticles.gameObject.SetActive(false);
+		hide();
+	}
 	
-	public void setIdle(){
-		mode = 3;
+	public void hide(){
+		attributes.smr_dummy.enabled = false;
+		attributes.smr_top.enabled = false;
+		attributes.smr_bottoms.enabled = false;
+		attributes.smr_shoes.enabled = false;
+		attributes.smr_socks.enabled = false;
+		attributes.smr_headband.enabled = false;
+		attributes.smr_sleeve.enabled = false;
 	}
 	
 	

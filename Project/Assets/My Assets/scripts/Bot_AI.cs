@@ -188,8 +188,10 @@ public class Bot_AI : MonoBehaviour
 		transitionPivotSpeed = att.TRANSITION_PIVOT_SPEED;
 		modifierCapSpeed = 23f * difficulty;
 		// -----------------
-		freeTicks = 2650f * (2f - cadenceModifier);
-		downTicks = 950f * (2f - cadenceModifier);
+		//freeTicks = 2650f * (2f - cadenceModifier);
+		freeTicks = 2700f * (2f - cadenceModifier);
+		//downTicks = 950f * (2f - cadenceModifier);
+		downTicks = 1000f * (2f - cadenceModifier);
 		tickRate = 100f;
 		if(att.leadLeg == 0){
 			frequencyLeft = downTicks;
@@ -213,114 +215,37 @@ public class Bot_AI : MonoBehaviour
 	
 	
 	void setSpecialAttributes(){
-		SpecialAttributes sa = GetComponent<SpecialAttributes>();
-		
 		if(raceManager.raceEvent == RaceManager.RACE_EVENT_100M){
-			torsoAngle_upright = anim.torsoAngle_upright - 7f;
+			torsoAngle_upright = anim.torsoAngle_upright - 3f;
 			pace = .95f;
 			energyThreshold = 0f;
-			att.CRUISE = .23f;
-			att.KNEE_DOMINANCE *= .82f;
+			att.CRUISE = .5f;
+			att.KNEE_DOMINANCE *= .9f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_200M){
-			torsoAngle_upright = anim.torsoAngle_upright - 7f;
+			torsoAngle_upright = anim.torsoAngle_upright - 5.25f;
 			pace = (Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f))/4f * cadenceModifier;
 			pace = .95f;
-			energyThreshold = 85f;
-			att.CRUISE = .38f;
-			att.KNEE_DOMINANCE *= .82f;
+			energyThreshold = 75f;
+			att.CRUISE = .5f;
+			att.KNEE_DOMINANCE *= .9f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_400M){
 			torsoAngle_upright = anim.torsoAngle_upright - 7f;
-			pace = (Random.Range(.7f, .9f)+Random.Range(.7f, .9f)+Random.Range(.7f, .9f)+Random.Range(.7f, .9f))/4f * (2f - att.KNEE_DOMINANCE);
-			energyThreshold = Random.Range(74f,75f);
+			energyThreshold = 75f;
 			pace = .8f;
-			att.CRUISE = 1f;
+			att.CRUISE = .8f;
 			att.KNEE_DOMINANCE *= .95f;
+			att.FITNESS *= 1.05f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_60M){
-			torsoAngle_upright = anim.torsoAngle_upright - 7f;
-			pace = 1f;
+			torsoAngle_upright = anim.torsoAngle_upright - 3f;
+			pace = .95f;
 			energyThreshold = 0f;
-			att.CRUISE = .23f;
-			att.KNEE_DOMINANCE *= .82f;
+			att.CRUISE = .5f;
+			att.KNEE_DOMINANCE *= .9f;
 		}
 		// -----------------
 		torsoAngle_back = torsoAngle_upright;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	string[] rooms = new string[rowsNum, columnsNum];
-	
-	for(int row = 0; row < museumX; i++){
-		for(int col = 0; col < museumY; i++){
-			if(rooms[row][col] = "g"){
-				markVisibleRooms(row, col);
-			}
-		}	
-	}
-	
-	for(int row = 0; row < museumX; i++){
-		for(int col = 0; col < museumY; i++){
-			string s = rooms[row][col];
-			if(s != "g" || s != "w" || s != "CAN_SEE"){
-				// print coordinates of invisible room
-				print(row + " " + col);
-			}
-		}
-	}
-	
-	
-	
-	// method that marks rooms that are visible from a certain spot
-	void markVisibleRooms(int row, int col){
-		// search row
-		for(int i = col; i < columnsNum; i++){
-			if(rooms[row][i] != "w"){
-				rooms[row][i] == "CAN_SEE";
-			} else{ break; }
-		}
-		for(int i = 0; i < col; i++){
-			if(rooms[row][i] != "w"){
-				rooms[row][i] == "CAN_SEE";
-			}
-			else{ break; }
-		}
-		// search column
-		for(int i = row; i < rowsNum; i++){
-			if(rooms[i][col] != "w"){
-				rooms[i][col] == "CAN_SEE";
-			}
-			else{ break;
-		}
-		for(int i = 0; i < col; i++){
-			if(rooms[i][col] != "w"){
-				rooms[i][col] == "CAN_SEE";
-			} else{ break; }
-		}
-	}
-	
-	*/
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }

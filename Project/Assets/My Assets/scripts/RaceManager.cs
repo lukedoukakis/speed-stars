@@ -28,7 +28,7 @@ public class RaceManager : MonoBehaviour
 		public static int STATUS_SET = 2;
 		public static int STATUS_GO = 3;
 		public static int STATUS_FINISHED = 4;
-	public bool raceStatusFlag;
+		public static int STATUS_INACTIVE = 5;
 	public bool fStart;
 	public bool raceStarted;
 	public float raceTime;
@@ -40,7 +40,9 @@ public class RaceManager : MonoBehaviour
 	public float userPB_time;
 	public bool playerWR;
 	public float wr_local_time;
-	public string wr_local_id;
+	public string wr_local_racerName;
+	public float wr_leaderboard_time;
+	public string wr_leaderboard_racerName;
 	public string raceEvent_string;
 	// -----------------
 	public GameObject player_backEnd;
@@ -133,47 +135,47 @@ public class RaceManager : MonoBehaviour
 	
 	
 	void Update(){
-		
-		if(gc.RaceScreenActive){
-			updateSpeedometer();
-		}
 
-		GameObject racer;
-		bool setTrans = false;
+		if(raceStatus < STATUS_FINISHED){
+			updateSpeedometer();
 		
-		if(viewMode == RaceManager.VIEW_MODE_LIVE){
-			for(int i = 0; i < racers_laneOrder.Count; i++){
-				racer = racers_laneOrder[i];
-				if(racer != player){
-					float a = 1f;
-					if(racer.tag == "Bot"){
-						a = transparency_bot_base;
-						if(i >= playerLane){
-							float distance = Mathf.Min(Vector3.Distance(racer.transform.position, player.transform.position), Vector3.Distance(racer.transform.position, cameraController.camera.transform.position));
-							if(distance < 3f){
-								setTrans = true;
-								a *= (distance/3f);
-								if(a < transparency_bot_min){
-									a = transparency_bot_min;
+			
+			GameObject racer;
+			bool setTrans = false;
+			if(viewMode == RaceManager.VIEW_MODE_LIVE){
+				for(int i = 0; i < racers_laneOrder.Count; i++){
+					racer = racers_laneOrder[i];
+					if(racer != player){
+						float a = 1f;
+						if(racer.tag == "Bot"){
+							a = transparency_bot_base;
+							if(i >= playerLane){
+								float distance = Mathf.Min(Vector3.Distance(racer.transform.position, player.transform.position), Vector3.Distance(racer.transform.position, cameraController.camera.transform.position));
+								if(distance < 3f){
+									setTrans = true;
+									a *= (distance/3f);
+									if(a < transparency_bot_min){
+										a = transparency_bot_min;
+									}
 								}
 							}
 						}
-					}
-					else if(racer.tag == "Ghost"){
-						a = transparency_ghost_base;
-						if(i >= playerLane){
-							float distance = Mathf.Min(Vector3.Distance(racer.transform.position, player.transform.position), Vector3.Distance(racer.transform.position, cameraController.camera.transform.position));
-							if(distance < 3f){
-								setTrans = true;
-								a *= (distance/3f);
-								if(a < transparency_ghost_min){
-									a = transparency_ghost_min;
+						else if(racer.tag == "Ghost"){
+							a = transparency_ghost_base;
+							if(i >= playerLane){
+								float distance = Mathf.Min(Vector3.Distance(racer.transform.position, player.transform.position), Vector3.Distance(racer.transform.position, cameraController.camera.transform.position));
+								if(distance < 3f){
+									setTrans = true;
+									a *= (distance/3f);
+									if(a < transparency_ghost_min){
+										a = transparency_ghost_min;
+									}
 								}
 							}
 						}
-					}
-					if(setTrans){
-						setTransparency(racer, a);
+						if(setTrans){
+							setTransparency(racer, a);
+						}
 					}
 				}
 			}
@@ -182,16 +184,17 @@ public class RaceManager : MonoBehaviour
 
     void FixedUpdate()
     {
-		if(!allRacersFinished){
-			setRacerModes(raceStatus);
-			raceStatusFlag = false;
-			if(raceStatus == STATUS_SET || raceStatus == STATUS_GO){
-				manageRace();
+		if(raceStatus < STATUS_INACTIVE){
+			if(!allRacersFinished){
+				setRacerModes(raceStatus);
+				if(raceStatus > STATUS_MARKS){
+					manageRace();
+				}
 			}
-			if(raceStatus == STATUS_GO){
-				raceTime += 1f * Time.deltaTime;
-				raceTick++;
-			}
+			if(raceStatus >= STATUS_GO){
+			raceTime += 1f * Time.deltaTime;
+			raceTick++;
+		}
 		}
     }
 	
@@ -219,8 +222,7 @@ public class RaceManager : MonoBehaviour
 		userPB = false;
 		userPB_time = gc.getUserPB(raceEvent);
 		playerWR = false;
-		wr_local_time = gc.getWorldRecordTime_local(raceEvent);
-		wr_local_id = gc.getWorldRecordID_local(raceEvent);
+		StartCoroutine(setResultSheetHeader());
 		// -----------------
 		racerCount = 0;
 		playerCount = 0;
@@ -277,7 +279,6 @@ public class RaceManager : MonoBehaviour
 			att.isRacing = false;
 			// --
 			anim = racer.GetComponent<PlayerAnimationV2>();
-			anim.raceManager = this;
 			anim.globalController = gc;
 			anim.init(raceEvent);
 			anim.mode = PlayerAnimationV2.Set;
@@ -356,7 +357,7 @@ public class RaceManager : MonoBehaviour
 		if(viewMode == VIEW_MODE_REPLAY){
 			player = racers[gc.playerIndex];
 			setTransparency(player, 1f);
-			Time.timeScale = 2f;
+			Time.timeScale = 4f;
 		}
 		// -----------------
 		hideStartingBlocks();
@@ -372,10 +373,7 @@ public class RaceManager : MonoBehaviour
 		
 		resetClock();
 		raceStatus = STATUS_MARKS;
-		raceStatusFlag = true;
-		
-		//resultsText.text = "100m Dash Finals\n==========================\nWorld Record: 9.58 U. Bolt\nLocal Record: x.xx N. Name\n==========================\n\nFinals";
-		resultsText.text = raceEvent_string + " Dash Finals\n==========================\nWorld Record: <color=red>" + wr_local_time + "</color> " + wr_local_id.Split('_')[0] + "\n\n==========================\n\nFinals";
+
 
 		
 		return racers;
@@ -516,9 +514,11 @@ public class RaceManager : MonoBehaviour
 	
 	public void setOffRacers(){
 		if(!fStart){
-			gc.audioController.playSound(AudioController.GUNSHOT);
-			raceStatusFlag = true;
 			raceStarted = true;
+			if(viewMode == VIEW_MODE_LIVE){
+				gc.audioController.playSound(AudioController.GUNSHOT);
+				gc.audioController.playSound(AudioController.CHEERING);
+			}
 		}
 	}
 	
@@ -529,40 +529,32 @@ public class RaceManager : MonoBehaviour
 		if(playerFinished){
 			playerFinished = false;
 			gc.showResultsScreen();
-			StartCoroutine(endRaceWithDelay(1f));
 		}
 		if(allRacersFinished){
 			raceStatus = STATUS_FINISHED;
-			raceStatusFlag = true;
 			//gc.endRace();
 		}
-		else{
-			if(viewMode == VIEW_MODE_LIVE){
-				playerAnim.readInput(raceTick);
-				playerAnim.applyInput(raceTick);
-				playerTc.recordInput(raceTick);
-			}
-			// -----------------
-			for(int i = 0; i < bots.Count; i++){
-				botAIs[i].runAI(raceTick);
-				botAnims[i].readInput(raceTick);
-				botAnims[i].applyInput(raceTick);
-				botTcs[i].recordInput(raceTick);
-			}
-			// -----------------
-			for(int i = 0; i < ghosts.Count; i++){
-				ghostAnims[i].readInput(raceTick);
-				ghostAnims[i].applyInput(raceTick);
-				if(raceTick > 0){
-					ghostAnims[i].setPositionAndVelocity(raceTick);
-				}
+		
+		if(viewMode == VIEW_MODE_LIVE){
+			playerAnim.readInput(raceTick);
+			playerAnim.applyInput(raceTick);
+			playerTc.recordInput(raceTick);
+		}
+		// -----------------
+		for(int i = 0; i < bots.Count; i++){
+			botAIs[i].runAI(raceTick);
+			botAnims[i].readInput(raceTick);
+			botAnims[i].applyInput(raceTick);
+			botTcs[i].recordInput(raceTick);
+		}
+		// -----------------
+		for(int i = 0; i < ghosts.Count; i++){
+			ghostAnims[i].readInput(raceTick);
+			ghostAnims[i].applyInput(raceTick);
+			if(raceTick > 0){
+				ghostAnims[i].setPositionAndVelocity(raceTick);
 			}
 		}
-		
-		if(allRacersFinished){
-			StartCoroutine(squishRacers());
-		}
-		
 	}
 	
 	public void addFinisher(GameObject racer){
@@ -577,26 +569,32 @@ public class RaceManager : MonoBehaviour
 			if(viewMode == VIEW_MODE_LIVE){
 				finishPlaceHolder.transform.position = racer.transform.position;
 				cameraController.setCameraFocus(finishPlaceHolder, cameraController.mode);
+				
+				// handle if player PB
 				if((t < att.personalBests[raceEvent]) || (att.personalBests[raceEvent] == -1f)){
-					// handle if player PB
 					playerAtt.personalBests[raceEvent] = t;
 					playerPB = true;
-					att.resultTag = "<color=red>PB</color>";
 					
 					// handle if user PB
 					if(t < userPB_time){
 						userPB = true;
 						userPB_time = t;
 						// handle if player sets WR
-						if(t < wr_local_time){
+						if(t <= (wr_leaderboard_time)){
 							playerWR = true;
 							att.resultTag = "<color=red>WR</color>";
 						}
+						else{
+							att.resultTag = "<color=orange>LR</color>";
+						}
+					}
+					else{
+						att.resultTag = "<color=green>PB</color>";
 					}
 				}
-			}
-			else{
-				cameraController.setCameraFocus(finishLine, CameraController.TV);
+				else{
+					att.resultTag = "";
+				}
 			}
 		}
 		// -----------------
@@ -604,6 +602,8 @@ public class RaceManager : MonoBehaviour
 		att.pathLength = raceTick;
 		att.resultString = "<color="+ att.resultColor+">" + att.racerName + "</color>" + "  " + t.ToString("F2") + "  " + att.resultTag;
 		resultsText.text += "\n  " + (racersFinished) + "  " + att.resultString;
+		// -----------------
+		StartCoroutine(anim.pop(.5f));
 
 	}
 	
@@ -631,8 +631,8 @@ public class RaceManager : MonoBehaviour
 			playerAnim.upInSet = false;
 		}
 		else if(mode == STATUS_SET){
-			if(Time.timeScale != 1f){
-				Time.timeScale = 1f;
+			if(viewMode == VIEW_MODE_REPLAY){
+				Time.timeScale = 2f;
 			}
 			if(!playerAnim.upInSet){
 				if(viewMode == VIEW_MODE_LIVE){
@@ -642,6 +642,9 @@ public class RaceManager : MonoBehaviour
 			playerAnim.upInSet = true;
 		}
 		else if(mode == STATUS_GO){
+			if(viewMode == VIEW_MODE_REPLAY){
+				Time.timeScale = 1f;
+			}
 			playerAtt.isRacing = true;
 		}	
 		for(int i = 0; i < ghostCount; i++){
@@ -669,6 +672,9 @@ public class RaceManager : MonoBehaviour
 	}
 	
 	public void quitRace(){
+		for(int i = 0; i < racers.Count; i++){
+			racers[i].GetComponent<PlayerAnimationV2>().pop(0f);
+		}
 		gc.clearListAndObjects(racers);
 		gc.cameraController.setCameraFocusOnStart();
 		gc.goSetupScreen();
@@ -732,24 +738,25 @@ public class RaceManager : MonoBehaviour
 		}
 	}
 	
+	IEnumerator setResultSheetHeader(){
+		wr_local_time = gc.getWorldRecordTime_local(raceEvent);
+		wr_local_racerName = gc.getWorldRecordRacerName_local(raceEvent);
+		gc.getWorldRecordInfo_leaderboard(raceEvent);
+		yield return new WaitUntil(() => gc.playfabManager.userLeaderboardInfoRetrieved);
+		wr_leaderboard_time = gc.playfabManager.userScore/-100f;
+		wr_leaderboard_racerName = gc.playfabManager.userRacerName;
+		string s = raceEvent_string + " Dash Finals\n==========================\nWorld Record: <color=red>" + (wr_leaderboard_time) + "</color> " + wr_leaderboard_racerName;
+		if(wr_local_racerName != "None"){
+			s += "\nLocal Record: <color=orange>" + (wr_local_time.ToString("F2")) + "</color> " + wr_local_racerName;
+		}
+		s += "\n\n==========================\n\nFinals";
+		resultsText.text = s;
+	}
+	
 	IEnumerator setBlockPedals(GameObject block, GameObject racer){
-		while(!(raceStatus == STATUS_SET)){
+		while(raceStatus != STATUS_SET){
 			block.GetComponent<StartingBlockController>().adjustPedals(racer.GetComponent<PlayerAnimationV2>());
 			yield return null;
-		}
-	}
-	
-	IEnumerator endRaceWithDelay(float seconds){
-		yield return new WaitForSeconds(seconds);
-		gc.endRace();
-	}
-	
-	IEnumerator squishRacers(){
-		PlayerAnimationV2 anim;
-		for(int i = 0; i < racers_laneOrder.Count; i++){
-			anim = racers_laneOrder[i].GetComponent<PlayerAnimationV2>();
-			anim.squish();
-			yield return new WaitForSeconds(.1f);
 		}
 	}
 	

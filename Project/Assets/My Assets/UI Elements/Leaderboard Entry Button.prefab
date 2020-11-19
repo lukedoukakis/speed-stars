@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 2070185501806122308}
   - component: {fileID: 2070185501806122309}
   - component: {fileID: 6670974578493488653}
+  - component: {fileID: 2563459299950077085}
   m_Layer: 5
   m_Name: Leaderboard Entry Button
   m_TagString: Untagged
@@ -193,8 +194,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 864.2, y: 72.2}
+  m_AnchoredPosition: {x: 0, y: 12.8}
+  m_SizeDelta: {x: 864.2, y: 46.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2070185501806122307
 CanvasRenderer:
@@ -296,9 +297,54 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lbm: {fileID: 0}
   raceEvent: 0
+  pfid: 
   position: 0
   name: 
   score: 0
+--- !u!114 &2563459299950077085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070185501806122311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1862395651, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 6670974578493488653}
+          m_MethodName: updateTooltipText
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 6670974578493488653}
+          m_MethodName: hideTooltip
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  delegates: []
 --- !u!1 &2070185501820642876
 GameObject:
   m_ObjectHideFlags: 0

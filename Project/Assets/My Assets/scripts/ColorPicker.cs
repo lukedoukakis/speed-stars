@@ -16,7 +16,7 @@ public class ColorPicker : MonoBehaviour
 		public GameObject clothingTextureObject;
 	public Color selectedColor;
 	
-	bool colorPickerOpen;
+	[SerializeField] bool colorPickerOpen;
 	
 	public Button buttonDummy;
 	public Button buttonHeadband;
@@ -153,10 +153,8 @@ public class ColorPicker : MonoBehaviour
 			colorPicker = colorPicker_clothing;
 		}
 		
-		colorPicker.GetComponent<RectTransform>().anchoredPosition = new Vector2(colorPicker.GetComponent<RectTransform>().anchoredPosition.x, referenceButton.GetComponent<RectTransform>().anchoredPosition.y + 100f);
-		//referenceButton.GetComponent<RectTransform>().anchoredPosition + new Vector2(160f, 100f);
+		//colorPicker.transform.position = new Vector3(colorPicker.transform.position.x, referenceButton.transform.position.y, colorPicker.transform.position.z);
 		colorPicker.SetActive(true);
-		
 		colorPickerOpen = true;
 	}
 	

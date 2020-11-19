@@ -5,7 +5,6 @@ using UnityEngine;
 public class PlayerAttributes : MonoBehaviour
 {
 	
-	public GameObject legends;
 	public ClothingManager clothingManager;
 	// -----------------
 	public static int DEFAULT_PATH_LENGTH = 10000;
@@ -14,13 +13,6 @@ public class PlayerAttributes : MonoBehaviour
 	public static int RANDOM = 1;
 	public static int FROM_THIS = 2;
 	public static int DEFAULT = 3;
-	
-	public static int USAINBOLT = 4;
-	public static int MICHAELJOHNSON = 5;
-	public static int YOHANBLAKE = 6;
-	public static int JESSEOWENS = 7;
-	public static int WAYDEVANNIEKERK = 8;
-	
 	// -----------------
 	
 	// id info
@@ -144,8 +136,10 @@ public class PlayerAttributes : MonoBehaviour
 	public RuntimeAnimatorController[] animatorControllers;
 	public int animatorNum;
 	public int leadLeg;
-	public float armSpeedFlex;
-	public float armSpeedExtend;
+	public float armSpeedFlexL;
+	public float armSpeedExtendL;
+	public float armSpeedFlexR;
+	public float armSpeedExtendR;
 	
 	
 	
@@ -178,9 +172,6 @@ public class PlayerAttributes : MonoBehaviour
 		else if(setting == PlayerAttributes.RANDOM){
 			racerName = TextReader.getRandomName();
 		}	
-		else if(setting >= 4){
-			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "info");
-		}
 		id = PlayerAttributes.generateID(racerName);
 	}
 	
@@ -247,12 +238,8 @@ public class PlayerAttributes : MonoBehaviour
 			headbandRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
 			sleeveRGB = new float[]{randomColors[i].r,randomColors[i].g,randomColors[i].b}; i++;
 		}
-		else if(setting >= 4){
-			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "clothing");
-		}
-		
+
 		// apply attributes to model
-		
 		int[] meshNumbers = new int[]{ shoesMeshNumber, socksMeshNumber, topMeshNumber, bottomsMeshNumber, sleeveMeshNumber, headbandMeshNumber, dummyMeshNumber};
 		int[] materialNumbers = new int[]{ shoesMaterialNumber, socksMaterialNumber, topMaterialNumber, bottomsMaterialNumber, sleeveMaterialNumber, headbandMaterialNumber, dummyMaterialNumber};
 		float[][] clothingRGBs = new float[][]{shoesRGB, socksRGB, topRGB, bottomsRGB, sleeveRGB, headbandRGB, dummyRGB};
@@ -368,9 +355,6 @@ public class PlayerAttributes : MonoBehaviour
 			feetZ *= 2f-thighRight.localScale.x;
 			// -----------------
 		}
-		else if(setting >= 4){
-			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "body proportions");
-		}
 	
 		setTorsoProportions(torsoX, torsoY, torsoZ);
 		setHeadProportions(headX, headY, headZ);
@@ -470,11 +454,11 @@ public class PlayerAttributes : MonoBehaviour
 			// modify stats from leg length
 			quickness = .95f * Mathf.Pow((2f - legX), .1f);
 			turnover = Mathf.Pow((2f - legX), .5f);
-			knee_dominance = Mathf.Pow((2f - legX), 1f);
 			launch_power = Mathf.Pow(knee_dominance, 1f);
-			cruise = (Random.Range(.2f, 1f));
-			power *= Mathf.Pow(legX, .3f) * Mathf.Pow(2f-(cruise+.8f), .05f);
-			fitness *= Mathf.Pow(legX, 0f) * Mathf.Pow(cruise, .15f);
+			cruise = (Random.Range(.5f, 1f));
+			knee_dominance = Mathf.Pow((2f - legX), 1f);
+			power *= Mathf.Pow(legX, .5f) * Mathf.Pow(2f-(cruise+.5f), .05f);
+			fitness *= Mathf.Pow(cruise, .15f);
 			
 			POWER = power;
 			TRANSITION_PIVOT_SPEED = transPivSpeed;
@@ -486,11 +470,6 @@ public class PlayerAttributes : MonoBehaviour
 			CURVE_POWER = curve_power;
 			CRUISE = cruise;
 		}	
-		else if(setting >= 4){
-			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "stats");
-		}
-		
-		
 	}
 	
 	public void setAnimations(int setting){
@@ -502,11 +481,17 @@ public class PlayerAttributes : MonoBehaviour
 			animator.runtimeAnimatorController = animatorControllers[random];
 			animatorNum = random;
 			leadLeg = Random.Range(0,2);
-			armSpeedFlex = Random.Range(.9f, 1.1f);
-			armSpeedExtend = (2f-armSpeedFlex);
-		}
-		else if(setting >= 4){
-			copyAttributesFromOther(legends.GetComponent<Legends>().legendPrefabs[setting-4], "animation properties");
+			armSpeedFlexL = Random.Range(.9f, 1.1f);
+			armSpeedExtendL = (2f-armSpeedFlexL);
+			
+			if(tag.StartsWith("Bot")){
+				armSpeedFlexR = armSpeedFlexL;
+				armSpeedExtendR = armSpeedExtendL;
+			}
+			else{
+				armSpeedFlexR = Random.Range(.9f, 1.1f);
+				armSpeedExtendR = (2f-armSpeedFlexR);
+			}
 		}
 		
 		animator.runtimeAnimatorController = animatorControllers[animatorNum];
@@ -525,26 +510,6 @@ public class PlayerAttributes : MonoBehaviour
 		leftInputPath = new int[length];
 		sphere1Prog = new float[length];
 		sphere2Prog = new float[length];
-	}
-	
-	public void setPathsFromSpecial(int setting, int raceEvent){
-		PlayerAttributes specialAtt = legends.GetComponent<Legends>().legendPrefabs[setting-4].GetComponent<SpecialAttributes>().eventAttributes[raceEvent];
-		Debug.Log("raceEvent: " + raceEvent);
-		Debug.Log("path length from special: " + specialAtt.pathLength);
-		// -----------------
-		pathLength = specialAtt.pathLength;
-		leanLockTick = specialAtt.leanLockTick;
-		velMagPath = specialAtt.velMagPath;
-		velPathX = specialAtt.velPathX;
-		velPathY = specialAtt.velPathY;
-		velPathZ = specialAtt.velPathZ;
-		posPathX = specialAtt.posPathX;
-		posPathY = specialAtt.posPathY;
-		posPathZ = specialAtt.posPathZ;
-		rightInputPath = specialAtt.rightInputPath;
-		leftInputPath = specialAtt.leftInputPath;
-		sphere1Prog = specialAtt.sphere1Prog;
-		sphere2Prog = specialAtt.sphere2Prog;
 	}
 		
 	
@@ -642,8 +607,10 @@ public class PlayerAttributes : MonoBehaviour
 		else if(whichAttributes == "animation properties"){
 			animatorNum = otherAttributes.animatorNum;
 			leadLeg = otherAttributes.leadLeg;
-			armSpeedFlex = otherAttributes.armSpeedFlex;
-			armSpeedExtend = otherAttributes.armSpeedExtend;
+			armSpeedFlexL = otherAttributes.armSpeedFlexL;
+			armSpeedExtendL = otherAttributes.armSpeedExtendL;
+			armSpeedFlexR = otherAttributes.armSpeedFlexR;
+			armSpeedExtendR = otherAttributes.armSpeedExtendR;
 		}
 	}
 	
@@ -707,7 +674,5 @@ public class PlayerAttributes : MonoBehaviour
 		return id;
 		
 	}
-	
-	
-	
+
 }

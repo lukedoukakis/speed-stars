@@ -16,7 +16,7 @@ public class TaskManager : MonoBehaviour
 	public static int SAVE_PLAYER = 6;
 	public static int SETUP_REPLAY = 7;
 	public static int SAVE_USER_PB = 8;
-	public static int SET_WR = 10;
+	public static int SET_WR_LOCAL = 10;
 	public static int DISABLE_ANIMATION_STARTSCREEN = 11;
 	
 	// -----------------

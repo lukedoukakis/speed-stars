@@ -9,15 +9,17 @@ public class LeaderboardEntryButtonController : MonoBehaviour
 	public LeaderboardManager lbm;
 	
 	public int raceEvent;
+	public string pfid;
 	public int position;
 	public string name;
 	public float score;
 	
 	
 	
-	public void init(LeaderboardManager _lbm, int _raceEvent, int _position, string _name, float _score){
+	public void init(LeaderboardManager _lbm, int _raceEvent, string _pfid, int _position, string _name, float _score){
 		this.lbm = _lbm;
 		this.raceEvent = _raceEvent;
+		this.pfid = _pfid;
 		this.position = _position;
 		this.name = _name;
 		this.score = _score;
@@ -27,7 +29,15 @@ public class LeaderboardEntryButtonController : MonoBehaviour
 	}
 	
 	public void downloadRacer(){
-		StartCoroutine(lbm.downloadRacer(this.raceEvent, this.position));
+		StartCoroutine(lbm.downloadRacer(this.raceEvent, this.pfid));
+	}
+	
+	public void updateTooltipText(){
+		lbm.updateTooltipText();
+	}
+	
+	public void hideTooltip(){
+		lbm.tooltipController.hide();
 	}
 	
     // Start is called before the first frame update

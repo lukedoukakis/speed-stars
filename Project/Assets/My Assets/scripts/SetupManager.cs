@@ -11,14 +11,15 @@ public class SetupManager : MonoBehaviour
 	public GlobalController gc;
 	public CameraController cameraController;
 	public Canvas canvas;
-	float canvasWidth;
-	float canvasHeight;
-	float screenWidth;
-	float screenHeight;
 	
 	public GameObject selectionLists;
 	public GameObject playerSelectButtonList;
 	public GameObject ghostSelectButtonList;
+	public GameObject pointerPos_100m;
+	public GameObject pointerPos_200m;
+	public GameObject pointerPos_400m;
+	public GameObject pointerPos_60m;
+	public GameObject pointer;
 	
 	// selection list locations
 	public Vector2 onScreenLocation;
@@ -43,8 +44,8 @@ public class SetupManager : MonoBehaviour
 			selectedRaceEvent = raceEvent;
 			gc.selectedRaceEvent = raceEvent;
 			toggleSelectionLists(selectedRaceEvent);
-		
-		gc.cameraController.setCameraFocusOnStart();
+			movePointer(raceEvent);
+			gc.cameraController.setCameraFocusOnStart();
 	}
 	
 	void toggleSelectionLists(int raceEvent){
@@ -71,14 +72,28 @@ public class SetupManager : MonoBehaviour
 		//Debug.Log("---");
 	}
 	
+	void movePointer(int raceEvent){
+		Transform t_button;
+		if(raceEvent == RaceManager.RACE_EVENT_100M){
+			t_button = pointerPos_100m.transform;
+		}
+		else if(raceEvent == RaceManager.RACE_EVENT_200M){
+			t_button = pointerPos_200m.transform;
+		}
+		else if(raceEvent == RaceManager.RACE_EVENT_400M){
+			t_button = pointerPos_400m.transform;
+		}
+		else if(raceEvent == RaceManager.RACE_EVENT_60M){
+			t_button = pointerPos_60m.transform;
+		}
+		else{
+			return;
+		}
+		pointer.transform.position = t_button.position;
+	}
+	
 	public void init(){
-		canvasWidth = canvas.GetComponent<RectTransform>().rect.size.x;
-		canvasHeight = canvas.GetComponent<RectTransform>().rect.size.y;
-		screenWidth = Screen.width;
-		screenHeight = Screen.height;
-		
 		incrementBotCount(7);
-		
         setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
 	}
 	

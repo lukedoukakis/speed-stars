@@ -7,14 +7,33 @@ using PlayFab.ClientModels;
 public class PlayFabManager : MonoBehaviour
 {
 	
+	// user retrieval info
+	public bool userLeaderboardInfoRetrieved;
+	public string userPlayFabId;
+	public string userDisplayName;
+	public int userPosition;
+	public int userScore;
+	public string userRacerData;
+	public string userRacerName;
+	
 	// for loading leaderboard
 	public bool leaderboardLoaded;
 	public string leaderboardString;
 	
-	// for retrieving a player data
-	public bool racerDataRetrieved;
-	public string racerDataString;
+	// for loading this user's info
+	public bool thisUserInfoRetrieved;
+	public string thisUserPlayFabId;
+	public string thisUserDisplayName;
+	public int thisUserPosition;
+	public int thisUserScore;
 	
+	
+	bool gettingUser;
+	public int selectedRaceEvent;
+	
+	
+	
+	// login user
 	public void login(){
 		LoginWithCustomIDRequest request = new LoginWithCustomIDRequest{
 			CustomId = SystemInfo.deviceUniqueIdentifier,
@@ -22,11 +41,44 @@ public class PlayFabManager : MonoBehaviour
 		};
 		PlayFabClientAPI.LoginWithCustomID(request, onLoginSuccess, onLoginError);
 	}
+	void onLoginSuccess(LoginResult result){
+		this.thisUserPlayFabId = result.PlayFabId;
+		Debug.Log("login/account create success");
+	}
+	
+	// delete user
+	public void unlinkAccount(){
+		
+		UnlinkCustomIDRequest request = new UnlinkCustomIDRequest
+		{
+			CustomId = this.thisUserPlayFabId
+		};
+		PlayFabClientAPI.UnlinkCustomID(request, onUnlinkAccountSuccess, onUnlinkAccountError);
+	}
+	void onUnlinkAccountSuccess(UnlinkCustomIDResult result){
+		Debug.Log("account unlinked");
+	}
+	void onUnlinkAccountError(PlayFabError error){
+		Debug.Log("error unlinking account");
+		error.GenerateErrorReport();
+	}
+	// -----------------
+	
+	public void setUserDisplayName(string username){
+        PlayFabClientAPI.UpdateUserTitleDisplayName(new UpdateUserTitleDisplayNameRequest
+        {
+            DisplayName = username
+        }, result =>
+        {
+            Debug.Log("The player's display name is now: " + result.DisplayName);
+        }, error => Debug.LogError("Error setting display name"));
+    }
 	
 	// -----------------
 	
 	public void sendLeaderboard(int raceEvent, float time, string racerName, string racerData){
 		
+		this.selectedRaceEvent = raceEvent;
 		string leaderboard_event = "";
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			leaderboard_event = "100m";
@@ -45,7 +97,7 @@ public class PlayFabManager : MonoBehaviour
 			Statistics = new List<StatisticUpdate>{
 				new StatisticUpdate{
 					StatisticName = leaderboard_event,
-					Value = (int)(time*100f)
+					Value = (int)(time*-100f)
 				}
 			}
 		};
@@ -53,16 +105,18 @@ public class PlayFabManager : MonoBehaviour
 		
 		UpdateUserDataRequest request2 = new UpdateUserDataRequest{
 			Data = new Dictionary<string, string>{
-				{"RacerName", racerName},
-				{"RacerData", racerData}
-			}
+				{"RacerName_" + leaderboard_event, racerName},
+				{"RacerData_" + leaderboard_event, racerData}
+			},
+			Permission = UserDataPermission.Public
 		};
 		PlayFabClientAPI.UpdateUserData(request2, onRacerDataSend, onUpdateUserDataError);
 	}
 	
 	// -----------------
-	
-	public void getLeaderboard(int raceEvent){
+	// get leaderboard for specified event, with specified start position and max entries
+	public void getLeaderboard(int raceEvent, int startPos, int maxEntries){
+		this.selectedRaceEvent = raceEvent;
 		string leaderboard_event = "";
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			leaderboard_event = "100m";
@@ -79,24 +133,28 @@ public class PlayFabManager : MonoBehaviour
 		
 		GetLeaderboardRequest request = new GetLeaderboardRequest{
 			StatisticName = leaderboard_event,
-			StartPosition = 0,
-			MaxResultsCount = 10
+			StartPosition = startPos,
+			MaxResultsCount = maxEntries
 		};
 		PlayFabClientAPI.GetLeaderboard(request, onLeaderboardGet, onLeaderboardGetError);
 	}
+	// update leaderboardString
 	void onLeaderboardGet(GetLeaderboardResult result){
 		string resultString = "";
 		foreach(var entry in result.Leaderboard){
-			resultString += entry.Position + "-" + entry.PlayFabId + "-" + entry.StatValue + ":";
+			resultString += entry.PlayFabId + "*" + entry.Position + "*" + entry.DisplayName + "*" + entry.StatValue + ":";
 		}
 		this.leaderboardString = resultString;
-		Debug.Log("PlayFabManager: Leaderboard string: " + leaderboardString);
+		//Debug.Log("PlayFabManager: Leaderboard string: " + leaderboardString);
 		leaderboardLoaded = true;
 	}
 	
 	// -----------------
-	// gets truncated leaderboard containing only the entry at the specified position, and gets the racerData of that entry
-	public void getLeaderboardEntry(int raceEvent, int position){
+
+	// get info on leaderboard for specified raceEvent for specified PlayFabId
+	public void getLeaderboardEntryInfo(int raceEvent, string pfid){
+		
+		this.selectedRaceEvent = raceEvent;
 		string leaderboard_event = "";
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			leaderboard_event = "100m";
@@ -111,28 +169,54 @@ public class PlayFabManager : MonoBehaviour
 			leaderboard_event = "60m";
 		}
 		
-		GetLeaderboardRequest request = new GetLeaderboardRequest{
+		GetLeaderboardAroundPlayerRequest request = new GetLeaderboardAroundPlayerRequest{
+			PlayFabId = pfid,
 			StatisticName = leaderboard_event,
-			StartPosition = position,
-			MaxResultsCount = 2
+			MaxResultsCount = 1
 		};
-		PlayFabClientAPI.GetLeaderboard(request, onLeaderboardEntryGet, onLeaderboardGetError);
+		
+		PlayFabClientAPI.GetLeaderboardAroundPlayer(request, onLeaderboardEntryGet, onLeaderboardGetError);
 	}
-	// set racerDataString to racerData at first leaderboard entry
-	void onLeaderboardEntryGet(GetLeaderboardResult result){
+	// set info
+	void onLeaderboardEntryGet(GetLeaderboardAroundPlayerResult result){
+		
+		string leaderboard_event = "";
+		if(this.selectedRaceEvent == RaceManager.RACE_EVENT_100M){
+			leaderboard_event = "100m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_200M){
+			leaderboard_event = "200m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_400M){
+			leaderboard_event = "400m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_60M){
+			leaderboard_event = "60m";
+		}
+		
 		PlayerLeaderboardEntry entry = result.Leaderboard[0];
-		string id = entry.PlayFabId;
-		//Debug.Log("PlayFabId: " + id);
+		this.userPlayFabId = entry.PlayFabId;
+		this.userDisplayName = entry.DisplayName;
+		this.userPosition = entry.Position;
+		this.userScore = entry.StatValue;
 		PlayFabClientAPI.GetUserData(new GetUserDataRequest() {
-			PlayFabId = id,
+			PlayFabId = entry.PlayFabId,
+			//Keys = new List<string>{"RacerData_" + leaderboard_event, "RacerName_" + leaderboard_event}
 			Keys = null
-		}, dataResult => {
-			if(dataResult.Data == null){
+		}, titleDataResult => {
+			if(titleDataResult.Data == null){
 				Debug.Log("No RacerData found");
 			}
-			racerDataString = dataResult.Data["RacerData"].Value;
-			//Debug.Log("racerData: " + racerDataString);
-			racerDataRetrieved = true;
+			try{
+				userRacerData = titleDataResult.Data["RacerData_" + leaderboard_event].Value;
+				userRacerName = titleDataResult.Data["RacerName_" + leaderboard_event].Value;
+			}
+			catch(System.Exception e){
+				userRacerData = "Not set";
+				userRacerName = "Not set";
+				Debug.Log(e.ToString());
+			}
+			userLeaderboardInfoRetrieved = true;
 		}, (error) => {
 			Debug.Log("Error retrieving RacerData:");
 			Debug.Log(error.GenerateErrorReport());
@@ -141,14 +225,79 @@ public class PlayFabManager : MonoBehaviour
 	
 	// -----------------
 	
-	void onLoginSuccess(LoginResult result){
-		Debug.Log("login/account create success");
+	// gets info on this user for current selectedRaceEvent
+	public void getThisUserLeaderboardInfo(){
+		
+		//Debug.Log("PlayFabManager: Getting this user info...");
+		
+		string leaderboard_event = "";
+		if(this.selectedRaceEvent == RaceManager.RACE_EVENT_100M){
+			leaderboard_event = "100m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_200M){
+			leaderboard_event = "200m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_400M){
+			leaderboard_event = "400m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_60M){
+			leaderboard_event = "60m";
+		}
+		GetLeaderboardAroundPlayerRequest request = new GetLeaderboardAroundPlayerRequest{
+			PlayFabId = thisUserPlayFabId,
+			StatisticName = leaderboard_event,
+			MaxResultsCount = 1
+		};
+		PlayFabClientAPI.GetLeaderboardAroundPlayer(request, onThisUserLeaderboardInfoGet, onLeaderboardGetError);
 	}
+	// set info
+	void onThisUserLeaderboardInfoGet(GetLeaderboardAroundPlayerResult result){
+		
+		string leaderboard_event = "";
+		if(this.selectedRaceEvent == RaceManager.RACE_EVENT_100M){
+			leaderboard_event = "100m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_200M){
+			leaderboard_event = "200m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_400M){
+			leaderboard_event = "400m";
+		}
+		else if(this.selectedRaceEvent == RaceManager.RACE_EVENT_60M){
+			leaderboard_event = "60m";
+		}
+		
+		PlayerLeaderboardEntry entry = result.Leaderboard[0];
+		this.thisUserDisplayName = entry.DisplayName;
+		this.thisUserPosition = entry.Position;
+		this.thisUserScore = entry.StatValue;
+		thisUserInfoRetrieved = true;
+	}
+	// -----------------
+	
+	// get info on world record holder by loading leaderboard at pos 0 and getting info from that PlayFabId
+	public void getWorldRecordInfo(int raceEvent){
+		this.selectedRaceEvent = raceEvent;
+		StartCoroutine(retrieveWR(raceEvent));
+	}
+	IEnumerator retrieveWR(int raceEvent){
+		leaderboardLoaded = false;
+		getLeaderboard(raceEvent, 0, 1);
+		yield return new WaitUntil(() => leaderboardLoaded);
+		string pfid = leaderboardString.Split('*')[0];
+		userLeaderboardInfoRetrieved = false;
+		getLeaderboardEntryInfo(raceEvent, pfid);
+		yield return new WaitUntil(() => userLeaderboardInfoRetrieved);
+	}
+	
+	
+	
+	// -----------------
 	void onLeaderboardSend(UpdatePlayerStatisticsResult result){
-		Debug.Log("successful leaderboard send");
+		//Debug.Log("successful leaderboard send");
 	}
 	void onRacerDataSend(UpdateUserDataResult result){
-		Debug.Log("successful racer data send");
+		//Debug.Log("successful racer data send");
 	}
 	
 	void onLoginError(PlayFabError error){

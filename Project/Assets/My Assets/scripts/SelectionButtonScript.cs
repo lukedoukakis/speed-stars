@@ -137,7 +137,18 @@ public class SelectionButtonScript : MonoBehaviour
 	
 	
 	public void showDeleteDialog(){
+		
+		list.ddc.list1.buttonToDelete = null;
+		list.ddc.list2.buttonToDelete = null;
+		
+		// if no ddc (ghost button list)
 		if(list.ddc == null){
+			removeThisButtonAndForgetAssociatedRacer();
+			return;
+		}
+		
+		// don't allow if only button available
+		if(list.buttonIDs.Count <= 1){
 			return;
 		}
 		
@@ -156,10 +167,5 @@ public class SelectionButtonScript : MonoBehaviour
 	public void init(SelectionListScript s){
 		list = s;
 		transform.SetParent(list.grid.transform, false);
-		
-		if(list == list.gc.ghostSelectButtonList){
-			transform.Find("Delete Button").gameObject.SetActive(false);
-		}
-		
 	}
 }

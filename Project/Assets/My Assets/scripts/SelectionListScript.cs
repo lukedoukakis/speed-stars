@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class SelectionListScript : MonoBehaviour
 {
 	public GlobalController gc;
+	
 	public GameObject selectionButtonPrefab;
 	public GameObject grid;
 	public List<string> buttonIDs;
@@ -30,10 +31,7 @@ public class SelectionListScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		numSelected = 0;
-		if(previewRacer != null){
-			previewRacer.GetComponent<PlayerAnimationV2>().setIdle();
-		}
+	
     }
 
     // Update is called once per frame
@@ -68,7 +66,7 @@ public class SelectionListScript : MonoBehaviour
 		buttonScript.setFromRacer(id, raceEvent);
 		// -----------------
 		buttonIDs.Add(id);
-		
+	
 		return button;
 	}
 	
@@ -127,9 +125,6 @@ public class SelectionListScript : MonoBehaviour
 		att.setBodyProportions(PlayerAttributes.FROM_THIS);
 		att.setStats(PlayerAttributes.FROM_THIS);
 		
-		//att.renderInForeground();
-		previewRacer.transform.position = previewPlatform.transform.position + Vector3.up*.3f;
-		previewRacer.GetComponent<PlayerAnimationV2>().energy = 100f;
 		Destroy(temp);
 	
 	}
@@ -168,7 +163,6 @@ public class SelectionListScript : MonoBehaviour
 		if(replaceLastSelection){
 			setPreviewRacerVisibility();
 		}
-		previewRacer.GetComponent<EnergyMeterController>().enabled = false;
 	}
 	
 	public void setPreviewRacerVisibility(){
@@ -180,8 +174,12 @@ public class SelectionListScript : MonoBehaviour
 	}
 	
 	public void deleteButtonToDelete(){
-		buttonToDelete.removeThisButtonAndForgetAssociatedRacer();
-		ddc.hide();
+		if(buttonToDelete != null){
+			buttonToDelete.removeThisButtonAndForgetAssociatedRacer();
+		}
+		if(ddc != null){
+			ddc.hide();
+		}
 	}
 	
 }

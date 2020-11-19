@@ -5,10 +5,12 @@ using UnityEngine.UI;
 
 public class MusicManager : MonoBehaviour
 {
+	public GlobalController gc;
 	
 	public Button audioButton;
 	public Sprite audio_on;
 	public Sprite audio_off;
+	public Slider audioSlider;
 	
 	
 	public AudioClip[] playlist;
@@ -30,7 +32,7 @@ public class MusicManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+   	 
     }
 	
 	public void play(){
@@ -53,7 +55,7 @@ public class MusicManager : MonoBehaviour
 		audio.Play();
 	}
 	
-	public void toggleSound(){
+	public void toggleMusic(){
 		if(sound){
 			mute();
 		}
@@ -62,16 +64,27 @@ public class MusicManager : MonoBehaviour
 		}
 	}
 	
+	public void setVolume(float v){
+		volume = v;
+		audio.volume = v;
+		
+		gc.audioController.setVolume(v);
+	}
+	
+	public void setVolumeFromSlider(){
+		setVolume(audioSlider.value/4f);
+	}
+	
 	public void mute(){
-		audio.volume = 0f;
+		setVolume(0f);
 		sound = false;
 		audioButton.image.sprite = audio_off;
 	}
 	
 	public void unmute(){
-		audio.volume = volume;
-		audioButton.image.sprite = audio_on;
+		setVolumeFromSlider();
 		sound = true;
+		audioButton.image.sprite = audio_on;
 	}
 	
 	
@@ -90,8 +103,9 @@ public class MusicManager : MonoBehaviour
 		}
 		
 		trackIndex = 0;
-		volume = .2f;
 		sound = true;
+		
+		setVolume(.01f);
 		
 		play();
 		

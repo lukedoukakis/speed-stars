@@ -413,6 +413,7 @@ public class GlobalController : MonoBehaviour
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			StopCoroutine(raceManager.falseStart());
 			countdownController.showCountdownText();
+			audioController.playSound(AudioController.VOICE_READY, 0f);
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			countdownController.hideCountdownText();

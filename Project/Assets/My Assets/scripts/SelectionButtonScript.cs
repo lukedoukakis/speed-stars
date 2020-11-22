@@ -89,6 +89,9 @@ public class SelectionButtonScript : MonoBehaviour
 				}
 				selected = true;
 			}
+			if(list.pa != null){
+				list.pa.resetPos();
+			}
 		}
 		// if trying to deselect, deselect if numSelected greater than minSelectable, otherwise do nothing
 		else{
@@ -110,8 +113,15 @@ public class SelectionButtonScript : MonoBehaviour
 				//list.gc.setupManager.botCountText.text = list.gc.setupManager.botCount.ToString();
 			}
 		}
-		if(list.replaceLastSelection){
-			list.setPreviewRacerVisibility();
+		if(list.numSelected == 0){
+			if(list.pa != null){
+				list.pa.setVisibility(false);
+			}
+		}else{
+			if(list.pa != null){
+				list.pa.setVisibility(true);
+				list.pa.land();
+			}
 		}
 	}
 	
@@ -137,9 +147,6 @@ public class SelectionButtonScript : MonoBehaviour
 	
 	
 	public void showDeleteDialog(){
-		
-		list.ddc.list1.buttonToDelete = null;
-		list.ddc.list2.buttonToDelete = null;
 		
 		// if no ddc (ghost button list)
 		if(list.ddc == null){

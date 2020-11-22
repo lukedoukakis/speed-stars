@@ -21,7 +21,7 @@ public class SelectionListScript : MonoBehaviour
 	public string sourceMemory;
 	
 	public GameObject previewRacer;
-	public GameObject previewPlatform;
+	public PreviewRacerAnimation pa;
 	
 	public GameObject deleteDialog;
 	public DeleteDialogController ddc;
@@ -157,19 +157,11 @@ public class SelectionListScript : MonoBehaviour
 					if(_showIfNoTime || PlayerPrefs.GetString(playerID).Split(':')[3 + _raceEvent] != "-1"){
 						button = addButton(playerID, _raceEvent, buttonColor);
 					}
+					if(pa != null){
+						pa.setVisibility(false);
+					}
 				}
 			}
-		}
-		if(replaceLastSelection){
-			setPreviewRacerVisibility();
-		}
-	}
-	
-	public void setPreviewRacerVisibility(){
-		if(numSelected == 0){
-			previewRacer.SetActive(false);
-		}else{
-			previewRacer.SetActive(true);
 		}
 	}
 	

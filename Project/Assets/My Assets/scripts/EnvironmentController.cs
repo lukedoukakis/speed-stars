@@ -9,6 +9,7 @@ public class EnvironmentController : MonoBehaviour
 	[SerializeField] Color[] ambientColors;
 	[SerializeField] Color[] trackColors;
 	[SerializeField] Transform[] lightPositions;
+	[SerializeField] float[] lightIntensities;
 	
 	[SerializeField] Material trackMaterial;
 	[SerializeField] Light light;
@@ -38,6 +39,7 @@ public class EnvironmentController : MonoBehaviour
 		setSkybox(theme);
 		setTrackColor(theme);
 		setLightPosition(theme);
+		setLightIntensity(theme);
 		PlayerPrefs.SetInt("Theme", theme);
 	}
 	void setSkybox(int theme){
@@ -51,6 +53,9 @@ public class EnvironmentController : MonoBehaviour
 	}
 	void setLightPosition(int theme){
 		light.transform.position = lightPositions[theme].position;
+	}
+	void setLightIntensity(int theme){
+		light.intensity = lightIntensities[theme];
 	}
 	
 	

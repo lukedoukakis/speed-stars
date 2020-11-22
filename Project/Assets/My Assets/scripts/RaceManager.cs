@@ -20,6 +20,7 @@ public class RaceManager : MonoBehaviour
 	public CameraController cameraController;
 	public FinishLineController finishLineController;
 	public Text resultsText;
+	public GameObject gameCamera;
 	// -----------------
 	public int raceEvent;
 	public int viewMode;
@@ -150,7 +151,7 @@ public class RaceManager : MonoBehaviour
 						if(racer.tag == "Bot"){
 							a = transparency_bot_base;
 							if(i >= playerLane){
-								float distance = Mathf.Min(Vector3.Distance(racer.transform.position, player.transform.position), Vector3.Distance(racer.transform.position, cameraController.camera.transform.position));
+								float distance = Mathf.Abs(gameCamera.transform.InverseTransformDirection(racer.transform.position - player.transform.position).x);
 								if(distance < 3f){
 									setTrans = true;
 									a *= (distance/3f);
@@ -317,7 +318,7 @@ public class RaceManager : MonoBehaviour
 				botEmcs[botCount] = emc;
 				botAIs[botCount] = ai;
 				botCount++;
-				setTransparency(racer, transparency_bot_base);
+				//setTransparency(racer, transparency_bot_base);
 			}
 			else if(racer.tag == "Ghost"){
 				ghosts.Add(racer);
@@ -328,7 +329,7 @@ public class RaceManager : MonoBehaviour
 				ghostOcs[ghostCount] = oc;
 				ghostEmcs[ghostCount] = emc;
 				ghostCount++;
-				setTransparency(racer, transparency_ghost_base);
+				//setTransparency(racer, transparency_ghost_base);
 			}
 				
 			racers.Add(racer);
@@ -356,7 +357,7 @@ public class RaceManager : MonoBehaviour
 		}
 		if(viewMode == VIEW_MODE_REPLAY){
 			player = racers[gc.playerIndex];
-			setTransparency(player, 1f);
+			//setTransparency(player, 1f);
 			Time.timeScale = 4f;
 		}
 		// -----------------
@@ -516,8 +517,8 @@ public class RaceManager : MonoBehaviour
 		if(!fStart){
 			raceStarted = true;
 			if(viewMode == VIEW_MODE_LIVE){
-				gc.audioController.playSound(AudioController.GUNSHOT);
-				gc.audioController.playSound(AudioController.CHEERING);
+				gc.audioController.playSound(AudioController.GUNSHOT, 0f);
+				gc.audioController.playSound(AudioController.CHEERING, 0f);
 			}
 		}
 	}
@@ -585,7 +586,7 @@ public class RaceManager : MonoBehaviour
 							att.resultTag = "<color=red>WR</color>";
 						}
 						else{
-							att.resultTag = "<color=orange>LR</color>";
+							att.resultTag = "<color=orange>SR</color>";
 						}
 					}
 					else{
@@ -601,7 +602,7 @@ public class RaceManager : MonoBehaviour
 		att.finishTime = t;
 		att.pathLength = raceTick;
 		att.resultString = "<color="+ att.resultColor+">" + att.racerName + "</color>" + "  " + t.ToString("F2") + "  " + att.resultTag;
-		resultsText.text += "\n  " + (racersFinished) + "  " + att.resultString;
+		resultsText.text += "\n " + (racersFinished) + "  " + att.resultString;
 		// -----------------
 		StartCoroutine(anim.pop(.5f));
 
@@ -636,7 +637,8 @@ public class RaceManager : MonoBehaviour
 			}
 			if(!playerAnim.upInSet){
 				if(viewMode == VIEW_MODE_LIVE){
-					gc.audioController.playSound(AudioController.BLOCK_RATTLE);
+					gc.audioController.playSound(AudioController.BLOCK_RATTLE, 0f);
+					gc.audioController.playSound(AudioController.VOICE_SET, 0f);
 				}
 			}
 			playerAnim.upInSet = true;
@@ -747,7 +749,7 @@ public class RaceManager : MonoBehaviour
 		wr_leaderboard_racerName = gc.playfabManager.userRacerName;
 		string s = raceEvent_string + " Dash Finals\n==========================\nWorld Record: <color=red>" + (wr_leaderboard_time) + "</color> " + wr_leaderboard_racerName;
 		if(wr_local_racerName != "None"){
-			s += "\nLocal Record: <color=orange>" + (wr_local_time.ToString("F2")) + "</color> " + wr_local_racerName;
+			s += "\nStadium Record: <color=orange>" + (wr_local_time.ToString("F2")) + "</color> " + wr_local_racerName;
 		}
 		s += "\n\n==========================\n\nFinals";
 		resultsText.text = s;

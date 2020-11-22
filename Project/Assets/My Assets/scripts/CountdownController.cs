@@ -47,18 +47,22 @@ public class CountdownController : MonoBehaviour
 		
 		finished = false;
 		
-		y = 240f;
+		y = 340f;
 		targetY = 0f;
 		state = MARKS;
+		countdownText0.fontSize = 42f;
+		countdownText1.fontSize = 42f;
 		countdownText0.text = strings[0];
 		countdownText1.text = strings[0];
 		yield return new WaitForSeconds(1.5f);
 		targetY = -600f;
 		yield return new WaitForSeconds(1.5f);
 		
-		y = 240f;
+		y = 340f;
 		targetY = 0f;
 		state = SET;
+		countdownText0.fontSize = 60f;
+		countdownText1.fontSize = 60f;
 		countdownText0.text = strings[1];
 		countdownText1.text = strings[1];
 		yield return new WaitForSeconds(2f);
@@ -72,7 +76,7 @@ public class CountdownController : MonoBehaviour
 	IEnumerator moveText(){
 		
 		while(!finished){
-			y = Mathf.Lerp(y, targetY, 7f*Time.deltaTime);
+			y = Mathf.Lerp(y, targetY, 8f*Time.deltaTime);
 			countdownTransform.position = new Vector3(countdownTransform.position.x, y, countdownTransform.position.z);
 			yield return null;
 		}

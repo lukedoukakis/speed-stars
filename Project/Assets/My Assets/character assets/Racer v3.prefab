@@ -831,6 +831,7 @@ MonoBehaviour:
   - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
   headbandMeshes:
   - {fileID: 4300016, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
+  - {fileID: 4300034, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
   - {fileID: 4300022, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}
   sleeveMeshes:
   - {fileID: 4300020, guid: d73001d2f91056e43a7d3ac7abe5a0da, type: 3}

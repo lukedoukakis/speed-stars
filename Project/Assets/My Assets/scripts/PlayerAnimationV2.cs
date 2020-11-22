@@ -660,7 +660,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 		if(isPlayer){ 
 			if(raceManager.viewMode == RaceManager.VIEW_MODE_LIVE){
-				globalController.audioController.playSound(AudioController.BLOCK_EXIT);
+				globalController.audioController.playSound(AudioController.BLOCK_EXIT, 0f);
 			}
 		}
 		

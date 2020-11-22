@@ -9,6 +9,7 @@ public class ClothingPicker : MonoBehaviour
 	public GameObject previewRacer;
 	
 	public PlayerAttributes att;
+	public PreviewRacerAnimation pa;
 	public ClothingManager clothingManager;
 	
 	public Button buttonDummy_prev;
@@ -125,5 +126,13 @@ public class ClothingPicker : MonoBehaviour
 		PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
 		// -----------------
 		att.setBodyProportions(PlayerAttributes.RANDOM);
+	}
+	
+	public void previewResetPos(){
+		pa.resetPos();
+	}
+	
+	public void previewLand(){
+		pa.land();
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class AudioController : MonoBehaviour
@@ -10,15 +11,17 @@ public class AudioController : MonoBehaviour
 	public static int BLOCK_RATTLE = 1;
 	public static int BLOCK_EXIT= 2;
 	public static int CHEERING = 3;
+	public static int VOICE_READY = 4;
+	public static int VOICE_SET = 5;
 	
 	public float soundVolume;
 	
-	public void playSound(int soundIndex){
-		audioSources[soundIndex].Play(0);
+	public void playSound(int soundIndex, float delay){
+		audioSources[soundIndex].PlayDelayed(Convert.ToUInt64(delay));
 	}
 	
 	public void setVolume(float vol){
-		soundVolume = vol*3f;
+		soundVolume = vol*5f;
 		foreach(AudioSource audio in audioSources){
 			audio.volume = soundVolume;
 		}

@@ -96,6 +96,8 @@ ModelImporter:
     100180: Hair_base
     100182: Head_base
     100184: Hair_0
+    100186: Hat_backwards
+    100188: Hat_base
     400000: Armature
     400002: ArmSleeve_double
     400004: ArmSleeve_single
@@ -189,6 +191,8 @@ ModelImporter:
     400180: Hair_base
     400182: Head_base
     400184: Hair_0
+    400186: Hat_backwards
+    400188: Hat_base
     2100000: Dummy_material
     2300000: Empty
     2300002: Top_loose
@@ -210,6 +214,8 @@ ModelImporter:
     4300026: Head_base
     4300028: Hair_base
     4300030: Hair_0
+    4300032: Hat_base
+    4300034: Hat_backwards
     9500000: //RootNode
     13700000: ArmSleeve_double
     13700002: ArmSleeve_single
@@ -225,6 +231,8 @@ ModelImporter:
     13700022: Hair_base
     13700024: Head_base
     13700026: Hair_0
+    13700028: Hat_backwards
+    13700030: Hat_base
     2186277476908879412: ImportLogs
   externalObjects: {}
   materials:

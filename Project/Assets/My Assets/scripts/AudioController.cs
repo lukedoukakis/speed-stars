@@ -25,6 +25,7 @@ public class AudioController : MonoBehaviour
 		foreach(AudioSource audio in audioSources){
 			audio.volume = soundVolume;
 		}
+		PlayerPrefs.SetFloat("Audio Volume", vol);
 	}
 	
 	public void easeSoundVolume(int soundIndex, float vol){

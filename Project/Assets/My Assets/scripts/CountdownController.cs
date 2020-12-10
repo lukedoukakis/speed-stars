@@ -58,6 +58,10 @@ public class CountdownController : MonoBehaviour
 		targetY = -600f;
 		yield return new WaitForSeconds(1.5f);
 		
+		while(raceManager.gc.tipsManager.isShowing){
+			yield return null;
+		}
+		
 		y = 340f;
 		targetY = 0f;
 		state = SET;

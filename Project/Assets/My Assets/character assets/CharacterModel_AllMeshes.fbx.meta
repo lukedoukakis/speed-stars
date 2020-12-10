@@ -98,6 +98,22 @@ ModelImporter:
     100184: Hair_0
     100186: Hat_backwards
     100188: Hat_base
+    100190: B-f_index_03_L_end_end
+    100192: B-f_index_03_R_end_end
+    100194: B-f_middle_03_L_end_end
+    100196: B-f_middle_03_R_end_end
+    100198: B-f_pinky_03_L_end_end
+    100200: B-f_pinky_03_R_end_end
+    100202: B-f_ring_03_L_end_end
+    100204: B-f_ring_03_R_end_end
+    100206: B-head_end_end
+    100208: B-thumb_03_L_end_end
+    100210: B-thumb_03_R_end_end
+    100212: B-toe_L_end_end
+    100214: B-toe_R_end_end
+    100216: Bottoms_veryShort
+    100218: Top_shortLoose
+    100220: Watch
     400000: Armature
     400002: ArmSleeve_double
     400004: ArmSleeve_single
@@ -193,6 +209,22 @@ ModelImporter:
     400184: Hair_0
     400186: Hat_backwards
     400188: Hat_base
+    400190: B-f_index_03_L_end_end
+    400192: B-f_index_03_R_end_end
+    400194: B-f_middle_03_L_end_end
+    400196: B-f_middle_03_R_end_end
+    400198: B-f_pinky_03_L_end_end
+    400200: B-f_pinky_03_R_end_end
+    400202: B-f_ring_03_L_end_end
+    400204: B-f_ring_03_R_end_end
+    400206: B-head_end_end
+    400208: B-thumb_03_L_end_end
+    400210: B-thumb_03_R_end_end
+    400212: B-toe_L_end_end
+    400214: B-toe_R_end_end
+    400216: Bottoms_veryShort
+    400218: Top_shortLoose
+    400220: Watch
     2100000: Dummy_material
     2300000: Empty
     2300002: Top_loose
@@ -216,6 +248,9 @@ ModelImporter:
     4300030: Hair_0
     4300032: Hat_base
     4300034: Hat_backwards
+    4300036: Bottoms_veryShort
+    4300038: Top_shortLoose
+    4300040: Watch
     9500000: //RootNode
     13700000: ArmSleeve_double
     13700002: ArmSleeve_single
@@ -233,6 +268,9 @@ ModelImporter:
     13700026: Hair_0
     13700028: Hat_backwards
     13700030: Hat_base
+    13700032: Bottoms_veryShort
+    13700034: Top_shortLoose
+    13700036: Watch
     2186277476908879412: ImportLogs
   externalObjects: {}
   materials:

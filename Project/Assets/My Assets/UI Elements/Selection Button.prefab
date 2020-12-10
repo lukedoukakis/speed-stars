@@ -36,8 +36,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 223, y: 0.00000453}
-  m_SizeDelta: {x: 50, y: 42.8}
+  m_AnchoredPosition: {x: 229.3, y: 0.00000453}
+  m_SizeDelta: {x: 62.7, y: 42.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1818199736562237784
 CanvasRenderer:
@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 3768461046171081500}
   - component: {fileID: 3768461046171081503}
   - component: {fileID: 4766460402610968291}
+  - component: {fileID: 7671070878763954036}
   m_Layer: 5
   m_Name: Selection Button
   m_TagString: Untagged
@@ -298,11 +299,11 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 0
+  m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.7254902, g: 0.39215687, b: 0.5058824, a: 1}
-    m_HighlightedColor: {r: 0.8039216, g: 0.7137255, b: 0.8117647, a: 1}
-    m_PressedColor: {r: 0.8039216, g: 0.7137255, b: 0.8117647, a: 1}
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
+    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -366,8 +367,53 @@ MonoBehaviour:
   list: {fileID: 0}
   selected: 0
   id: 
-  name: 
+  racerName: 
+  displayName: 
   time: 
+--- !u!114 &7671070878763954036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3768461046171081497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1862395651, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 4766460402610968291}
+          m_MethodName: showTooltip
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 4766460402610968291}
+          m_MethodName: hideTooltip
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  delegates: []
 --- !u!1 &4225953929871627221
 GameObject:
   m_ObjectHideFlags: 0

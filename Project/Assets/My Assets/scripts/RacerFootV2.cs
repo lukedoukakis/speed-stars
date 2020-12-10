@@ -132,9 +132,7 @@ public class RacerFootV2 : MonoBehaviour
 		// -----------------
 		if(g.tag.StartsWith("Ground")){
 			groundContact = true;
-		}
-		if(animation.mode == 2){
-			if(g.tag.StartsWith("Ground")){
+			if(animation.mode == 2){
 				touchDown = false;
 			}
 		}

@@ -7,22 +7,12 @@ public class FinishLineController : MonoBehaviour
 	
 	public RaceManager raceManager;
 	public ParticleSystem yayParticles;
+	public bool isActive;
 	
 	int finishers;
 	
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-	
 	public void init(){
+		isActive = false;
 		finishers = 0;
 	}
 	
@@ -30,15 +20,17 @@ public class FinishLineController : MonoBehaviour
 		GameObject g = col.gameObject;
 		if(g.tag == "Chest"){
 			GameObject racer = g.transform.parent.parent.parent.parent.parent.parent.parent.gameObject;
-			if(raceManager.raceTick > 500f){
-				raceManager.addFinisher(racer);
-				if(finishers == 0){
-					if(racer == raceManager.player){
-						yayParticles.transform.position = racer.transform.position;
-						yayParticles.Play();
+			if(raceManager.raceTime > 5f){
+				if(racer == raceManager.player){
+					if(isActive){
+						raceManager.addFinisher(racer);
+						finishers++;
 					}
 				}
-				finishers++;
+				else{
+					raceManager.addFinisher(racer);
+					finishers++;
+				}
 			}
 		}
 	}

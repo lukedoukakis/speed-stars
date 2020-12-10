@@ -15,7 +15,6 @@ public class MusicManager : MonoBehaviour
 	
 	public AudioClip[] playlist;
 	public List<AudioClip> tracks;
-	public AudioClip firstPlayTrack;
 	
 	int trackIndex;
 	public bool sound;
@@ -72,7 +71,7 @@ public class MusicManager : MonoBehaviour
 	}
 	
 	public void setVolumeFromSlider(){
-		setVolume(audioSlider.value/4f);
+		setVolume(audioSlider.value);
 	}
 	
 	public void mute(){
@@ -88,26 +87,27 @@ public class MusicManager : MonoBehaviour
 	}
 	
 	
-	public void init(bool firstPlay){
+	public void init(float vol, bool intro){
 		int tracksLength = tracks.Count;
 		playlist = new AudioClip[tracksLength];
-		int randIndex;
+		
+		int index;
 		for(int i = 0; i < tracksLength; i++){
-			randIndex = Random.Range(0, tracks.Count);
-			playlist[i] = tracks[randIndex];
-			tracks.RemoveAt(randIndex);
+			if(i == 0 && intro){
+				Debug.Log("playing first track");
+				index = 0;
+			}
+			else{
+				index = Random.Range(0, tracks.Count);
+			}
+			playlist[i] = tracks[index];
+			tracks.RemoveAt(index);
 		}
-		
-		if(firstPlay){
-			playlist[0] = firstPlayTrack;	
-		}
-		
-		trackIndex = 0;
+	
+		trackIndex = -1;
 		sound = true;
-		
-		setVolume(.01f);
-		
-		play();
-		
+		setVolume(vol);
+		audioSlider.value = vol;
+		play();	
 	}
 }

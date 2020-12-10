@@ -18,42 +18,63 @@ public class TooltipController : MonoBehaviour
 	
 	
 	public void showUnlockReq(int raceEvent){
-		if(raceEvent == RaceManager.RACE_EVENT_200M){
+		if(raceEvent == RaceManager.RACE_EVENT_100M){
+			if(gc.unlockManager.rank_100m > UnlockManager.NONE){
+				show(-1f);
+				setText(gc.unlockManager.getCurrentRankString(raceEvent));
+			}
+		}
+		else if(raceEvent == RaceManager.RACE_EVENT_200M){
 			if(!gc.unlockManager.unlocked_200m){
-				show();
+				show(-1f);
 				setText(formatListToUnlockText(gc.unlockManager.unlockReqList_200m, false));
+			}
+			else{
+				if(gc.unlockManager.rank_200m > UnlockManager.NONE){
+					show(-1f);
+					setText(gc.unlockManager.getCurrentRankString(raceEvent));
+				}
 			}
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_400M){
 			if(!gc.unlockManager.unlocked_400m){
-				show();
+				show(-1f);
 				setText(formatListToUnlockText(gc.unlockManager.unlockReqList_400m, false));
+			}
+			else{
+				if(gc.unlockManager.rank_400m > UnlockManager.NONE){
+					show(-1f);
+					setText(gc.unlockManager.getCurrentRankString(raceEvent));
+				}
 			}
 		}
 		else if(raceEvent == RaceManager.RACE_EVENT_60M){
 			if(!gc.unlockManager.unlocked_60m){
-				show();
+				show(-1f);
 				setText(formatListToUnlockText(gc.unlockManager.unlockReqList_60m, false));
+			}
+			else{
+				if(gc.unlockManager.rank_100m > UnlockManager.NONE){
+					show(-1f);
+					setText(gc.unlockManager.getCurrentRankString(raceEvent));
+				}
 			}
 		}
 	}
 	
 	public void showUnlockReq(string thingToUnlock){
 		if(thingToUnlock == "Character Slot"){
-			show();
-			if(gc.unlockManager.characterSlots < 1){
-				setText(formatListToUnlockText(gc.unlockManager.unlockReqList_characterSlot, true));
-			}
-			else{
-				setText("Slots: " + gc.unlockManager.characterSlots);
-			}
+			show(-1f);
+			string s = "Slots: " + gc.unlockManager.characterSlots;
+			s += "\n\n" + formatListToUnlockText(gc.unlockManager.unlockReqList_characterSlot, true);
+			setText(s);
 		}
 	}
 	
 	string formatListToUnlockText(List<string> list, bool canSatisfyAny){
 		string str;
-		if(canSatisfyAny){ str = "To unlock, achieve any:"; }
-		else{ str = "To unlock, achieve:"; }
+		if(canSatisfyAny){ str = "Unlock by getting:"; }
+		else{ str = "Unlock by getting:"; }
 		for(int i = 0; i < list.Count; i++){
 			str += "\n - "+list[i];
 		}
@@ -68,14 +89,21 @@ public class TooltipController : MonoBehaviour
 		backgroundImageT.sizeDelta = textSize + padding;
 	}
 	
-	public void show(){
+	public void show(float time){
 		text.enabled = true;
 		backgroundImage.enabled = true;
+		if(time > -1f){
+			StartCoroutine(hideAfterDelay(time));
+		}
 	}
 	
 	public void hide(){
 		text.enabled = false;
 		backgroundImage.enabled = false;
+	}
+	IEnumerator hideAfterDelay(float time){
+		yield return new WaitForSeconds(time);
+		hide();
 	}
 	
 	

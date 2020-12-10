@@ -34,6 +34,12 @@ public class EnvironmentController : MonoBehaviour
 		if(currentTheme >= skyboxMaterials.Length){ currentTheme = 0; }
 		setTheme(currentTheme);
 	}
+	public void prevTheme(){
+		currentTheme--;
+		if(currentTheme < 0){ currentTheme = skyboxMaterials.Length-1; }
+		setTheme(currentTheme);
+	}
+	
 	
 	public void setTheme(int theme){
 		setSkybox(theme);

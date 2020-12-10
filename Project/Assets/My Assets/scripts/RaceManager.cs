@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class RaceManager : MonoBehaviour
 {
@@ -19,8 +20,10 @@ public class RaceManager : MonoBehaviour
 	public GlobalController gc;
 	public CameraController cameraController;
 	public FinishLineController finishLineController;
+	public CheckpointController checkpointController;
 	public Text resultsText;
 	public GameObject gameCamera;
+	public GameObject cameraButton;
 	// -----------------
 	public int raceEvent;
 	public int viewMode;
@@ -34,16 +37,18 @@ public class RaceManager : MonoBehaviour
 	public bool raceStarted;
 	public float raceTime;
 	public int raceTick;
+	public bool cancelSaveGhost;
 	public bool playerFinished;
 	public bool allRacersFinished;
-	public bool playerPB;
+	public bool racerPB;
+	public float racerPB_time;
 	public bool userPB;
 	public float userPB_time;
 	public bool playerWR;
-	public float wr_local_time;
-	public string wr_local_racerName;
-	public float wr_leaderboard_time;
-	public string wr_leaderboard_racerName;
+	public float userRecord_time;
+	public string userRecord_name;
+	public float wr_time;
+	public string wr_name;
 	public string raceEvent_string;
 	// -----------------
 	public GameObject player_backEnd;
@@ -78,13 +83,13 @@ public class RaceManager : MonoBehaviour
 	public GameObject curve1_sphere;
 	public GameObject curve2_sphere;
 	// -----------------
-	public Text speedometer;
-	public Text clock;
+	public TextMeshProUGUI speedText;
+	public TextMeshProUGUI clockText;
 		TimeSpan timeSpan;
 		int minutes;
 		int seconds;
 		int milliseconds;
-	public Image speedImage;
+	public Image energyUIImage;
 	// -----------------
 	public int racerCount;
 	public int playerCount;
@@ -138,10 +143,25 @@ public class RaceManager : MonoBehaviour
 	void Update(){
 
 		if(raceStatus < STATUS_FINISHED){
+			
+			if(raceStatus >= STATUS_GO){
+				raceTime += Time.deltaTime;
+			}
 			updateSpeedometer();
-		
+			
+			if(Input.GetKeyDown(KeyCode.C)){
+				cameraController.cycleCameraMode(viewMode);
+			}
+			
+			if(raceTime >= 90f){
+				if(!cancelSaveGhost){
+					cancelSaveGhost = true;
+					StartCoroutine(gc.showNotificationBlip("Your ghost will not be saved (too much data).", 5f));
+				}
+			}
 			
 			GameObject racer;
+			int cameraMode = cameraController.mode;
 			bool setTrans = false;
 			if(viewMode == RaceManager.VIEW_MODE_LIVE){
 				for(int i = 0; i < racers_laneOrder.Count; i++){
@@ -150,7 +170,9 @@ public class RaceManager : MonoBehaviour
 						float a = 1f;
 						if(racer.tag == "Bot"){
 							a = transparency_bot_base;
-							if(i >= playerLane){
+							
+							bool sandwiched = (cameraMode == CameraController.SIDE_RIGHT && i >= playerLane) || (cameraMode == CameraController.SIDE_LEFT && i < playerLane);
+							if(sandwiched){
 								float distance = Mathf.Abs(gameCamera.transform.InverseTransformDirection(racer.transform.position - player.transform.position).x);
 								if(distance < 3f){
 									setTrans = true;
@@ -163,7 +185,8 @@ public class RaceManager : MonoBehaviour
 						}
 						else if(racer.tag == "Ghost"){
 							a = transparency_ghost_base;
-							if(i >= playerLane){
+							bool sandwiched = (cameraMode == CameraController.SIDE_RIGHT && i >= playerLane) || (cameraMode == CameraController.SIDE_LEFT && i < playerLane);
+							if(sandwiched){
 								float distance = Mathf.Min(Vector3.Distance(racer.transform.position, player.transform.position), Vector3.Distance(racer.transform.position, cameraController.camera.transform.position));
 								if(distance < 3f){
 									setTrans = true;
@@ -193,11 +216,14 @@ public class RaceManager : MonoBehaviour
 				}
 			}
 			if(raceStatus >= STATUS_GO){
-			raceTime += 1f * Time.deltaTime;
-			raceTick++;
-		}
+				raceTick++;
+			}
 		}
     }
+	
+	public void init(){
+		raceStatus = STATUS_INACTIVE;
+	}
 	
 	public void setRaceEvent(int e){
 		raceEvent = e;
@@ -217,13 +243,13 @@ public class RaceManager : MonoBehaviour
 		raceStarted = false;
 		raceTime = 0f;
 		raceTick = 0;
+		cancelSaveGhost = false;
 		playerFinished = false;
 		allRacersFinished = false;
-		playerPB = false;
+		racerPB = false;
 		userPB = false;
 		userPB_time = gc.getUserPB(raceEvent);
 		playerWR = false;
-		StartCoroutine(setResultSheetHeader());
 		// -----------------
 		racerCount = 0;
 		playerCount = 0;
@@ -249,6 +275,8 @@ public class RaceManager : MonoBehaviour
 		// -----------------
 
 		if(viewMode == VIEW_MODE_LIVE){
+			StartCoroutine(setResultSheetHeader());
+			
 			// calculate bot difficulty and set player
 			for(int i = 0; i < racers_backEnd.Count; i++){
 				
@@ -256,10 +284,13 @@ public class RaceManager : MonoBehaviour
 				
 				if(racer.tag == "Player (Back End)"){
 					player_backEnd = racer;
-					botDifficulty = calculateDifficulty(raceEvent, racer.GetComponent<PlayerAttributes>().personalBests[raceEvent]);
+					botDifficulty = calculateDifficulty(raceEvent, gc.getUserPB(raceEvent));
 					break;
 				}
 			}
+			cameraButton.SetActive(false);
+		} else{
+			cameraButton.SetActive(true);
 		}
 		// -- set up racers field
 		for(int i = 0; i < racers_backEnd.Count; i++){
@@ -303,6 +334,10 @@ public class RaceManager : MonoBehaviour
 				playerOc = oc;
 				playerEmc = emc;
 				playerCount++;
+				playerAnim.marker.SetActive(true);
+				playerAnim.hudIndicatorT.position = playerAnim.hudIndicatorT.position + Vector3.up;
+				emc.setUIImage(energyUIImage);
+				emc.adjustForEnergyLevel(100f);
 			}
 			else if(racer.tag == "Bot"){
 				Bot_AI ai = racer.GetComponent<Bot_AI>();
@@ -318,7 +353,9 @@ public class RaceManager : MonoBehaviour
 				botEmcs[botCount] = emc;
 				botAIs[botCount] = ai;
 				botCount++;
-				//setTransparency(racer, transparency_bot_base);
+				if(viewMode == VIEW_MODE_LIVE){
+					setTransparency(racer, transparency_bot_base);
+				}
 			}
 			else if(racer.tag == "Ghost"){
 				ghosts.Add(racer);
@@ -329,7 +366,9 @@ public class RaceManager : MonoBehaviour
 				ghostOcs[ghostCount] = oc;
 				ghostEmcs[ghostCount] = emc;
 				ghostCount++;
-				//setTransparency(racer, transparency_ghost_base);
+				if(viewMode == VIEW_MODE_LIVE){
+					setTransparency(racer, transparency_ghost_base);
+				}
 			}
 				
 			racers.Add(racer);
@@ -357,7 +396,12 @@ public class RaceManager : MonoBehaviour
 		}
 		if(viewMode == VIEW_MODE_REPLAY){
 			player = racers[gc.playerIndex];
-			//setTransparency(player, 1f);
+			EnergyMeterController emc = player.GetComponent<EnergyMeterController>();
+			PlayerAnimationV2 pAnim = player.GetComponent<PlayerAnimationV2>();
+			pAnim.hudIndicatorRenderer.material = gc.hudIndicatorMat_player;
+			pAnim.hudIndicatorT.position = pAnim.hudIndicatorT.position + Vector3.up;
+			emc.setUIImage(energyUIImage);
+			emc.adjustForEnergyLevel(100f);
 			Time.timeScale = 4f;
 		}
 		// -----------------
@@ -368,14 +412,14 @@ public class RaceManager : MonoBehaviour
 		racers_laneOrder = new List<GameObject>(racers);
 		racers_laneOrder.Sort((x,y) =>
 			x.GetComponent<PlayerAttributes>().lane.CompareTo(y.GetComponent<PlayerAttributes>().lane));
-		
-		setRenderQueues(racers);
+	
 		finishLineController.init();
+		checkpointController.player = this.player;
 		
 		resetClock();
 		raceStatus = STATUS_MARKS;
-
-
+		
+		checkTipsConditions();
 		
 		return racers;
 		
@@ -390,35 +434,39 @@ public class RaceManager : MonoBehaviour
 	}
 	
 	float calculateDifficulty(int raceEvent, float time){
-		//Debug.Log("playerPB: " + time);
 		float cap = 0f;
+		float minDifficulty = 0f;
 		if(raceEvent == RACE_EVENT_100M){
 			cap = 9.8f;
+			minDifficulty = .65f;
 		}
 		else if(raceEvent == RACE_EVENT_200M){
 			cap = 19.8f;
+			minDifficulty = .7f;
 		}
 		else if(raceEvent == RACE_EVENT_400M){
 			cap = 44f;
+			minDifficulty = .825f;
 		}
 		else if(raceEvent == RACE_EVENT_60M){
-			cap = 6.4f;
+			cap = 6.45f;
+			minDifficulty = .85f;
 		}
 		
 		float difficulty = cap/time;
 		
 		if(difficulty > 0f){
-			if(difficulty > .7f){
+			if(difficulty > minDifficulty){
 				if(difficulty > 1f){
 					difficulty = 1f;
 				}
 			}
 			else{
-				difficulty = .7f;
+				difficulty = minDifficulty;
 			}
 		}
 		else{
-			difficulty = .7f;
+			difficulty = minDifficulty;
 		}
 		return difficulty;
 	}
@@ -441,6 +489,7 @@ public class RaceManager : MonoBehaviour
 						lanes.RemoveAt(randIndex);
 					}
 				}
+				setRenderQueues(racers);
 			}
 		}
 		
@@ -499,6 +548,7 @@ public class RaceManager : MonoBehaviour
 		SkinnedMeshRenderer[] renderers;
 		SkinnedMeshRenderer renderer;
 		Material material;
+		int side = cameraController.mode;
 		for(int i = 0; i < racers.Count; i++){
 			att = racers[i].GetComponent<PlayerAttributes>();
 			lane = att.lane;
@@ -509,7 +559,6 @@ public class RaceManager : MonoBehaviour
 				material.renderQueue += (lane*100 + j);
 				renderer.sharedMaterial = material;
 			}
-		
 		}
 	}
 	
@@ -563,9 +612,10 @@ public class RaceManager : MonoBehaviour
 		PlayerAttributes att = racer.GetComponent<PlayerAttributes>();
 		PlayerAnimationV2 anim = racer.GetComponent<PlayerAnimationV2>();
 		// -----------------
-		float t = ((float)(raceTick)) / 100f;
+		float t;
 		// -----------------
 		if(racer == player){
+			t = float.Parse(raceTime.ToString("F3"));
 			playerFinished = true;
 			if(viewMode == VIEW_MODE_LIVE){
 				finishPlaceHolder.transform.position = racer.transform.position;
@@ -574,35 +624,43 @@ public class RaceManager : MonoBehaviour
 				// handle if player PB
 				if((t < att.personalBests[raceEvent]) || (att.personalBests[raceEvent] == -1f)){
 					playerAtt.personalBests[raceEvent] = t;
-					playerPB = true;
+					racerPB = true;
+					racerPB_time = t;
 					
 					// handle if user PB
 					if(t < userPB_time){
 						userPB = true;
 						userPB_time = t;
+						
 						// handle if player sets WR
-						if(t <= (wr_leaderboard_time)){
+						if(t <= (wr_time)){
 							playerWR = true;
-							att.resultTag = "<color=red>WR</color>";
+							att.resultTag = "<color=magenta>WR</color>";
 						}
 						else{
-							att.resultTag = "<color=orange>SR</color>";
+							att.resultTag = "<color=blue>PB</color>";
 						}
-					}
-					else{
-						att.resultTag = "<color=green>PB</color>";
+						gc.unlockManager.updateUnlocks(raceEvent, t);
+						finishLineController.yayParticles.Play();
 					}
 				}
 				else{
 					att.resultTag = "";
 				}
+				
 			}
+			anim.marker.SetActive(false);
+		}else{
+			t = ((float)(raceTick)) / 100f;
 		}
 		// -----------------
-		att.finishTime = t;
-		att.pathLength = raceTick;
-		att.resultString = "<color="+ att.resultColor+">" + att.racerName + "</color>" + "  " + t.ToString("F2") + "  " + att.resultTag;
-		resultsText.text += "\n " + (racersFinished) + "  " + att.resultString;
+		if(viewMode == VIEW_MODE_LIVE){
+			att.finishTime = t;
+			att.pathLength = raceTick;
+			string tString = t.ToString("F2").PadLeft(24-att.racerName.Length);
+			att.resultString = "<color="+ att.resultColor+">" + att.racerName + "</color>" + tString + "  " + att.resultTag;
+			resultsText.text += "\n " + (racersFinished) + "  " + att.resultString;
+		}
 		// -----------------
 		StartCoroutine(anim.pop(.5f));
 
@@ -677,8 +735,9 @@ public class RaceManager : MonoBehaviour
 		for(int i = 0; i < racers.Count; i++){
 			racers[i].GetComponent<PlayerAnimationV2>().pop(0f);
 		}
+		gc.taskManager.addTask(TaskManager.SAVE_DEFAULT_CAMERA_MODES);
 		gc.clearListAndObjects(racers);
-		gc.cameraController.setCameraFocusOnStart();
+		cameraController.setCameraFocusOnStart();
 		gc.goSetupScreen();
 	}
 	
@@ -700,18 +759,18 @@ public class RaceManager : MonoBehaviour
 		seconds = timeSpan.Seconds;
 		milliseconds = timeSpan.Milliseconds / 10;
 		if(minutes > 0f){
-			clock.text = minutes + ":" + seconds + "." + milliseconds;
+			clockText.text = minutes + ":" + seconds + "." + milliseconds;
 		}
 		else{
-			clock.text = seconds + "." + milliseconds + " s";
+			clockText.text = seconds + "." + milliseconds + " s";
 		}
 		
 		// speed
-		
 		float speed = player.GetComponent<PlayerAnimationV2>().speedHoriz / 2f;
 		speed *= 2.236936f;
 		speed = (Mathf.Round(speed * 10f) / 10f);
-		speedometer.text = speed + " mph";
+		speedText.text = speed + " mph";
+		speedText.color = Color.Lerp(Color.white, Color.red, speed/35f);
 
 	}
 	
@@ -719,6 +778,17 @@ public class RaceManager : MonoBehaviour
 		minutes = 0;
 		seconds = 0;
 		milliseconds = 0;
+	}
+	
+	void checkTipsConditions(){
+		if(!GlobalController.hasFirstRace){
+			gc.tipsManager.showTips_firstRace();
+		}
+		else if(raceEvent == RACE_EVENT_400M){
+			if(!GlobalController.hasFirstRace_400m){
+				gc.tipsManager.showTips_400m();
+			}
+		}
 	}
 	
 	void setTransparency(GameObject racer, float alpha){
@@ -734,22 +804,42 @@ public class RaceManager : MonoBehaviour
 			color = material.color;
 			color.a = alpha;
 			material.color = color;
-			// -----------------
-			//renderer.materials = new Material[]{material};
-			//renderer.materials[0] = material;
 		}
 	}
 	
 	IEnumerator setResultSheetHeader(){
-		wr_local_time = gc.getWorldRecordTime_local(raceEvent);
-		wr_local_racerName = gc.getWorldRecordRacerName_local(raceEvent);
-		gc.getWorldRecordInfo_leaderboard(raceEvent);
-		yield return new WaitUntil(() => gc.playfabManager.userLeaderboardInfoRetrieved);
-		wr_leaderboard_time = gc.playfabManager.userScore/-100f;
-		wr_leaderboard_racerName = gc.playfabManager.userRacerName;
-		string s = raceEvent_string + " Dash Finals\n==========================\nWorld Record: <color=red>" + (wr_leaderboard_time) + "</color> " + wr_leaderboard_racerName;
-		if(wr_local_racerName != "None"){
-			s += "\nStadium Record: <color=orange>" + (wr_local_time.ToString("F2")) + "</color> " + wr_local_racerName;
+		userRecord_time = gc.getUserRecordTime(raceEvent);
+		userRecord_name = gc.getUserRecordName(raceEvent);
+		string s;
+		
+		// attempt to log in if not logged in
+		if(!PlayFabManager.loggedIn){
+			PlayFabManager.loginError = false;
+			StartCoroutine(gc.handleLogin(true, false));
+			yield return new WaitUntil(() => (PlayFabManager.loggedIn || PlayFabManager.loginError));
+		}
+		// if logged in, attempt to get world record info
+		if(PlayFabManager.loggedIn){
+			gc.getWorldRecordInfo(raceEvent);
+			yield return new WaitUntil(() => (PlayFabManager.userLeaderboardInfoRetrieved || PlayFabManager.leaderboardGetError));
+		}
+		
+		// if not logged in or world record retrieval failed, default wr info
+		if(!PlayFabManager.loggedIn || PlayFabManager.leaderboardGetError){
+			wr_time = -1f;
+			wr_name = "NA";
+			s = raceEvent_string + " Dash Finals\n==========================\n<color=magenta>World Record:</color> <No connection!>";
+		}
+		
+		// if logged in and got world record info, good to go
+		else{
+			wr_time = PlayFabManager.userScore/-10000f;
+			wr_name = PlayFabManager.userRacerName;
+			s = raceEvent_string + " Dash Finals\n==========================\n<color=magenta>World Record: " + (wr_time.ToString("F3")) + "</color> " + wr_name;
+		}
+		resultsText.text = s;
+		if(userRecord_name != "None"){
+			s += "\n<color=blue>Personal Record: " + (userRecord_time.ToString("F3")) + "</color> " + userRecord_name;
 		}
 		s += "\n\n==========================\n\nFinals";
 		resultsText.text = s;

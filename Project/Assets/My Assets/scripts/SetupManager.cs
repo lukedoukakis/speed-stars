@@ -39,13 +39,26 @@ public class SetupManager : MonoBehaviour
     {
     }
 	
-	public void setSelectedRaceEvent(int raceEvent){
+	// with setting camera argument
+	public void setSelectedRaceEvent(int raceEvent, bool setCamera){
 		
 			selectedRaceEvent = raceEvent;
 			gc.selectedRaceEvent = raceEvent;
 			toggleSelectionLists(selectedRaceEvent);
 			movePointer(raceEvent);
-			gc.cameraController.setCameraFocusOnStart();
+			if(setCamera){
+				gc.cameraController.setCameraFocusOnStart();
+			}
+	}
+	
+	// without setting camera argument
+	public void setSelectedRaceEvent(int raceEvent){
+		
+		selectedRaceEvent = raceEvent;
+		gc.selectedRaceEvent = raceEvent;
+		toggleSelectionLists(selectedRaceEvent);
+		movePointer(raceEvent);
+		gc.cameraController.setCameraFocusOnStart();
 	}
 	
 	void toggleSelectionLists(int raceEvent){
@@ -92,9 +105,9 @@ public class SetupManager : MonoBehaviour
 		pointer.transform.position = t_button.position;
 	}
 	
-	public void init(){
+	public void init(bool setCamera){
 		incrementBotCount(7);
-        setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
+        setSelectedRaceEvent(RaceManager.RACE_EVENT_100M, false);
 	}
 	
 

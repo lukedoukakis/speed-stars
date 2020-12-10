@@ -218,12 +218,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.787949, g: 0.7877358, b: 1, a: 1}
+  m_Color: {r: 0.7216981, g: 0.8444603, b: 1, a: 0.67058825}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -253,9 +253,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0.75686276, g: 0.5882353, b: 0.5882353, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -296,6 +296,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lbm: {fileID: 0}
+  button: {fileID: 0}
+  image: {fileID: 0}
   raceEvent: 0
   pfid: 
   position: 0
@@ -319,7 +321,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 6670974578493488653}
-          m_MethodName: updateTooltipText
+          m_MethodName: showTooltip
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}

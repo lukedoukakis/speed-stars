@@ -7,13 +7,16 @@ public class PlayerAnimationV2 : MonoBehaviour
 {
 	
 	public GameObject gyro;
+	public Transform hudIndicatorT;
 	public MeshRenderer hudIndicatorRenderer;
+	public GameObject marker;
 	public Transform root;
 	public Rigidbody rb;
 	public BoxCollider chestCollider;
 	public Animator animator;
 	
 	public Transform rootTransform;
+	public Transform headT;
 	public Transform rightFoot;
 	public Transform leftFoot;
 	public Transform rightUpperArm;
@@ -221,6 +224,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 		velocityLastFrame = rb.velocity;
 		velocityLastFrame_relative = gyro.transform.InverseTransformDirection(rb.velocity);
 		speedHoriz_lastFrame = speedHoriz;
+		rightFootPos_lastFrame = rightFoot.position;
+		leftFootPos_lastFrame = leftFoot.position;
 	}
 		
 	void runMode(){
@@ -304,8 +309,8 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	public void readInput(int tick){
 		if(tag == "Player"){
-			rightInput = Input.GetKey(KeyCode.D);
-			leftInput = Input.GetKey(KeyCode.A);
+			rightInput = Input.GetKey(SettingsManager.controlsRight);
+			leftInput = Input.GetKey(SettingsManager.controlsLeft);
 		}
 		else if(tag == "Ghost" || tag == "Bot"){
 			if(tick < pathLength){
@@ -514,7 +519,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 			modifiedPower *= modifier;
 		}
 		// -----------------
-		// modify power from torso angle
+		// reduce power if leaned back (based on torsoAngle)
 		if(torsoAngle < torsoAngle_upright){
 			modifier = torsoAngle/torsoAngle_upright;
 			modifier *= modifier;
@@ -565,11 +570,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 	
 	void applySpeedModifiers(){
 		
-		
+		// get horizontal velocity
 		Vector3 velHoriz = rb.velocity;
 		float velY = velHoriz.y;
 		velHoriz.y = 0f;
-		
 		if(gyro.transform.forward.z > 0){
 			if(velHoriz.z < 0f){
 				velHoriz.z = 0f;
@@ -581,18 +585,20 @@ public class PlayerAnimationV2 : MonoBehaviour
 			}
 		}
 		
+		// limit maximum increase in velocity based on driveModifier
 		float maxD = .5f * driveModifier + speedHoriz_lastFrame;
 		if(speedHoriz > maxD){
 			velHoriz = Vector3.ClampMagnitude(velHoriz, maxD);
 		}
 		
+		// limit positive vertical velocity
 		if(velY > maxUpSpeed){
 			velY = maxUpSpeed;
 		}
 		
+		// set new velocity from changes
 		Vector3 newVelocity = velHoriz;
 		newVelocity.y = velY;
-		
 		rb.velocity = newVelocity;
 	}
 	

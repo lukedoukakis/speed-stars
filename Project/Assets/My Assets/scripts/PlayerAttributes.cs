@@ -7,7 +7,7 @@ public class PlayerAttributes : MonoBehaviour
 	
 	public ClothingManager clothingManager;
 	// -----------------
-	public static int DEFAULT_PATH_LENGTH = 10000;
+	public static int DEFAULT_PATH_LENGTH = 9000;
 	// -----------------
 
 	public static int RANDOM = 1;
@@ -153,13 +153,13 @@ public class PlayerAttributes : MonoBehaviour
 		//racerName = "DefaultName";
 		resultTag = "";
 		if(tag.StartsWith("Player")){
-			resultColor = "green";
+			resultColor = "blue";
 		}
 		else if(tag.StartsWith("Ghost")){
-			resultColor = "grey";
+			resultColor = "#5962ff";
 		}
 		else if(tag.StartsWith("Bot")){
-			resultColor = "blue";
+			resultColor = "#666666";
 		}
 		// -----------------
 
@@ -172,7 +172,7 @@ public class PlayerAttributes : MonoBehaviour
 		else if(setting == PlayerAttributes.RANDOM){
 			racerName = TextReader.getRandomName();
 		}	
-		id = PlayerAttributes.generateID(racerName);
+		id = PlayerAttributes.generateID(racerName, PlayFabManager.thisUserDisplayName);
 	}
 	
 	public void setClothing(int setting){
@@ -663,8 +663,8 @@ public class PlayerAttributes : MonoBehaviour
 	}
 	
 	
-	public static string generateID(string racerName){
-		string id = racerName + "_";
+	public static string generateID(string racerName, string displayName){
+		string id = racerName + "_" + displayName + "_";
 		
 		int digit;
 		for(int i = 0; i < 9; i++){

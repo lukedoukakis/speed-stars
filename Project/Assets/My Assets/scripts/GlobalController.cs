@@ -10,8 +10,11 @@ using System.IO;
 public class GlobalController : MonoBehaviour
 {
 	
+	// first time vars
+	public static bool hasInitialSetup;
+	public static bool hasFirstRace;
+	public static bool hasFirstRace_400m;
 	
-	public bool ranBefore;
 	
 	public static string PLAYABLE_RACER_MEMORY = "PLAYABLE RACER IDS";
 	public static string SAVED_RACER_MEMORY = "SAVED RACER IDS";
@@ -62,11 +65,14 @@ public class GlobalController : MonoBehaviour
 	public AudioController audioController;
 	public MusicManager musicManager;
 	public RaceManager raceManager;
+	public SettingsManager settingsManager;
+	public TipsManager tipsManager;
 	public SetupManager setupManager;
 	public UnlockManager unlockManager;
+	public NotificationBlipController notificationBlipController;
 	public EnvironmentController environmentController;
 	public LeaderboardManager leaderboardManager;
-	public PlayFabManager playfabManager;
+	public SteamController steamController;
 	
 	// racers
 	public GameObject racerPrefab;
@@ -88,11 +94,6 @@ public class GlobalController : MonoBehaviour
 	public Camera previewCamera_setup;
 	public Camera previewCamera_creation;
 	
-	// finish screen ghost
-	public List<int> checkedRacerIndexes;
-	
-	public GameObject legends;
-	
 	[SerializeField] Transform cameraStartTransform;
 	
 	// online leaderboard
@@ -105,59 +106,65 @@ public class GlobalController : MonoBehaviour
     void Start()
     {
 		
+		// initialize immediate view and camera setting
 		TransitionScreen.SetActive(true);
 		CanvasGroup cg = TransitionScreen.GetComponent<CanvasGroup>();
 		cg.alpha = 1f;
-	
-	
-		if(PlayerPrefs.GetInt("ranBefore") == 1){
-			ranBefore = true;
-			musicManager.init(false);
+		Application.targetFrameRate = 60;
+		cameraController.setCameraFocus("100m Start", CameraController.STATIONARY_SLOW);
+		
+		// if first time running, run first rime operations
+		if(PlayerPrefs.GetInt("hasInitialSetup") == 1){
+			hasInitialSetup = true;
+			if(PlayerPrefs.GetInt("hasFirstRace") == 1){
+				hasFirstRace = true;
+			} else { hasFirstRace = false; }
+			if(PlayerPrefs.GetInt("hasFirstRace_400m") == 1){
+				hasFirstRace_400m = true;
+			} else { hasFirstRace_400m = false; }
 		}
 		else{
-			ranBefore = false;
-			musicManager.init(true);
+			hasInitialSetup = false;
 			runFirstTimeOperations();
 		}
 		
-		environmentController.init(PlayerPrefs.GetInt("Theme"));
+		// Steam and PlayFab login
+		StartCoroutine(handleLogin(false, true));
 		
-		setupManager.init();
-		
-		int charSlots = PlayerPrefs.GetInt("Character Slots");
-		unlockManager.init(charSlots);
-		
+		float audioVolume = PlayerPrefs.GetFloat("Audio Volume");
 		downloadedGhosts = PlayerPrefs.GetInt("Downloaded Ghosts");
+		int charSlots = PlayerPrefs.GetInt("Character Slots");
+		float cameraDistance = PlayerPrefs.GetFloat("Camera Distance");
+		int cameraGameplayMode = PlayerPrefs.GetInt("Camera Gameplay Mode");
+		int cameraReplayMode = PlayerPrefs.GetInt("Camera Replay Mode");
+		KeyCode l = (KeyCode)PlayerPrefs.GetInt("Controls Left");
+		KeyCode r = (KeyCode)PlayerPrefs.GetInt("Controls Right");
 		
-		Application.targetFrameRate = 60;
+		cameraController.init(cameraDistance, cameraGameplayMode, cameraReplayMode);
+		raceManager.init();
+		musicManager.init(audioVolume, !hasInitialSetup);
+		environmentController.init(PlayerPrefs.GetInt("Theme"));
+		setupManager.init(false);
+		settingsManager.init(l, r, cameraDistance, cameraGameplayMode);
+		unlockManager.init(charSlots);
 		
 		racers_backEnd = new List<GameObject>();
 		racers_backEnd_replay = new List<GameObject>();
 		racers = new List<GameObject>();
-		// -----------------
-		SetupScreen.SetActive(true);
 		playerSelectButtonList.init(RaceManager.RACE_EVENT_100M, PLAYABLE_RACER_MEMORY, 1, 0, true, true);
 		playableRacerIDs = PlayerPrefs.GetString("PLAYABLE RACER IDS").Split(':').ToList();
-		
 		ghostSelectButtonList.init(RaceManager.RACE_EVENT_100M, SAVED_RACER_MEMORY, 7, 0, false, false);
 		savedRacerIDs = PlayerPrefs.GetString("SAVED RACER IDS").Split(':').ToList();
-		// -----------------
-		SetupScreen.SetActive(false);
-		// -----------------
-		checkedRacerIndexes = new List<int>();
-		// -----------------
-		startScreenAccessed = false;
-		if(ranBefore){
+		
+		if(hasInitialSetup){
 			goStartScreen();
 		}
 		else{
-			goWelcomeScreen();
+			goCharacterCreatorScreen();
 			CharacterCreatorScreen.transform.Find("Back Button").gameObject.SetActive(false);
 		}
-		// -----------------
-		cameraController.setCameraFocus("100m Start", CameraController.STATIONARY_SLOW);
-		// -----------------
-		playfabManager.login();
+
+		startScreenAccessed = false;
 		
     }
 
@@ -166,16 +173,11 @@ public class GlobalController : MonoBehaviour
     {
 		
 		// debug
+		/*
 		if(Input.GetKeyUp(KeyCode.F1)){
 			Debug.Log("Deleting PlayerPrefs");
 			PlayerPrefs.DeleteAll();
 		}
-		/*
-		if(Input.GetKeyUp(KeyCode.F2)){
-			Debug.Log("Unlinking PlayFab account");
-			playfabManager.unlinkAccount();
-		}
-		*/
 		
 		if(Input.GetKeyUp(KeyCode.F3)){
 			Time.timeScale = Time.deltaTime;
@@ -189,7 +191,6 @@ public class GlobalController : MonoBehaviour
 			}
 		}
 		
-		/*
 		if(Input.GetKeyUp(KeyCode.T)){
 			Time.timeScale -= .1f;
 		}
@@ -197,7 +198,7 @@ public class GlobalController : MonoBehaviour
 			Time.timeScale += .1f;
 		}
 		*/
-		
+
 		
 		if(CountdownScreenActive){
 			if(countdownController.state == CountdownController.SET){
@@ -280,7 +281,6 @@ public class GlobalController : MonoBehaviour
 		StartCoroutine(screenTransition("Finish Screen", true));
 		// -----------------
 		raceManager.raceStatus = RaceManager.STATUS_FINISHED;
-		buttonHandler.setResultButtons(racers.Count);
 	}
 	
 	
@@ -332,7 +332,7 @@ public class GlobalController : MonoBehaviour
 					taskManager.addTask(TaskManager.DISABLE_ANIMATION_STARTSCREEN);
 					startScreenAccessed = true;
 				}
-				setupManager.setSelectedRaceEvent(RaceManager.RACE_EVENT_100M);
+				setupManager.setSelectedRaceEvent(RaceManager.RACE_EVENT_100M, false);
 				StartScreenActive = true;
 				break;
 			case "Setup Screen" :
@@ -343,6 +343,7 @@ public class GlobalController : MonoBehaviour
 			case "Leaderboard Screen" :
 				LeaderboardScreen.SetActive(true);
 				LeaderboardScreenActive = true;
+				leaderboardManager.setLeaderboardMode(LeaderboardManager.GLOBAL);
 				leaderboardManager.init(RaceManager.RACE_EVENT_100M, true);
 				break;	
 			case "Character Creator Screen" :
@@ -384,11 +385,16 @@ public class GlobalController : MonoBehaviour
 	}
 	
 	public void goScreenAfterCharacterCreation(){
-		if(ranBefore){
+		if(hasInitialSetup){
 			goSetupScreen();
 		}
 		else{
-			goStartScreen();
+			//goStartScreen();
+			clearRacersFromScene();
+			raceManager.resetCounts();
+			buttonHandler.loadSelectedPlayer();
+			loadBots();
+			startNewRace();
 		}
 	}
 	
@@ -397,6 +403,7 @@ public class GlobalController : MonoBehaviour
 		startRaceAsLive(true);
 	}
 	public void restartRace(){
+		PlayerPrefs.SetInt("Camera Gameplay Mode", cameraController.cameraGameplayMode);
 		startRaceAsLive(false);
 	}
 	public void startRaceAsLive(bool newLanes){
@@ -430,11 +437,11 @@ public class GlobalController : MonoBehaviour
 		// --
 		if(viewMode == RaceManager.VIEW_MODE_LIVE){
 			backEndRacers = racers_backEnd;
-			cameraMode = CameraController.SIDE;
+			cameraMode = cameraController.cameraGameplayMode;
 		}
 		else if(viewMode == RaceManager.VIEW_MODE_REPLAY){
 			backEndRacers = racers_backEnd_replay;
-			cameraMode = CameraController.TV;
+			cameraMode = cameraController.cameraReplayMode;
 		}
 		// --
 		racers = raceManager.setupRace(backEndRacers, raceEvent, viewMode, newLanes);
@@ -446,33 +453,20 @@ public class GlobalController : MonoBehaviour
 		goFinishScreen();
 	}
 	public IEnumerator endRace(){
-		Debug.Log("ending race");
-		if(raceManager.playerPB){
-			lbUpdate = false;
+		//Debug.Log("ending race");
+		lbUpdate = false;
+		if(raceManager.racerPB && !raceManager.cancelSaveGhost){
 			taskManager.addTask(TaskManager.SAVE_PLAYER);
 			
 			if(raceManager.userPB){
-				Debug.Log("USER PB");
-			
+				//Debug.Log("USER PB");
+				lbUpdate = true;
 				taskManager.addTask(TaskManager.SAVE_USER_PB);
-	
-				// see if score beats leaderboard score for player's PFID
-				playfabManager.userLeaderboardInfoRetrieved = false;
-				playfabManager.getLeaderboardEntryInfo(raceManager.raceEvent, playfabManager.thisUserPlayFabId);
-				yield return new WaitUntil(() => playfabManager.userLeaderboardInfoRetrieved);
-				bool beatsLeaderboardScore = (raceManager.userPB_time < (float)(playfabManager.userScore)/-100f) || (playfabManager.userScore == 0);
-				Debug.Log("Leaderboard score: " + playfabManager.userScore);
-
-				if(beatsLeaderboardScore){
-					lbUpdate = true;
-					Debug.Log("Leaderboard score: " + playfabManager.userScore);
-					Debug.Log("LEADERBOARD PB");
-				}
-			}
-			if(raceManager.playerWR){
-				taskManager.addTask(TaskManager.SET_WR_LOCAL);
+				taskManager.addTask(TaskManager.SET_USER_RECORD);
 			}
 		}
+		taskManager.addTask(TaskManager.SAVE_DEFAULT_CAMERA_MODES);
+		yield return null;
 	}
 	
 	
@@ -614,7 +608,7 @@ public class GlobalController : MonoBehaviour
 		+ ":" + att.finishTime
 		+ ":" + att.personalBests[0]
 		+ ":" + att.personalBests[1]
-		+ ":" +att.personalBests[2]
+		+ ":" + att.personalBests[2]
 		+ ":" + att.personalBests[3]
 		+ ":" + att.resultString
 		+ ":" + att.POWER
@@ -676,19 +670,50 @@ public class GlobalController : MonoBehaviour
 		PlayerPrefs.SetString(id, attString);
 		
 		if(sendToLeaderboard){
-			float[] timesToSend = new float[4];
-			for(int i = 0; i < 4; i++){
-				if(i == raceEvent){
-					timesToSend[i] = att.personalBests[i];
-				}
-				else{
-					timesToSend[i] = -1f;
-				}
-			}
+			
+			// package score and attempt to send it to leaderboard
 			string data = attString + "&" + pathsForEventString;
-			playfabManager.sendLeaderboard(raceEvent, att.personalBests[raceEvent], att.racerName, data);
+			string package = String.Join("#", new String[]{raceEvent.ToString(), att.personalBests[raceEvent].ToString(), att.racerName, data});
+			StartCoroutine(handleLeaderboardSend(package, raceEvent));
+			
+			// orig
+			//PlayFabManager.sendLeaderboard(raceEvent, att.personalBests[raceEvent], att.racerName, data);
 		}
-	}	
+	}
+	// attempts to send package containing player's score to leaderboard, storing package in PlayerPrefs if it can't do so
+	IEnumerator handleLeaderboardSend(string package, int raceEvent){
+		
+		//Debug.Log("handleLeaderboardSend()");
+		
+		// if not logged in, attempt to log in
+		if(!PlayFabManager.loggedIn){
+			PlayFabManager.loginError = false;
+			StartCoroutine(handleLogin(true, false));
+			yield return new WaitUntil(() => (PlayFabManager.loggedIn || PlayFabManager.loginError));
+		}
+		// if still not logged in, add package to PlayerPrefs to be sent later
+		if(!PlayFabManager.loggedIn){
+			PlayerPrefs.SetString("UnsentScore " + raceEvent.ToString(), package);
+			//Debug.Log(" - Not logged in -> saving score locally");
+		}
+		// else, attempt to send to leaderboard
+		else{
+			PlayFabManager.leaderboardSent = false;
+			PlayFabManager.leaderboardSendFailure = false;
+			PlayFabManager.sendLeaderboard(package);
+			yield return new WaitUntil(() => (PlayFabManager.leaderboardSent || PlayFabManager.leaderboardSendFailure));
+			// on success, delete PlayerPrefs entry for event (if it exists);
+			if(PlayFabManager.leaderboardSent){
+				PlayerPrefs.DeleteKey("UnsentScore " + raceEvent.ToString());
+				//Debug.Log(" - Logged in, leaderboard sent successfully -> deleting playerpref entry");
+			}
+			// on failure, save package to PlayerPrefs to be sent later
+			else if(PlayFabManager.leaderboardSendFailure){
+				PlayerPrefs.SetString("UnsentScore " + raceEvent.ToString(), package);
+				//Debug.Log(" - Logged in, leaderboard send failure -> saving score locally");
+			}
+		}
+	}
 	
 	public GameObject loadRacer(string id, int raceEvent, string asTag, bool fromLeaderboard, bool forReplay){
 		// -----------------
@@ -709,8 +734,9 @@ public class GlobalController : MonoBehaviour
 			pathInfo = PlayerPrefs.GetString(id+"_pathsForEvent "+raceEvent).Split(':');
 		}
 		else{
-			string[] racerData = playfabManager.userRacerData.Split('&');
+			string[] racerData = PlayFabManager.userRacerData.Split('&');
 			racerInfo = racerData[0].Split(':');
+			racerInfo[0] = id;
 			pathInfo = racerData[1].Split(':');
 			/*
 			Debug.Log("racerInfo: " + racerData[0]);
@@ -721,7 +747,13 @@ public class GlobalController : MonoBehaviour
 		int i;
 		// -----------------
 		i = 0;
-		att.pathLength = int.Parse(pathInfo[i]); i++;
+		try{
+			att.pathLength = int.Parse(pathInfo[i]); i++;
+		}
+		catch(Exception e){
+			Debug.Log("error loading racer: " + id);
+			Debug.Log(e.ToString());
+		}
 		att.leanLockTick = int.Parse(pathInfo[i]); i++;
 		string[] vM = pathInfo[i].Split(','); i++;
 		string[] vY = pathInfo[i].Split(','); i++;
@@ -889,7 +921,7 @@ public class GlobalController : MonoBehaviour
 			}
 			else if(currentTask == TaskManager.CREATE_RACER){
 				createRacer();
-				if(!ranBefore){
+				if(!hasInitialSetup){
 					CharacterCreatorScreen.transform.Find("Back Button").gameObject.SetActive(true);
 				}
 			}
@@ -899,17 +931,20 @@ public class GlobalController : MonoBehaviour
 			else if(currentTask == TaskManager.SAVE_USER_PB){
 				saveUserPB(raceManager.raceEvent, raceManager.userPB_time);
 			}
-			else if(currentTask == TaskManager.SET_WR_LOCAL){
-				setWorldRecord_local(raceManager.raceEvent, raceManager.userPB_time, raceManager.player.GetComponent<PlayerAttributes>().racerName);
+			else if(currentTask == TaskManager.SET_USER_RECORD){
+				setUserRecord(raceManager.raceEvent, raceManager.userPB_time, raceManager.player.GetComponent<PlayerAttributes>().racerName);
 			}
 			else if(currentTask == TaskManager.DISABLE_ANIMATION_STARTSCREEN){
 				StartScreen.SetActive(true);
 				startScreenAnimator.SetBool("startScreenAccessed", true);
 				StartScreen.SetActive(false);
 			}
+			else if(currentTask == TaskManager.SAVE_DEFAULT_CAMERA_MODES){
+				PlayerPrefs.SetInt("Camera Gameplay Mode", cameraController.cameraGameplayMode);
+				PlayerPrefs.SetInt("Camera Replay Mode", cameraController.cameraReplayMode);
+			}
 		}
 		taskManager.tasks.Clear();
-		checkedRacerIndexes.Clear();
 	}
 	
 	
@@ -928,7 +963,7 @@ public class GlobalController : MonoBehaviour
 		
 		// random
 		att.racerName = name;
-		att.id = PlayerAttributes.generateID(att.racerName);
+		att.id = PlayerAttributes.generateID(att.racerName, PlayFabManager.thisUserDisplayName);
 		att.copyAttributesFromOther(previewRacer_creation, "clothing");
 		att.copyAttributesFromOther(previewRacer_creation, "body proportions");
 		att.setStats(PlayerAttributes.RANDOM);
@@ -949,8 +984,8 @@ public class GlobalController : MonoBehaviour
 		
 		unlockManager.fillCharacterSlot();
 		
-		if(!ranBefore){
-			PlayerPrefs.SetInt("ranBefore", 1);
+		if(!hasInitialSetup){
+			PlayerPrefs.SetInt("hasInitialSetup", 1);
 		}
 	}
 	
@@ -1026,27 +1061,30 @@ public class GlobalController : MonoBehaviour
 	
 	void setupReplay(){
 		int numOfRacers = racers.Count;
-		playerIndex = 0;
+		//this.playerIndex = 0;
 		// -----------------
 		clearListAndObjects(racers_backEnd_replay);
 		GameObject racer;
 		GameObject racer_replay;
+		PlayerAttributes att;
 		string id;
 		for(int j = 0; j < numOfRacers; j++){
-			
 			racer = racers[j];
-			id = racer.GetComponent<PlayerAttributes>().id;
-			saveRacer(racer, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY}, false, true);
-			racer_replay = loadRacer(id, selectedRaceEvent, "Ghost (Back End)", false, true);
-			racer_replay.SetActive(false);
-			racer_replay.transform.SetParent(raceManager.RacersBackEndParent.transform);
-			racer_replay.GetComponent<PlayerAttributes>().lane = racers[j].GetComponent<PlayerAttributes>().lane;
-			racers_backEnd_replay.Add(racer_replay);
-			forgetRacer(id, new string[]{PLAYABLE_RACER_MEMORY}, true);
-			if(racer.tag == "Player"){
-				playerIndex = j;
+			att = racer.GetComponent<PlayerAttributes>();
+			// add to replay if has a finish time (either a ghost or a bot that's finished)
+			if(att.finishTime != -1f){
+				id = racer.GetComponent<PlayerAttributes>().id;
+				saveRacer(racer, selectedRaceEvent, new string[]{PLAYABLE_RACER_MEMORY}, false, true);
+				racer_replay = loadRacer(id, selectedRaceEvent, "Ghost (Back End)", false, true);
+				racer_replay.SetActive(false);
+				racer_replay.transform.SetParent(raceManager.RacersBackEndParent.transform);
+				racer_replay.GetComponent<PlayerAttributes>().lane = racers[j].GetComponent<PlayerAttributes>().lane;
+				racers_backEnd_replay.Add(racer_replay);
+				forgetRacer(id, new string[]{PLAYABLE_RACER_MEMORY}, true);
+				if(racer.tag == "Player"){
+					this.playerIndex = racers_backEnd_replay.Count-1;
+				}
 			}
-			
 		}
 		//cameraController.GetComponent<CameraController>().setForRaceEvent(selectedRaceEvent);
 	}
@@ -1074,8 +1112,7 @@ public class GlobalController : MonoBehaviour
 			PlayerPrefs.SetFloat("user_PB_60m", time);
 		}
 		
-		//Debug.Log("updating unlocks: " + raceEvent + " " + time);
-		unlockManager.updateUnlocks(raceEvent, time);
+		//unlockManager.updateUnlocks(raceEvent, time);
 	}
 	
 	public float getUserPB(int raceEvent){
@@ -1097,7 +1134,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void setWorldRecord_local(int raceEvent, float time, string racerName){
+	public void setUserRecord(int raceEvent, float time, string racerName){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			PlayerPrefs.SetString("wr_local_100m", time + ":" + racerName);
 		}
@@ -1112,7 +1149,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public float getWorldRecordTime_local(int raceEvent){
+	public float getUserRecordTime(int raceEvent){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			return float.Parse(PlayerPrefs.GetString("wr_local_100m").Split(':')[0]);
 			//return 9.58f;
@@ -1134,12 +1171,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void getWorldRecordInfo_leaderboard(int raceEvent){
-		playfabManager.userLeaderboardInfoRetrieved = false;
-		playfabManager.getWorldRecordInfo(raceEvent);
-	}
-	
-	public string getWorldRecordRacerName_local(int raceEvent){
+	public string getUserRecordName(int raceEvent){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			return PlayerPrefs.GetString("wr_local_100m").Split(':')[1];
 			//return "Usain Bolt";
@@ -1161,6 +1193,11 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
+	public void getWorldRecordInfo(int raceEvent){
+		PlayFabManager.userLeaderboardInfoRetrieved = false;
+		PlayFabManager.getWorldRecordInfo(raceEvent);
+	}
+	
 	public GameObject[] deactivateAllButtons(){
 		GameObject[] objs = GameObject.FindGameObjectsWithTag("Button");
 		foreach (GameObject obj in objs) {
@@ -1177,9 +1214,8 @@ public class GlobalController : MonoBehaviour
 		}
 	 }
 	 
-	 public void setUsername(){
-		 username = usernameInputText.text;
-		 playfabManager.setUserDisplayName(username);
+	 public void setUsernameFromWelcomeScreen(){
+		 PlayFabManager.setUserDisplayName(usernameInputText.text);
 	 }
 	 
 	 public static string legalizeEnteredName(string str){
@@ -1191,16 +1227,62 @@ public class GlobalController : MonoBehaviour
 		Application.Quit();
 	}
 	
+	// Steam and PlayFab login
+	public IEnumerator handleLogin(bool successMsg, bool failMsg){
+		//Debug.Log("handleLogin()");
+		if(SteamManager.Initialized){
+			PlayFabManager.loggedIn = false;
+			PlayFabManager.login();
+			yield return new WaitUntil(() => (PlayFabManager.loggedIn || PlayFabManager.loginError));
+			if(PlayFabManager.loginError){
+				if(failMsg){
+					string msg = "Could not log in with Steam. Scores will be saved locally.";
+					StartCoroutine(showNotificationBlip(msg, 4f));
+				}
+			}else{
+				if(successMsg){
+					string msg = "Logged in to Steam!";
+					StartCoroutine(showNotificationBlip(msg, 4f));
+				}
+				// attempt to send unsent scores
+				PlayFabManager.setUserDisplayName(steamController.getThisUserSteamName());
+				sendUnsentScores();
+			}
+		}
+	}
+	void sendUnsentScores(){
+		//Debug.Log("sendUnsentScores()");
+		string unsentPackage;
+		for(int raceEvent = 0; raceEvent < 4; raceEvent++){
+			unsentPackage = PlayerPrefs.GetString("UnsentScore " + raceEvent.ToString(), "NA");
+			if(unsentPackage != "NA"){
+				StartCoroutine(handleLeaderboardSend(unsentPackage, raceEvent));
+			}
+		}
+	}
+	
+	public IEnumerator showNotificationBlip(string message, float time){
+		notificationBlipController.setText(message);
+		notificationBlipController.show();
+		yield return new WaitForSeconds(time);
+		notificationBlipController.hide();
+	}
 	
 	void runFirstTimeOperations(){
 		saveUserPB(RaceManager.RACE_EVENT_100M, float.MaxValue);
 		saveUserPB(RaceManager.RACE_EVENT_200M, float.MaxValue);
 		saveUserPB(RaceManager.RACE_EVENT_400M, float.MaxValue);
 		saveUserPB(RaceManager.RACE_EVENT_60M, float.MaxValue);
-		setWorldRecord_local(RaceManager.RACE_EVENT_100M, float.MaxValue, "None");
-		setWorldRecord_local(RaceManager.RACE_EVENT_200M, float.MaxValue, "None");
-		setWorldRecord_local(RaceManager.RACE_EVENT_400M, float.MaxValue, "None");
-		setWorldRecord_local(RaceManager.RACE_EVENT_60M, float.MaxValue, "None");
+		setUserRecord(RaceManager.RACE_EVENT_100M, float.MaxValue, "None");
+		setUserRecord(RaceManager.RACE_EVENT_200M, float.MaxValue, "None");
+		setUserRecord(RaceManager.RACE_EVENT_400M, float.MaxValue, "None");
+		setUserRecord(RaceManager.RACE_EVENT_60M, float.MaxValue, "None");
+		PlayerPrefs.SetFloat("Audio Volume", .04f);
+		PlayerPrefs.SetInt("Camera Gameplay Mode", CameraController.SIDE_RIGHT);
+		PlayerPrefs.SetInt("Camera Replay Mode", CameraController.TV);
+		PlayerPrefs.SetFloat("Camera Distance", .5f);
+		PlayerPrefs.SetInt("Controls Left", (int)KeyCode.LeftArrow);
+		PlayerPrefs.SetInt("Controls Right", (int)KeyCode.RightArrow);
 		PlayerPrefs.SetInt("Character Slots", 1);
 		PlayerPrefs.SetInt("Downloaded Ghosts", 0);
 		PlayerPrefs.SetInt("Theme", EnvironmentController.SUNNY);

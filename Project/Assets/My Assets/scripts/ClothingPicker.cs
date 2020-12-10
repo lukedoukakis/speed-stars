@@ -46,8 +46,6 @@ public class ClothingPicker : MonoBehaviour
 	public void cycleMesh(string article){
 		int meshNum;
 		// -----------------
-		
-		
 		if(article == "dummy"){
 			att.setBodyProportions(PlayerAttributes.RANDOM);
 		}

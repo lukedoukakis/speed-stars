@@ -216,18 +216,18 @@ public class Bot_AI : MonoBehaviour
 	
 	void setSpecialAttributes(){
 		if(raceManager.raceEvent == RaceManager.RACE_EVENT_100M){
-			torsoAngle_upright = anim.torsoAngle_upright - 3f;
+			torsoAngle_upright = anim.torsoAngle_upright - 4f;
 			pace = .95f;
 			energyThreshold = 0f;
-			att.CRUISE = .5f;
+			att.CRUISE = .55f;
 			att.KNEE_DOMINANCE *= .9f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_200M){
-			torsoAngle_upright = anim.torsoAngle_upright - 5.25f;
+			torsoAngle_upright = anim.torsoAngle_upright - 4f;
 			pace = (Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f))/4f * cadenceModifier;
 			pace = .95f;
 			energyThreshold = 75f;
-			att.CRUISE = .5f;
+			att.CRUISE = .55f;
 			att.KNEE_DOMINANCE *= .9f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_400M){
@@ -239,10 +239,10 @@ public class Bot_AI : MonoBehaviour
 			att.FITNESS *= 1.05f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_60M){
-			torsoAngle_upright = anim.torsoAngle_upright - 3f;
+			torsoAngle_upright = anim.torsoAngle_upright - 4f;
 			pace = .95f;
 			energyThreshold = 0f;
-			att.CRUISE = .5f;
+			att.CRUISE = .55f;
 			att.KNEE_DOMINANCE *= .9f;
 		}
 		// -----------------

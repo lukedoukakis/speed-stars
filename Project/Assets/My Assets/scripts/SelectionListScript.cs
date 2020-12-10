@@ -25,6 +25,8 @@ public class SelectionListScript : MonoBehaviour
 	
 	public GameObject deleteDialog;
 	public DeleteDialogController ddc;
+	public TooltipController ttc;
+	
 	public SelectionButtonScript buttonToDelete;
 	
 	
@@ -163,6 +165,7 @@ public class SelectionListScript : MonoBehaviour
 				}
 			}
 		}
+		gc.setupManager.botCount_max = 7;
 	}
 	
 	public void deleteButtonToDelete(){

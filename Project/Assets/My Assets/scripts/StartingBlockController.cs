@@ -8,6 +8,7 @@ public class StartingBlockController : MonoBehaviour
 	public Rigidbody rb;
 	public GameObject rightPedal;
 	public GameObject leftPedal;
+	public ParticleSystem sparks;
 	
 	
     // Start is called before the first frame update
@@ -36,6 +37,6 @@ public class StartingBlockController : MonoBehaviour
 		Vector3 randomDirection = Random.insideUnitCircle.normalized;
 		rb.AddForce( ((transform.forward*-120f) + (Vector3.up*250f) + (randomDirection*100f)) * Time.deltaTime, ForceMode.Impulse );
 		transform.Rotate(randomDirection * 300f * Time.deltaTime);
-	
+		sparks.Play();
 	}
 }

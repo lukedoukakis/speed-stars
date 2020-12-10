@@ -9,8 +9,10 @@ public class SelectionButtonScript : MonoBehaviour
 	public SelectionListScript list;
 
 	public bool selected;
+	
 	public string id;
-	public string name;
+	public string racerName;
+	public string displayName;
 	public string time;
 	
 	public static Color32 playerButtonColor = new Color32(250, 196, 192, 255);
@@ -31,14 +33,16 @@ public class SelectionButtonScript : MonoBehaviour
 	public void setFromRacer(string _id, int raceEvent){
 		// -----------------
 		this.id = _id;
-		name = PlayerPrefs.GetString(_id).Split(':')[1];
-		gameObject.transform.Find("NameText").GetComponent<Text>().text = name;
+		this.racerName = PlayerPrefs.GetString(_id).Split(':')[1];
+		this.displayName = _id.Split('_')[1];
+		gameObject.transform.Find("NameText").GetComponent<Text>().text = racerName;
+		
 		// -----------------
 		time = PlayerPrefs.GetString(_id).Split(':')[3 + raceEvent];
 		if(float.Parse(time) == -1f){
 			gameObject.transform.Find("TimeText").GetComponent<Text>().text = "--";
 		}else{
-			gameObject.transform.Find("TimeText").GetComponent<Text>().text = float.Parse(time).ToString("F2");
+			gameObject.transform.Find("TimeText").GetComponent<Text>().text = float.Parse(time).ToString("F3");
 		}	
 	}
 	
@@ -73,8 +77,6 @@ public class SelectionButtonScript : MonoBehaviour
 				if(list.replaceLastSelection){
 					if(list.selectedButtonIDs != null){
 						if(list.selectedButtonIDs.Count != 0){
-						Debug.Log("replacing last selection");
-						Debug.Log("replaced button id: " + list.getButton(list.selectedButtonIDs[0]).GetComponent<SelectionButtonScript>().id);
 						list.minSelectable--;
 						list.getButton(list.selectedButtonIDs[list.selectedButtonIDs.Count-1]).GetComponent<SelectionButtonScript>().toggle(false);
 						list.minSelectable++;
@@ -143,6 +145,19 @@ public class SelectionButtonScript : MonoBehaviour
 		} else{ s /= 3f; }
 		
 		image.color = Color.HSVToRGB(h, s, v);
+	}
+	
+	public void showTooltip(){
+		if(list.ttc != null){
+			TooltipController ttc = list.ttc;
+			ttc.show(3f);
+			ttc.setText("Set by: <color=green>" + this.displayName + "</color>");
+		}
+	}
+	public void hideTooltip(){
+		if(list.ttc != null){
+			list.ttc.hide();
+		}
 	}
 	
 	

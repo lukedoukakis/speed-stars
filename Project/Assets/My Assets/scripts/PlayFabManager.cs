@@ -405,7 +405,7 @@ public class PlayFabManager : MonoBehaviour
 				}
 				//userTotalScore = titleDataResult.Data["UserTotalScore"].Value;   --not found in dictionary
 				
-				Debug.Log("userRacerData: " + userRacerData);
+				//Debug.Log("userRacerData: " + userRacerData);
 			}
 			catch(System.Exception e){
 				userRacerData = "Not found";

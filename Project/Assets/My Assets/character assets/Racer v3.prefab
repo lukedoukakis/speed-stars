@@ -702,6 +702,7 @@ MonoBehaviour:
   id: 
   racerName: 
   personalBests: []
+  totalScore: 0
   lane: 0
   isRacing: 0
   finishTime: 0
@@ -906,6 +907,7 @@ MonoBehaviour:
   rightInput: 0
   leftInput: 0
   isPlayer: 0
+  finished: 0
   onCurve: 0
   launchFlag: 0
   frictionMagnitude: 2.2

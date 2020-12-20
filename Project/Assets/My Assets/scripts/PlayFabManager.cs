@@ -23,6 +23,8 @@ public class PlayFabManager : MonoBehaviour
 	public static int userScore;
 	public static string userRacerData;
 	public static string userRacerName;
+	public static string userDate;
+	public static string userTotalScore;
 	
 	// for sending and loading leaderboard
 	public static bool leaderboardSent;
@@ -143,7 +145,9 @@ public class PlayFabManager : MonoBehaviour
 		float time = float.Parse(data[1]);
 		string racerName = data[2];
 		string racerData = data[3];
-	//public static void sendLeaderboard(int raceEvent, float time, string racerName, string racerData){
+		int totalScore = int.Parse(data[4]);
+		int totalScore_racer = int.Parse(data[5]);
+	
 		if(loggedIn){
 			selectedRaceEvent = raceEvent;
 			string leaderboard_event = "";
@@ -159,22 +163,31 @@ public class PlayFabManager : MonoBehaviour
 			else if(raceEvent == RaceManager.RACE_EVENT_60M){
 				leaderboard_event = "60m";
 			}
-
+			
+			
+			List<StatisticUpdate> statistics = new List<StatisticUpdate>{ new StatisticUpdate{StatisticName = leaderboard_event, Value = (int)(time*-10000f)} };
+			if(totalScore != -1){
+				statistics.Add(new StatisticUpdate{ StatisticName = "Total Score", Value = totalScore });
+			}
+			if(totalScore_racer != -1){
+				statistics.Add(new StatisticUpdate{ StatisticName = "Total Score (Best Racer)", Value = totalScore_racer });
+			}
 			UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest{
-				Statistics = new List<StatisticUpdate>{
-					new StatisticUpdate{
-						StatisticName = leaderboard_event,
-						Value = (int)(time*-10000f)
-					}
-				}
+				Statistics = statistics
 			};
 			PlayFabClientAPI.UpdatePlayerStatistics(request, onLeaderboardSend, onLeaderboardSendError);
-		
+			
+			Dictionary<string, string> dataDic = new Dictionary<string, string>{ {"RacerName_" + leaderboard_event, racerName},{"RacerData_" + leaderboard_event, racerData}, {"Date_" + leaderboard_event, DateGetter.getDate()}};
+			if(totalScore != -1){
+				dataDic.Add("UserTotalScore", totalScore.ToString());
+				dataDic.Add("Date_UserTotalScore", DateGetter.getDate());
+			}
+			if(totalScore_racer != -1){
+				dataDic.Add("RacerName_Total Score (Best Racer)", racerName);
+				dataDic.Add("Date_Total Score (Best Racer)", DateGetter.getDate());
+			}
 			UpdateUserDataRequest request2 = new UpdateUserDataRequest{
-				Data = new Dictionary<string, string>{
-					{"RacerName_" + leaderboard_event, racerName},
-					{"RacerData_" + leaderboard_event, racerData}
-				},
+				Data = dataDic,
 				Permission = UserDataPermission.Public
 			};
 			PlayFabClientAPI.UpdateUserData(request2, onRacerDataSend, onUpdateUserDataError);
@@ -199,6 +212,12 @@ public class PlayFabManager : MonoBehaviour
 			else if(raceEvent == RaceManager.RACE_EVENT_60M){
 				leaderboard_event = "60m";
 			}
+			else if(raceEvent == 4){
+				leaderboard_event = "Total Score";
+			}
+			else if(raceEvent == 5){
+				leaderboard_event = "Total Score (Best Racer)";
+			}
 			
 			if(friendsOnly){
 				GetFriendLeaderboardRequest request = new GetFriendLeaderboardRequest{
@@ -206,7 +225,7 @@ public class PlayFabManager : MonoBehaviour
 					StartPosition = startPos,
 					MaxResultsCount = maxEntries
 				};
-				PlayFabClientAPI.GetFriendLeaderboard(request, onLeaderboardGet, onLeaderboardGetError);
+				PlayFabClientAPI.GetFriendLeaderboard(request, instance.onLeaderboardGet, onLeaderboardGetError);
 			}
 			else{
 				GetLeaderboardRequest request = new GetLeaderboardRequest{
@@ -214,18 +233,82 @@ public class PlayFabManager : MonoBehaviour
 					StartPosition = startPos,
 					MaxResultsCount = maxEntries
 				};
-				PlayFabClientAPI.GetLeaderboard(request, onLeaderboardGet, onLeaderboardGetError);
+				PlayFabClientAPI.GetLeaderboard(request, instance.onLeaderboardGet, onLeaderboardGetError);
 			}
 		}
 	}
 	// update leaderboardString
-	static void onLeaderboardGet(GetLeaderboardResult result){
+	void onLeaderboardGet(GetLeaderboardResult result){
+		StartCoroutine(generateLeaderboardResultString(result));
+	}
+	IEnumerator generateLeaderboardResultString(GetLeaderboardResult result){
 		string resultString = "";
+		string data_racerName = "";
+		string data_date = "";
+		bool dataRetrieved;
 		foreach(var entry in result.Leaderboard){
-			resultString += entry.PlayFabId + "*" + entry.Position + "*" + entry.DisplayName + "*" + entry.StatValue + ":";
+			
+			// get relevant player data
+			dataRetrieved = false;
+			string leaderboard_event = "";
+			if(selectedRaceEvent == RaceManager.RACE_EVENT_100M){
+				leaderboard_event = "100m";
+			}
+			else if(selectedRaceEvent == RaceManager.RACE_EVENT_200M){
+				leaderboard_event = "200m";
+			}
+			else if(selectedRaceEvent == RaceManager.RACE_EVENT_400M){
+				leaderboard_event = "400m";
+			}
+			else if(selectedRaceEvent == RaceManager.RACE_EVENT_60M){
+				leaderboard_event = "60m";
+			}
+			else if(selectedRaceEvent == 4){
+				leaderboard_event = "Total Score";
+			}
+			else if(selectedRaceEvent == 5){
+				leaderboard_event = "Total Score (Best Racer)";
+			}
+			PlayFabClientAPI.GetUserData(new GetUserDataRequest() {
+				PlayFabId = entry.PlayFabId,
+				//Keys = new List<string>{"RacerName_" + leaderboard_event}
+				Keys = null
+			}, titleDataResult => {
+				if(titleDataResult.Data != null){
+					try{
+						if(selectedRaceEvent <= 3){
+							data_racerName = titleDataResult.Data["RacerName_" + leaderboard_event].Value;
+							data_date = titleDataResult.Data["Date_" + leaderboard_event].Value;
+						}
+						else{
+							if(selectedRaceEvent == 5){
+								data_racerName = titleDataResult.Data["RacerName_" + leaderboard_event].Value;
+								data_date = titleDataResult.Data["Date_" + leaderboard_event].Value;
+							}
+							else{
+								data_racerName = string.Join(", ", titleDataResult.Data["RacerName_100m"].Value, titleDataResult.Data["RacerName_200m"].Value, titleDataResult.Data["RacerName_400m"].Value, titleDataResult.Data["RacerName_60m"].Value);
+								data_date = titleDataResult.Data["Date_UserTotalScore"].Value;
+							}
+						}
+					}
+					catch(System.Exception e){
+						Debug.Log(e.ToString());
+					}
+					dataRetrieved = true;
+				}
+			}, (error) => {
+				Debug.Log("Error retrieving RacerData:");
+				Debug.Log(error.GenerateErrorReport());
+			});
+			
+			yield return new WaitUntil(() => dataRetrieved);
+			// set result string to leaderboard info, appending relevant player data if it was obtained
+			resultString += entry.PlayFabId + "*" + entry.Position + "*" + entry.DisplayName + "*" + entry.StatValue;
+			resultString += "*" + data_racerName + "*" + data_date;
+			resultString += ":";
 		}
+
 		leaderboardString = resultString;
-		//Debug.Log("PlayFabManager: Leaderboard string: " + leaderboardString);
 		leaderboardLoaded = true;
 		leaderboardGetError = false;
 	}
@@ -249,6 +332,12 @@ public class PlayFabManager : MonoBehaviour
 			}
 			else if(raceEvent == RaceManager.RACE_EVENT_60M){
 				leaderboard_event = "60m";
+			}
+			else if(raceEvent == 4){
+				leaderboard_event = "Total Score";
+			}
+			else if(raceEvent == 5){
+				leaderboard_event = "Total Score (Best Racer)";
 			}
 		
 			GetLeaderboardAroundPlayerRequest request = new GetLeaderboardAroundPlayerRequest{
@@ -276,6 +365,12 @@ public class PlayFabManager : MonoBehaviour
 		else if(selectedRaceEvent == RaceManager.RACE_EVENT_60M){
 			leaderboard_event = "60m";
 		}
+		else if(selectedRaceEvent == 4){
+			leaderboard_event = "Total Score";
+		}
+		else if(selectedRaceEvent == 5){
+			leaderboard_event = "Total Score (Best Racer)";
+		}
 		
 		PlayerLeaderboardEntry entry = result.Leaderboard[0];
 		userPlayFabId = entry.PlayFabId;
@@ -291,12 +386,32 @@ public class PlayFabManager : MonoBehaviour
 				Debug.Log("No RacerData found");
 			}
 			try{
-				userRacerData = titleDataResult.Data["RacerData_" + leaderboard_event].Value;
-				userRacerName = titleDataResult.Data["RacerName_" + leaderboard_event].Value;
+				if(selectedRaceEvent <= 3){
+					userRacerData = titleDataResult.Data["RacerData_" + leaderboard_event].Value;
+					userRacerName = titleDataResult.Data["RacerName_" + leaderboard_event].Value;
+					userDate = titleDataResult.Data["Date_" + leaderboard_event].Value;
+				}
+				else{
+					if(selectedRaceEvent == 4){
+						userRacerData = "NA";
+						userRacerName = "NA";
+						userDate = titleDataResult.Data["Date_UserTotalScore"].Value;
+					}
+					else{
+						userRacerData = "NA";
+						userRacerName = titleDataResult.Data["RacerName_" + leaderboard_event].Value;
+						userDate = titleDataResult.Data["Date_" + leaderboard_event].Value;
+					}
+				}
+				//userTotalScore = titleDataResult.Data["UserTotalScore"].Value;   --not found in dictionary
+				
+				Debug.Log("userRacerData: " + userRacerData);
 			}
 			catch(System.Exception e){
-				userRacerData = "Not set";
-				userRacerName = "Not set";
+				userRacerData = "Not found";
+				userRacerName = "Not found";
+				userDate = "Not found";
+				userTotalScore = "Not found";
 				Debug.Log(e.ToString());
 			}
 			userLeaderboardInfoRetrieved = true;
@@ -328,6 +443,12 @@ public class PlayFabManager : MonoBehaviour
 			else if(selectedRaceEvent == RaceManager.RACE_EVENT_60M){
 				leaderboard_event = "60m";
 			}
+			else if(selectedRaceEvent == 4){
+				leaderboard_event = "Total Score";
+			}
+			else if(selectedRaceEvent == 5){
+				leaderboard_event = "Total Score (Best Racer)";
+			}
 			GetLeaderboardAroundPlayerRequest request = new GetLeaderboardAroundPlayerRequest{
 				PlayFabId = thisUserPlayFabId,
 				StatisticName = leaderboard_event,
@@ -351,6 +472,12 @@ public class PlayFabManager : MonoBehaviour
 		}
 		else if(selectedRaceEvent == RaceManager.RACE_EVENT_60M){
 			leaderboard_event = "60m";
+		}
+		else if(selectedRaceEvent == 4){
+			leaderboard_event = "Total Score";
+		}
+		else if(selectedRaceEvent == 4){
+			leaderboard_event = "Total Score (Best Racer)";
 		}
 		
 		PlayerLeaderboardEntry entry = result.Leaderboard[0];

@@ -19,6 +19,7 @@ public class PlayerAttributes : MonoBehaviour
 	public string id;
 	public string racerName;
 	public float[] personalBests;
+	public int totalScore;
 	// -----------------
 	
 	// race info
@@ -454,11 +455,11 @@ public class PlayerAttributes : MonoBehaviour
 			// modify stats from leg length
 			quickness = .95f * Mathf.Pow((2f - legX), .1f);
 			turnover = Mathf.Pow((2f - legX), .5f);
-			launch_power = Mathf.Pow(knee_dominance, 1f);
 			cruise = (Random.Range(.5f, 1f));
+			launch_power = Mathf.Pow(knee_dominance, 1f) * Mathf.Pow((2f-(cruise+.25f)), .5f);
 			knee_dominance = Mathf.Pow((2f - legX), 1f);
 			power *= Mathf.Pow(legX, .5f) * Mathf.Pow(2f-(cruise+.5f), .05f);
-			fitness *= Mathf.Pow(cruise, .15f);
+			fitness *= Mathf.Pow(cruise, .35f);
 			
 			POWER = power;
 			TRANSITION_PIVOT_SPEED = transPivSpeed;
@@ -520,6 +521,7 @@ public class PlayerAttributes : MonoBehaviour
 			id = otherAttributes.id;
 			racerName = otherAttributes.racerName;
 			personalBests = otherAttributes.personalBests;
+			totalScore = otherAttributes.totalScore;
 			resultString = otherAttributes.resultString;
 			// -----------------
 			copyAttributesFromOther(other, "stats");
@@ -531,6 +533,7 @@ public class PlayerAttributes : MonoBehaviour
 		else if(whichAttributes == "info"){
 			racerName = otherAttributes.racerName;
 			personalBests = otherAttributes.personalBests;
+			totalScore = otherAttributes.totalScore;
 		}
 		else if(whichAttributes == "stats"){
 			POWER = otherAttributes.POWER;

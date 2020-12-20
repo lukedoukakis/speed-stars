@@ -466,10 +466,10 @@ public class UnlockManager : MonoBehaviour
 		}
 		
 		// set event ranks
-		pb_100m = gc.getUserPB(RaceManager.RACE_EVENT_100M);
-		pb_200m = gc.getUserPB(RaceManager.RACE_EVENT_200M);
-		pb_400m = gc.getUserPB(RaceManager.RACE_EVENT_400M);
-		pb_60m = gc.getUserPB(RaceManager.RACE_EVENT_60M);
+		pb_100m = GlobalController.getUserPB(RaceManager.RACE_EVENT_100M);
+		pb_200m = GlobalController.getUserPB(RaceManager.RACE_EVENT_200M);
+		pb_400m = GlobalController.getUserPB(RaceManager.RACE_EVENT_400M);
+		pb_60m = GlobalController.getUserPB(RaceManager.RACE_EVENT_60M);
 		updateRanks();
 		
 		// set unlock strings (for tooltip)

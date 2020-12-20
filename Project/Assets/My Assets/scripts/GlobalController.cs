@@ -24,13 +24,10 @@ public class GlobalController : MonoBehaviour
 	public GameObject canvas_camera;
 	public GameObject RaceUI;
 		bool RaceUIActive;
-		float keyPressAgo;
+		public static float keyPressAgo;
 		[SerializeField] float cooldown_keyPress;
-	public GameObject WelcomeScreen;
-		bool WelcomeScreenActive;
 	public GameObject StartScreen;
 		[SerializeField] Animator startScreenAnimator;
-		bool startScreenAccessed;
 		bool StartScreenActive;
 	public GameObject SetupScreen;
 		bool SetupScreenActive;
@@ -49,6 +46,8 @@ public class GlobalController : MonoBehaviour
 		public bool RaceScreenActive;
 	public GameObject FinishScreen;
 		bool FinishScreenActive;
+	public GameObject EmptyScreen;
+		bool EmptyScreenActive;
 	public GameObject TransitionScreen;
 		bool TransitionScreenActive;
 	public ButtonHandler buttonHandler;
@@ -65,6 +64,7 @@ public class GlobalController : MonoBehaviour
 	public AudioController audioController;
 	public MusicManager musicManager;
 	public RaceManager raceManager;
+	public WelcomeManager welcomeManager;
 	public SettingsManager settingsManager;
 	public TipsManager tipsManager;
 	public SetupManager setupManager;
@@ -102,6 +102,9 @@ public class GlobalController : MonoBehaviour
 	bool lbUpdate;
 	public int downloadedGhosts;
 	
+	// input
+	public static bool allowInput;
+	
     // Start is called before the first frame update
     void Start()
     {
@@ -112,6 +115,7 @@ public class GlobalController : MonoBehaviour
 		cg.alpha = 1f;
 		Application.targetFrameRate = 60;
 		cameraController.setCameraFocus("100m Start", CameraController.STATIONARY_SLOW);
+		startScreenAnimator.SetBool("startScreenAccessed", false);
 		
 		// if first time running, run first rime operations
 		if(PlayerPrefs.GetInt("hasInitialSetup") == 1){
@@ -160,11 +164,11 @@ public class GlobalController : MonoBehaviour
 			goStartScreen();
 		}
 		else{
-			goCharacterCreatorScreen();
+			//goCharacterCreatorScreen();
+			goEmptyScreen();
+			welcomeManager.show();
 			CharacterCreatorScreen.transform.Find("Back Button").gameObject.SetActive(false);
 		}
-
-		startScreenAccessed = false;
 		
     }
 
@@ -210,26 +214,21 @@ public class GlobalController : MonoBehaviour
 		}
 		
 		if(RaceUIActive){
-			if(keyPressAgo >= cooldown_keyPress){
-				if(Input.GetKeyDown(KeyCode.R)){
-					restartRace();
-					keyPressAgo = 0f;
-				}
-				if(Input.GetKeyDown(KeyCode.Escape)){
-					raceManager.quitRace();
-					keyPressAgo = 0f;
+			if(allowInput){
+				if(keyPressAgo >= cooldown_keyPress){
+					if(Input.GetKeyDown(KeyCode.R)){
+						restartRace();
+						keyPressAgo = 0f;
+					}
+					if(Input.GetKeyDown(KeyCode.Escape)){
+						raceManager.quitRace();
+						keyPressAgo = 0f;
+					}
 				}
 			}
 		}
 		keyPressAgo += Time.deltaTime;
     }
-	
-	public void goWelcomeScreen(){
-		//Debug.Log("Going to welcome screen");
-		StartCoroutine(screenTransition("Welcome Screen", false));
-		// -----------------
-		raceManager.raceStatus = RaceManager.STATUS_INACTIVE;
-	}
 	
 	public void goStartScreen(){
 		//Debug.Log("Going to start screen");
@@ -282,11 +281,18 @@ public class GlobalController : MonoBehaviour
 		// -----------------
 		raceManager.raceStatus = RaceManager.STATUS_FINISHED;
 	}
+	public void goEmptyScreen(){
+		//Debug.Log("Going to empty screen");
+		StartCoroutine(screenTransition("Empty Screen", false));
+		// -----------------
+		raceManager.raceStatus = RaceManager.STATUS_INACTIVE;
+	}
 	
 	
 	public IEnumerator screenTransition(string nextScreen, bool immediate){
+		allowInput = false;
 		TransitionScreen.SetActive(true);
-		GameObject[] deactivatedButtons = deactivateAllButtons();
+		GameObject[] deactivatedButtons0 = deactivateAllButtons();
 		CanvasGroup cg = TransitionScreen.GetComponent<CanvasGroup>();
 		if(!immediate){
 			// fade in ----------------
@@ -301,8 +307,6 @@ public class GlobalController : MonoBehaviour
 		canvas_camera.SetActive(false);
 		RaceUI.SetActive(false);
 			RaceUIActive = false;
-		WelcomeScreen.SetActive(false);
-			WelcomeScreenActive = false;
 		StartScreen.SetActive(false);
 			StartScreenActive = false;
 		SetupScreen.SetActive(false);
@@ -322,16 +326,8 @@ public class GlobalController : MonoBehaviour
 		previewCamera_creation.gameObject.SetActive(false);
 		previewCamera_setup.gameObject.SetActive(false);
 		switch (nextScreen) {
-			case "Welcome Screen" :
-				WelcomeScreen.SetActive(true);
-				WelcomeScreenActive = true;
-				break;	
 			case "Start Screen" :
 				StartScreen.SetActive(true);
-				if(!startScreenAccessed){
-					taskManager.addTask(TaskManager.DISABLE_ANIMATION_STARTSCREEN);
-					startScreenAccessed = true;
-				}
 				setupManager.setSelectedRaceEvent(RaceManager.RACE_EVENT_100M, false);
 				StartScreenActive = true;
 				break;
@@ -370,9 +366,14 @@ public class GlobalController : MonoBehaviour
 				FinishScreen.SetActive(true);
 				FinishScreenActive = true;
 				break;
+			case "Empty Screen" :
+				EmptyScreen.SetActive(true);
+				EmptyScreenActive = true;
+				break;
 			default:
 				break;
 		}
+		GameObject[] deactivatedButtons1 = deactivateAllButtons();
 		if(!immediate){
 			// fade out ----------------
 			while(cg.alpha > 0f){
@@ -381,7 +382,9 @@ public class GlobalController : MonoBehaviour
 			}
 			TransitionScreen.SetActive(false);
 		}
-		 activateButtons(deactivatedButtons);
+		allowInput = true;
+		activateButtons(deactivatedButtons0);
+		activateButtons(deactivatedButtons1);
 	}
 	
 	public void goScreenAfterCharacterCreation(){
@@ -389,7 +392,6 @@ public class GlobalController : MonoBehaviour
 			goSetupScreen();
 		}
 		else{
-			//goStartScreen();
 			clearRacersFromScene();
 			raceManager.resetCounts();
 			buttonHandler.loadSelectedPlayer();
@@ -456,14 +458,13 @@ public class GlobalController : MonoBehaviour
 		//Debug.Log("ending race");
 		lbUpdate = false;
 		if(raceManager.racerPB && !raceManager.cancelSaveGhost){
-			taskManager.addTask(TaskManager.SAVE_PLAYER);
-			
 			if(raceManager.userPB){
 				//Debug.Log("USER PB");
 				lbUpdate = true;
 				taskManager.addTask(TaskManager.SAVE_USER_PB);
 				taskManager.addTask(TaskManager.SET_USER_RECORD);
 			}
+			taskManager.addTask(TaskManager.SAVE_PLAYER);
 		}
 		taskManager.addTask(TaskManager.SAVE_DEFAULT_CAMERA_MODES);
 		yield return null;
@@ -670,14 +671,18 @@ public class GlobalController : MonoBehaviour
 		PlayerPrefs.SetString(id, attString);
 		
 		if(sendToLeaderboard){
+		
+			int totalScore = ScoreCalculator.calculateScore_user();
+			if(totalScore <= PlayerPrefs.GetInt("Total Score")){ totalScore = -1; }
+			else{ PlayerPrefs.SetInt("Total Score", totalScore); }
+			int totalScore_racer = ScoreCalculator.calculateScore(att.personalBests);
+			if(totalScore_racer <= PlayerPrefs.GetInt("Total Score (Best Racer)")){ totalScore_racer = -1; }
+			else{ PlayerPrefs.SetInt("Total Score (Best Racer)", totalScore_racer); }
 			
 			// package score and attempt to send it to leaderboard
 			string data = attString + "&" + pathsForEventString;
-			string package = String.Join("#", new String[]{raceEvent.ToString(), att.personalBests[raceEvent].ToString(), att.racerName, data});
+			string package = String.Join("#", new String[]{raceEvent.ToString(), att.personalBests[raceEvent].ToString(), att.racerName, data, totalScore.ToString(), totalScore_racer.ToString()});
 			StartCoroutine(handleLeaderboardSend(package, raceEvent));
-			
-			// orig
-			//PlayFabManager.sendLeaderboard(raceEvent, att.personalBests[raceEvent], att.racerName, data);
 		}
 	}
 	// attempts to send package containing player's score to leaderboard, storing package in PlayerPrefs if it can't do so
@@ -934,11 +939,6 @@ public class GlobalController : MonoBehaviour
 			else if(currentTask == TaskManager.SET_USER_RECORD){
 				setUserRecord(raceManager.raceEvent, raceManager.userPB_time, raceManager.player.GetComponent<PlayerAttributes>().racerName);
 			}
-			else if(currentTask == TaskManager.DISABLE_ANIMATION_STARTSCREEN){
-				StartScreen.SetActive(true);
-				startScreenAnimator.SetBool("startScreenAccessed", true);
-				StartScreen.SetActive(false);
-			}
 			else if(currentTask == TaskManager.SAVE_DEFAULT_CAMERA_MODES){
 				PlayerPrefs.SetInt("Camera Gameplay Mode", cameraController.cameraGameplayMode);
 				PlayerPrefs.SetInt("Camera Replay Mode", cameraController.cameraReplayMode);
@@ -1096,7 +1096,7 @@ public class GlobalController : MonoBehaviour
 		clearListAndObjects(racers_backEnd_replay);
 	}
 	
-	void saveUserPB(int raceEvent, float time){
+	static void saveUserPB(int raceEvent, float time){
 		
 		// save pb to playerPrefs
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
@@ -1115,7 +1115,7 @@ public class GlobalController : MonoBehaviour
 		//unlockManager.updateUnlocks(raceEvent, time);
 	}
 	
-	public float getUserPB(int raceEvent){
+	public static float getUserPB(int raceEvent){
 
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			return PlayerPrefs.GetFloat("user_PB_100m");
@@ -1134,7 +1134,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void setUserRecord(int raceEvent, float time, string racerName){
+	public static void setUserRecord(int raceEvent, float time, string racerName){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			PlayerPrefs.SetString("wr_local_100m", time + ":" + racerName);
 		}
@@ -1149,7 +1149,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public float getUserRecordTime(int raceEvent){
+	public static float getUserRecordTime(int raceEvent){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			return float.Parse(PlayerPrefs.GetString("wr_local_100m").Split(':')[0]);
 			//return 9.58f;
@@ -1171,7 +1171,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public string getUserRecordName(int raceEvent){
+	public static string getUserRecordName(int raceEvent){
 		if(raceEvent == RaceManager.RACE_EVENT_100M){
 			return PlayerPrefs.GetString("wr_local_100m").Split(':')[1];
 			//return "Usain Bolt";
@@ -1193,7 +1193,7 @@ public class GlobalController : MonoBehaviour
 		}
 	}
 	
-	public void getWorldRecordInfo(int raceEvent){
+	public static void getWorldRecordInfo(int raceEvent){
 		PlayFabManager.userLeaderboardInfoRetrieved = false;
 		PlayFabManager.getWorldRecordInfo(raceEvent);
 	}
@@ -1212,10 +1212,6 @@ public class GlobalController : MonoBehaviour
 				obj.GetComponent<Button>().interactable = true;
 			 }
 		}
-	 }
-	 
-	 public void setUsernameFromWelcomeScreen(){
-		 PlayFabManager.setUserDisplayName(usernameInputText.text);
 	 }
 	 
 	 public static string legalizeEnteredName(string str){
@@ -1277,6 +1273,8 @@ public class GlobalController : MonoBehaviour
 		setUserRecord(RaceManager.RACE_EVENT_200M, float.MaxValue, "None");
 		setUserRecord(RaceManager.RACE_EVENT_400M, float.MaxValue, "None");
 		setUserRecord(RaceManager.RACE_EVENT_60M, float.MaxValue, "None");
+		PlayerPrefs.SetInt("Total Score", 0);
+		PlayerPrefs.SetInt("Total Score (Best Racer)", 0);
 		PlayerPrefs.SetFloat("Audio Volume", .04f);
 		PlayerPrefs.SetInt("Camera Gameplay Mode", CameraController.SIDE_RIGHT);
 		PlayerPrefs.SetInt("Camera Replay Mode", CameraController.TV);

@@ -14,6 +14,7 @@ public class EnvironmentController : MonoBehaviour
 	[SerializeField] Material trackMaterial;
 	[SerializeField] Light light;
 	
+	[SerializeField] ParticleSystem rainParticles;
 	
 	public static int SUNNY = 0;
 	public static int PINK = 1;
@@ -47,6 +48,12 @@ public class EnvironmentController : MonoBehaviour
 		setLightPosition(theme);
 		setLightIntensity(theme);
 		PlayerPrefs.SetInt("Theme", theme);
+		if(theme == OVERCAST){
+			rainParticles.Play();
+		}
+		else{
+			rainParticles.Stop();
+		}
 	}
 	void setSkybox(int theme){
 		RenderSettings.skybox = skyboxMaterials[theme];

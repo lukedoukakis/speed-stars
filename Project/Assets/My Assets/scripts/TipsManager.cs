@@ -35,7 +35,7 @@ public class TipsManager : MonoBehaviour
 	
 	public void showTips_400m(){
 		headerText.text = "Tip:";
-		bodyText0.text = "When your character starts sweating, they are getting tired and will produce less power. If you're <i>really</i> fast, you may want to pace yourself to save some energy.";
+		bodyText0.text = "Keep an eye on the green energy meter at the bottom of the screen. If you get tired too fast, try pacing yourself!";
 		bodyText1.text = "";
 		controlsButtonL.gameObject.SetActive(false);
 		controlsButtonR.gameObject.SetActive(false);

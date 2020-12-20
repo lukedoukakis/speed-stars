@@ -6,6 +6,9 @@ using UnityEngine.UI;
 public class LeaderboardManager : MonoBehaviour
 {
 	
+	[SerializeField] Button[] eventButtons;
+	[SerializeField] GameObject loadingIcon;
+	
 	public int leaderboardMode;
 	public static int GLOBAL = 0;
 	public static int FRIENDS = 1;
@@ -73,6 +76,7 @@ public class LeaderboardManager : MonoBehaviour
 		
 		PlayFabManager.leaderboardLoaded = false;
 		noConnectionIndicator.SetActive(false);
+		disableEventButtons();
 		
 		// if not logged in, attempt to log in
 		if(!PlayFabManager.loggedIn){
@@ -109,24 +113,29 @@ public class LeaderboardManager : MonoBehaviour
 				for(int i = 0; i < entries.Length-1; i++){
 					string[] entryComps = entries[i].Split('*');
 					string playfabId = entryComps[0];
-					string placing = entryComps[1];
+					int placing = int.Parse(entryComps[1]);
 					string displayName = entryComps[2];
-					string score = entryComps[3];
-					if(int.Parse(score) != 0){
+					float score;
+					if(raceEvent <= 3){ score = float.Parse(entryComps[3])/-10000f; }
+					else{ score = float.Parse(entryComps[3]); }
+					string racerName = entryComps[4];
+					string date = entryComps[5];
+					if(score != 0f){
 						entryButton = Instantiate(entryPrefab, grid.transform);
-						entryButton.GetComponent<LeaderboardEntryButtonController>().init(this, raceEvent, playfabId, int.Parse(placing) + 10*(_pageNum), displayName, float.Parse(score)/-10000f);
+						entryButton.GetComponent<LeaderboardEntryButtonController>().init(this, raceEvent, playfabId, placing + 10*(_pageNum), displayName, score, racerName, date);
 					}
 				}
 			}
 			PlayFabManager.leaderboardLoaded = false;
 		}
+		enableEventButtons();
 	}
 	IEnumerator getThisUserInfo(){
 		PlayFabManager.thisUserInfoRetrieved = false;
 		PlayFabManager.getThisUserLeaderboardInfo();
 		yield return new WaitUntil(() => PlayFabManager.thisUserInfoRetrieved);
 		
-		yourRankNumText.text = (PlayFabManager.thisUserPosition+1).ToString();
+		yourRankNumText.text = "#" + (PlayFabManager.thisUserPosition+1).ToString();
 		yourRankButton.interactable = true;
 	}
 	
@@ -187,6 +196,19 @@ public class LeaderboardManager : MonoBehaviour
 	void setEntryButtonsEnabled(bool enabled){
 		foreach(Transform child in grid.transform){
 			child.gameObject.GetComponent<Button>().interactable = enabled;
+		}
+	}
+	
+	void disableEventButtons(){
+		loadingIcon.SetActive(true);
+		foreach(Button button in eventButtons){
+			button.interactable = false;
+		}
+	}
+	void enableEventButtons(){
+		loadingIcon.SetActive(false);
+		foreach(Button button in eventButtons){
+			button.interactable = true;
 		}
 	}
 	

@@ -70,7 +70,7 @@ public class ColorPicker : MonoBehaviour
 						
 						
 							selectedColor = tex.GetPixel(Mathf.FloorToInt(pixelUV.x) , Mathf.FloorToInt(pixelUV.y));
-							Debug.Log("selectedColor: " + selectedColor.r + ", "+ selectedColor.g + ", "+ selectedColor.b);
+							//Debug.Log("selectedColor: " + selectedColor.r + ", "+ selectedColor.g + ", "+ selectedColor.b);
 							
 							PlayerAttributes att = previewRacer.GetComponent<PlayerAttributes>();
 							if(selectedArticle == "dummy"){

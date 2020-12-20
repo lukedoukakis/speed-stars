@@ -67,6 +67,13 @@ public class SelectionListScript : MonoBehaviour
 		buttonScript.init(this);
 		buttonScript.setFromRacer(id, raceEvent);
 		// -----------------
+		for(int i = 0; i < buttonIDs.Count; i++){
+			if(float.Parse(buttonScript.time) < float.Parse(getButton(buttonIDs[i]).GetComponent<SelectionButtonScript>().time)){
+				button.transform.SetSiblingIndex(i);
+				break;
+			}
+		}
+		
 		buttonIDs.Add(id);
 	
 		return button;
@@ -165,6 +172,8 @@ public class SelectionListScript : MonoBehaviour
 				}
 			}
 		}
+		
+		
 		gc.setupManager.botCount_max = 7;
 	}
 	

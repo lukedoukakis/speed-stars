@@ -151,7 +151,7 @@ public class SelectionButtonScript : MonoBehaviour
 		if(list.ttc != null){
 			TooltipController ttc = list.ttc;
 			ttc.show(3f);
-			ttc.setText("Set by: <color=green>" + this.displayName + "</color>");
+			ttc.setText("Set by " + this.displayName);
 		}
 	}
 	public void hideTooltip(){

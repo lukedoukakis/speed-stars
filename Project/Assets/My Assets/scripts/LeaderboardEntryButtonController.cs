@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class LeaderboardEntryButtonController : MonoBehaviour
 {
@@ -13,12 +14,14 @@ public class LeaderboardEntryButtonController : MonoBehaviour
 	public int raceEvent;
 	public string pfid;
 	public int position;
-	public string name;
+	public string userName;
 	public float score;
+	public string racerName;
+	public string date;
 	
 	
 	
-	public void init(LeaderboardManager _lbm, int _raceEvent, string _pfid, int _position, string _name, float _score){
+	public void init(LeaderboardManager _lbm, int _raceEvent, string _pfid, int _position, string _userName, float _score, string _racerName, string _date){
 		this.lbm = _lbm;
 		this.button = GetComponent<Button>();
 		this.image = GetComponent<Image>();
@@ -26,11 +29,23 @@ public class LeaderboardEntryButtonController : MonoBehaviour
 		this.raceEvent = _raceEvent;
 		this.pfid = _pfid;
 		this.position = _position;
-		this.name = _name;
+		this.userName = _userName;
 		this.score = _score;
-		transform.Find("Text_Placing").gameObject.GetComponent<Text>().text = (position+1).ToString();
-		transform.Find("Text_Username").gameObject.GetComponent<Text>().text = name;
-		transform.Find("Text_Score").gameObject.GetComponent<Text>().text = score.ToString("F3");
+		this.racerName = _racerName;
+		this.date = _date;
+		transform.Find("Text_Placing").gameObject.GetComponent<TextMeshProUGUI>().text = (position+1).ToString();
+		transform.Find("Text_Username").gameObject.GetComponent<TextMeshProUGUI>().text = userName;
+		transform.Find("Text_Racername").gameObject.GetComponent<TextMeshProUGUI>().text = racerName;
+		
+		string format;
+		string units;
+		if(_raceEvent <= 3){ format = "F3"; units = " sec"; }
+		else{ format = "F0"; units = " pts"; }
+		transform.Find("Text_Score").gameObject.GetComponent<TextMeshProUGUI>().text = score.ToString(format) + units;
+		
+		if(_raceEvent > 3){
+			button.interactable = false;
+		}
 	}
 	
 	public void downloadRacer(){
@@ -40,9 +55,16 @@ public class LeaderboardEntryButtonController : MonoBehaviour
 	
 	public void showTooltip(){
 		TooltipController ttc = lbm.tooltipController;
-		string tooltipText = "<color=yellow>Click to download ghost</color>";
+		string s = "Set by " + userName + " on " + date + "\nAthlete: <color=#b8daff>" + racerName + "</color>";
+		
+		if(raceEvent <= 3){
+			s += "\n\n<color=yellow>Click to download ghost</color>";
+		}
+		else{
+			s += "\n\n<color=yellow>(Not downloadable)</color>";
+		}
 		ttc.show(-1f);
-		ttc.setText(tooltipText);
+		ttc.setText(s);
 	}
 	
 	public void hideTooltip(){

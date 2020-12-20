@@ -56,6 +56,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public bool leftInput;
 	
 	public bool isPlayer;
+	public bool finished;
 	public bool onCurve;
 	public bool launchFlag;
 	Vector3 friction;
@@ -153,7 +154,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		armExtendR = attributes.armSpeedExtendL;
 		
 		// special stats
-		driveModifier = .9f * Mathf.Pow(knee_dominance, 1.2f);
+		driveModifier = .9f * Mathf.Pow(knee_dominance, 1.2f) * Mathf.Pow((2f-(cruise+.5f)), .25f);
 		leanThreshold = .825f * knee_dominance;
 		torsoAngle_max = 355f;
 		torsoAngle_upright = 320f * Mathf.Pow(knee_dominance,.01f);
@@ -233,7 +234,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 		if(raceManager.raceEvent >= 2){
 			//Debug.Log("raceEvent: " + raceManager.raceEvent);
-			oc.updateOrientation(true);
+			if(!finished){ oc.updateOrientation(true); }
 			if(oc.trackSegment == 1 || oc.trackSegment == 3){
 				if(!onCurve){
 					animator.SetBool("onCurve", true);

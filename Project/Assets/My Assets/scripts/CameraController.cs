@@ -268,10 +268,6 @@ public class CameraController : MonoBehaviour
 			cameraReplayMode = newMode;
 		}
 	}
-	
-	public void cycleCameraFocus(){
-		
-	}
 
 	
 	

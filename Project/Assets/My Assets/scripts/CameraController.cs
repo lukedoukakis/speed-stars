@@ -53,6 +53,32 @@ public class CameraController : MonoBehaviour
 		setCameraDistance(_cameraDistance);
 		cameraGameplayMode = _cameraGameplayMode;
 		cameraReplayMode = _cameraReplayMode;
+
+		camera.ResetProjectionMatrix();
+		Matrix4x4 m = camera.projectionMatrix;
+		float w = 1.5f;
+		m.m00 *= w;
+		camera.projectionMatrix = m;
+		initViewSettings(PlayerPrefs.GetString("Display Mode"));
+	}
+
+	public void initViewSettings(string dm)
+	{
+
+		Debug.Log(dm);
+
+		Application.targetFrameRate = 60;
+		FullScreenMode fsm;
+		if (dm == "Windowed")
+		{
+			fsm = FullScreenMode.Windowed;
+			Screen.SetResolution(1280, 720, fsm, 60);
+		}
+		else
+		{
+			fsm = FullScreenMode.ExclusiveFullScreen;
+			Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, fsm, 60);
+		}
 	}
 	
 	public void setCameraDistance(float d){
@@ -64,6 +90,9 @@ public class CameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+		//Debug.Log(Time.deltaTime);
+
 		dTime = Time.deltaTime;
 		currentPos = t.position;
 		referencePos = referenceObject.transform.position;
@@ -167,49 +196,49 @@ public class CameraController : MonoBehaviour
 		else if(mode == SIDE_RIGHT){
 			cameraShake = false;
 			fov = 100;
-			posOffset = new Vector3(3.1f*Mathf.Pow(cameraDistance, 1f), 1.34f*Mathf.Pow(cameraDistance, .1f), 3.5f*Mathf.Pow(cameraDistance, 1f));
+			posOffset = new Vector3(3.1f*Mathf.Pow(cameraDistance, 1f), 1.34f*Mathf.Pow(cameraDistance, .1f), 2.5f*Mathf.Pow(cameraDistance, 1f));
 			posSpeed = 8f * Mathf.Pow(2f-cameraDistance, 1f);
 			rotSpeed = 10f;
 		}
 		else if(mode == SIDE_LEFT){
 			cameraShake = true;
-			fov = 50;
-			posOffset = new Vector3(-9f, 0f, 21f);
-			posSpeed = 2f;
+			fov = 100;
+			posOffset = new Vector3(-3f, 0f, 7f);
+			posSpeed = 4f;
 			rotSpeed = 7f;
 		}
 		else if(mode == ISOMETRIC){
 			cameraShake = false;
-			fov = 50;
+			fov = 100;
 			posOffset = new Vector3(3f, 2f, 1f);
 			posSpeed = 1000f;
 			rotSpeed = 10f;
 		}
 		if(mode == TV){
 			cameraShake = true;
-			fov = 50;
-			posOffset = new Vector3(8f, 3.2f, 3.2f);
+			fov = 100;
+			posOffset = new Vector3(5f, 2f, 3f);
 			posSpeed = 10f;
 			rotSpeed = 10f;
 		}
 		if(mode == FIRSTPERSON){
 			cameraShake = false;
-			fov = 50;
+			fov = 100;
 			posOffset = new Vector3(0f, 0f, .1f);
 			posSpeed = 100f;
 			rotSpeed = 1.5f;
 		}
 		if(mode == THIRDPERSON){
 			cameraShake = true;
-			fov = 50;
-			posOffset = new Vector3(4f, 3f, -6f);
+			fov = 100;
+			posOffset = new Vector3(1f, 3f, -1.5f);
 			posSpeed = 5f;
 			rotSpeed = 2.5f;
 		}
 		if(mode == TOPDOWN){
 			cameraShake = true;
-			fov = 50;
-			posOffset = new Vector3(0f, 20f, 0f);
+			fov = 100;
+			posOffset = new Vector3(0f, 10f, 0f);
 			posSpeed = 100f;
 			rotSpeed = 5f;
 		}

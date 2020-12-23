@@ -55,7 +55,7 @@ public class CountdownController : MonoBehaviour
 		countdownText0.text = strings[0];
 		countdownText1.text = strings[0];
 		yield return new WaitForSeconds(1.5f);
-		targetY = -600f;
+		targetY = -700f;
 		yield return new WaitForSeconds(1.5f);
 		
 		while(raceManager.gc.tipsManager.isShowing){

@@ -48,10 +48,10 @@ public class Bot_AI : MonoBehaviour
 	
 	
 	public void runAI(int tick){
-		
+
 		dTime = Time.deltaTime;
-		
-		if(!reaction){
+
+		if (!reaction){
 			reaction = raceManager.raceTime > reactionTime;
 		}
 		else{

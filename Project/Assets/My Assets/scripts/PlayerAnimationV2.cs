@@ -114,13 +114,13 @@ public class PlayerAnimationV2 : MonoBehaviour
 	public float cruiseWeight;
 	
 	float dTime;
+
 	
     // Start is called before the first frame update
     void Start()
     {
 
 		feet = new RacerFootV2[] { rightFootScript, leftFootScript };
-		//energyCost_base = 100f;
 
     }
 	
@@ -154,7 +154,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		armExtendR = attributes.armSpeedExtendL;
 		
 		// special stats
-		driveModifier = .9f * Mathf.Pow(knee_dominance, 1.2f) * Mathf.Pow((2f-(cruise+.5f)), .25f);
+		driveModifier = 1f * Mathf.Pow(knee_dominance, 1.2f) * Mathf.Pow((2f-(cruise+.5f)), .25f);
 		leanThreshold = .825f * knee_dominance;
 		torsoAngle_max = 355f;
 		torsoAngle_upright = 320f * Mathf.Pow(knee_dominance,.01f);
@@ -189,10 +189,12 @@ public class PlayerAnimationV2 : MonoBehaviour
 		powerMod = 1f;
 		leanLock = false;
 		
+		/*
 		if(tag.StartsWith("Ghost")){
-			//rightFootScript.enabled = false;
-			//leftFootScript.enabled = false;
+			rightFootScript.enabled = false;
+			leftFootScript.enabled = false;
 		}
+		*/
 	}
 	
 	
@@ -202,7 +204,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		animator.SetBool("groundContact", rightFootScript.groundContact || leftFootScript.groundContact);
 		
 		dTime = Time.deltaTime;
-		
+
 		speedHoriz = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
 
 		if(mode == Set){
@@ -534,7 +536,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 		// -----------------
 		// modify power from energy
-		
 		if(energy < 80f){
 			if(energy >= energyBurnoutThreshold) {
 				modifier *= (energy / 80f);
@@ -547,23 +548,6 @@ public class PlayerAnimationV2 : MonoBehaviour
 			modifiedPower *= modifier;
 		}
 		
-		/*
-		if(energy < 80f){
-			if(energy >= energyBurnoutThreshold) {
-				if(energy >= 50f){
-					modifier *= (energy / 80f);
-				}
-				else{
-					modifier *= (50f / 80f);
-				}
-			} else{
-				energyBurnoutMod = Mathf.Lerp(energyBurnoutMod, .5f, .25f*(speedHoriz/27f)*dTime);
-				modifier *= ((50f*energyBurnoutMod) / 80f);
-			}
-			modifier = Mathf.Pow(modifier, .95f);
-			modifiedPower *= modifier;
-		}
-		*/
 		// -----------------
 		power = modifiedPower;
 		power *= powerMod;

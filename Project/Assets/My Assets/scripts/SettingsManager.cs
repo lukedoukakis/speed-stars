@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SettingsManager : MonoBehaviour
 {
@@ -17,18 +18,21 @@ public class SettingsManager : MonoBehaviour
 	[SerializeField] GameObject controlsButtonRight;
 	[SerializeField] GameObject controlsButtonLeft2;
 	[SerializeField] GameObject controlsButtonRight2;
+	[SerializeField] TMP_Dropdown displayDropdown;
 	[SerializeField] Slider cameraSlider;
 	[SerializeField] float cameraDistance;
 	
 	
-	public void init(KeyCode l, KeyCode r, float camD, int camGameplayMode){
+	public void init(KeyCode l, KeyCode r, float camD, string displayMode){
 		controlsLeft = l;
 		controlsRight = r;
 		controlsButtonLeft.transform.Find("Text").GetComponent<Text>().text = l.ToString();
 		controlsButtonRight.transform.Find("Text").GetComponent<Text>().text = r.ToString();
 		controlsButtonLeft2.transform.Find("Text").GetComponent<Text>().text = l.ToString();
 		controlsButtonRight2.transform.Find("Text").GetComponent<Text>().text = r.ToString();
-		
+
+		displayDropdown.value = displayDropdown.options.FindIndex(option => option.text == displayMode);
+
 		cameraSlider.value = cameraDistance = camD;
 	}
 	
@@ -108,6 +112,14 @@ public class SettingsManager : MonoBehaviour
 		}
 		
 		button.interactable = true;
+	}
+
+	// asjust display mode to value in dropdown
+	public void setDisplayMode()
+    {
+		string setting = displayDropdown.options[displayDropdown.value].text;
+		gc.cameraController.initViewSettings(setting);
+		PlayerPrefs.SetString("Display Mode", setting);
 	}
 	
 	public void adjustCameraDistance(){

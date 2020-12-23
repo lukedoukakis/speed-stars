@@ -14,7 +14,9 @@ public class LeaderboardManager : MonoBehaviour
 	public static int FRIENDS = 1;
 	[SerializeField] Text headerText;
 	[SerializeField] GameObject noConnectionIndicator;
-	
+	[SerializeField] GameObject selectEventIndicator;
+
+
 	[SerializeField] GlobalController gc;
 	//[SerializeField] PlayFabManager PlayFabManager;
 	[SerializeField] GameObject grid;
@@ -46,9 +48,17 @@ public class LeaderboardManager : MonoBehaviour
 			setLeaderboardMode(GLOBAL);
 		}
 	}
+
+	public void setEmpty()
+    {
+		clearGrid();
+		selectEventIndicator.SetActive(true);
+	}
 	
 	public void init(int raceEvent, bool fromPageZero){
-		
+
+		selectEventIndicator.SetActive(false);
+
 		entriesOnPage = 10;
 		PlayFabManager.selectedRaceEvent = raceEvent;
 		yourRankButton.interactable = false;

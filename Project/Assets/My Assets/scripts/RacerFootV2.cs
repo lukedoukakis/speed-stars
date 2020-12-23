@@ -42,7 +42,7 @@ public class RacerFootV2 : MonoBehaviour
 	Vector3 forceDirHoriz;
 	Vector3 forceDirVert;
 	float forceHoriz;
-	
+
     // Start is called before the first frame update
     void Start()
     {
@@ -56,45 +56,46 @@ public class RacerFootV2 : MonoBehaviour
 		zTiltMaxAbs = Mathf.Abs(45f);
 		turnoverFactor = 150f * (2f-animation.turnover);
 		torsoAngle_max = animation.torsoAngle_max;
-		
 
-    }
+
+	}
 
     // Update is called once per frame
     void FixedUpdate()
     {
+
+		float dTime = Time.deltaTime;
 		
-			if(animation.mode == 1){
-				swingTimeBonus = 1f;
+		if(animation.mode == 1){
+			swingTimeBonus = 1f;
+		}
+		else if(animation.mode == 2){
+			power = animation.power;
+			leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
+			torsoAngle = animation.torsoAngle;
+			zSpeed = animation.speedHoriz;
+			ySpeed = rb.velocity.y;
+			zSpeedOverTransitionPivotSpeed = zSpeed/transitionPivotSpeed;
+			if(zSpeedOverTransitionPivotSpeed > 1f){
+				zSpeedOverTransitionPivotSpeed = 1f;
 			}
-			else if(animation.mode == 2){
-				power = animation.power;
-				leanMagnitude = (animation.zTilt + zTiltMinAbs) / (zTiltMaxAbs + zTiltMinAbs);
-				torsoAngle = animation.torsoAngle;
-				zSpeed = animation.speedHoriz;
-				ySpeed = rb.velocity.y;
-				zSpeedOverTransitionPivotSpeed = zSpeed/transitionPivotSpeed;
-				if(zSpeedOverTransitionPivotSpeed > 1f){
-					zSpeedOverTransitionPivotSpeed = 1f;
-				}
-				if(leanMagnitude < .375f){
-					leanMagnitude = .375f;
-				}
-				if(!touchDown){
-					swingFrames++;
-					swingTimeBonus = swingFrames  / turnoverFactor;
-					if(swingTimeBonus > .065f){
-						if(swingTimeBonus > .12f){
-							swingTimeBonus = .12f;
-						}
-					}
-					else{
-						swingTimeBonus = .065f;
-					}
-					//swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 10000f;
-					swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 1000000f * Time.deltaTime;
-				}
+			if(leanMagnitude < .375f){
+				leanMagnitude = .375f;
 			}
+			if(!touchDown){
+				swingFrames++;
+				swingTimeBonus = swingFrames  / turnoverFactor;
+				if(swingTimeBonus > .065f){
+					if(swingTimeBonus > .12f){
+						swingTimeBonus = .12f;
+					}
+				}
+				else{
+					swingTimeBonus = .065f;
+				}
+				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 1000000f * dTime;
+			}
+		}
 		
 	}
 	

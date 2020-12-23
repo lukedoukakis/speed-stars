@@ -113,7 +113,8 @@ public class GlobalController : MonoBehaviour
 		TransitionScreen.SetActive(true);
 		CanvasGroup cg = TransitionScreen.GetComponent<CanvasGroup>();
 		cg.alpha = 1f;
-		Application.targetFrameRate = 60;
+
+
 		cameraController.setCameraFocus("100m Start", CameraController.STATIONARY_SLOW);
 		startScreenAnimator.SetBool("startScreenAccessed", false);
 		
@@ -138,6 +139,7 @@ public class GlobalController : MonoBehaviour
 		float audioVolume = PlayerPrefs.GetFloat("Audio Volume");
 		downloadedGhosts = PlayerPrefs.GetInt("Downloaded Ghosts");
 		int charSlots = PlayerPrefs.GetInt("Character Slots");
+		string displayMode = PlayerPrefs.GetString("Display Mode");
 		float cameraDistance = PlayerPrefs.GetFloat("Camera Distance");
 		int cameraGameplayMode = PlayerPrefs.GetInt("Camera Gameplay Mode");
 		int cameraReplayMode = PlayerPrefs.GetInt("Camera Replay Mode");
@@ -149,7 +151,7 @@ public class GlobalController : MonoBehaviour
 		musicManager.init(audioVolume, !hasInitialSetup);
 		environmentController.init(PlayerPrefs.GetInt("Theme"));
 		setupManager.init(false);
-		settingsManager.init(l, r, cameraDistance, cameraGameplayMode);
+		settingsManager.init(l, r, cameraDistance, displayMode);
 		unlockManager.init(charSlots);
 		
 		racers_backEnd = new List<GameObject>();
@@ -175,6 +177,8 @@ public class GlobalController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+		//Debug.Log(Time.deltaTime);
 		
 		// debug
 		/*
@@ -335,12 +339,13 @@ public class GlobalController : MonoBehaviour
 				SetupScreen.SetActive(true);
 				SetupScreenActive = true;
 				previewCamera_setup.gameObject.SetActive(true);
+				if (playerSelectButtonList.numSelected < 1){ playerSelectButtonList.getFirst().GetComponent<SelectionButtonScript>().toggle(); }
 				break;	
 			case "Leaderboard Screen" :
 				LeaderboardScreen.SetActive(true);
 				LeaderboardScreenActive = true;
 				leaderboardManager.setLeaderboardMode(LeaderboardManager.GLOBAL);
-				leaderboardManager.init(RaceManager.RACE_EVENT_100M, true);
+				leaderboardManager.setEmpty();
 				break;	
 			case "Character Creator Screen" :
 				CharacterCreatorScreen.SetActive(true);
@@ -1281,6 +1286,7 @@ public class GlobalController : MonoBehaviour
 		PlayerPrefs.SetFloat("Camera Distance", .5f);
 		PlayerPrefs.SetInt("Controls Left", (int)KeyCode.LeftArrow);
 		PlayerPrefs.SetInt("Controls Right", (int)KeyCode.RightArrow);
+		PlayerPrefs.SetString("Display Mode", "Full screen");
 		PlayerPrefs.SetInt("Character Slots", 1);
 		PlayerPrefs.SetInt("Downloaded Ghosts", 0);
 		PlayerPrefs.SetInt("Theme", EnvironmentController.SUNNY);

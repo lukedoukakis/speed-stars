@@ -114,6 +114,9 @@ ModelImporter:
     100216: Bottoms_veryShort
     100218: Top_shortLoose
     100220: Watch
+    100222: Bottoms_reallyShort
+    100224: Camera
+    100226: Light
     400000: Armature
     400002: ArmSleeve_double
     400004: ArmSleeve_single
@@ -225,6 +228,9 @@ ModelImporter:
     400216: Bottoms_veryShort
     400218: Top_shortLoose
     400220: Watch
+    400222: Bottoms_reallyShort
+    400224: Camera
+    400226: Light
     2100000: Dummy_material
     2300000: Empty
     2300002: Top_loose
@@ -251,6 +257,7 @@ ModelImporter:
     4300036: Bottoms_veryShort
     4300038: Top_shortLoose
     4300040: Watch
+    4300042: Bottoms_reallyShort
     9500000: //RootNode
     13700000: ArmSleeve_double
     13700002: ArmSleeve_single
@@ -271,6 +278,7 @@ ModelImporter:
     13700032: Bottoms_veryShort
     13700034: Top_shortLoose
     13700036: Watch
+    13700038: Bottoms_reallyShort
     2186277476908879412: ImportLogs
   externalObjects: {}
   materials:
@@ -307,10 +315,10 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
-    importVisibility: 1
-    importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -328,7 +336,7 @@ ModelImporter:
     hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
-    normalImportMode: 0
+    normalImportMode: 1
     tangentImportMode: 3
     normalCalculationMode: 4
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0

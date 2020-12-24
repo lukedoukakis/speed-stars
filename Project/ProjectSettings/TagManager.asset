@@ -16,6 +16,7 @@ TagManager:
   - GroundCurve
   - Foot
   - Button
+  - Split
   layers:
   - Default
   - TransparentFX

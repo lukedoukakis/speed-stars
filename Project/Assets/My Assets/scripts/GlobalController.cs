@@ -456,7 +456,7 @@ public class GlobalController : MonoBehaviour
 	}
 	//-----------------------------------------------------------------------------------------------------------
 	public void showResultsScreen(){
-		StartCoroutine(endRace());
+		//StartCoroutine(endRace());
 		goFinishScreen();
 	}
 	public IEnumerator endRace(){
@@ -885,9 +885,11 @@ public class GlobalController : MonoBehaviour
 	
 	public void loadBots(){
 		int numOfBots = setupManager.botCount - raceManager.botCount;
-		for(int i = 0; i < numOfBots; i++){
+		for (int i = 0; i < numOfBots; i++)
+		{
 			racers_backEnd.Add(getRandomBot());
 		}
+		
 	}
 	
 	

@@ -20,6 +20,7 @@ public class RaceManager : MonoBehaviour
 	public GlobalController gc;
 	public CameraController cameraController;
 	public FinishLineController finishLineController;
+	public SplitsController splitsController;
 	public CheckpointController checkpointController;
 	public Text resultsText;
 	public GameObject gameCamera;
@@ -435,6 +436,7 @@ public class RaceManager : MonoBehaviour
 			x.GetComponent<PlayerAttributes>().lane.CompareTo(y.GetComponent<PlayerAttributes>().lane));
 	
 		finishLineController.init();
+		splitsController.init(raceEvent, player);
 		checkpointController.player = this.player;
 		
 		resetClock();

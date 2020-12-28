@@ -651,9 +651,9 @@ public class RaceManager : MonoBehaviour
 					playerAtt.personalBests[raceEvent] = t;
 					racerPB = true;
 					racerPB_time = t;
-					
+
 					// handle if user PB
-					if(t < userPB_time){
+					if (t < userPB_time){
 						userPB = true;
 						userPB_time = t;
 						

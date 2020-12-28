@@ -18,7 +18,6 @@ public class LeaderboardManager : MonoBehaviour
 
 
 	[SerializeField] GlobalController gc;
-	//[SerializeField] PlayFabManager PlayFabManager;
 	[SerializeField] GameObject grid;
 	[SerializeField] GameObject entryPrefab;
 	[SerializeField] int selectedRaceEvent;
@@ -66,10 +65,10 @@ public class LeaderboardManager : MonoBehaviour
 		// show leaderboard
 		selectedRaceEvent = raceEvent;
 		clearGrid();
-		pageNumText.text = (this.pageNum+1).ToString();
 		if(fromPageZero){
 			this.pageNum = 0;
 		}
+		pageNumText.text = (this.pageNum + 1).ToString();
 		StartCoroutine(initLeaderboard(raceEvent, pageNum));
 		
 		// get user position
@@ -132,7 +131,7 @@ public class LeaderboardManager : MonoBehaviour
 					string date = entryComps[5];
 					if(score != 0f){
 						entryButton = Instantiate(entryPrefab, grid.transform);
-						entryButton.GetComponent<LeaderboardEntryButtonController>().init(this, raceEvent, playfabId, placing + 10*(_pageNum), displayName, score, racerName, date);
+						entryButton.GetComponent<LeaderboardEntryButtonController>().init(this, raceEvent, playfabId, placing, displayName, score, racerName, date);
 					}
 				}
 			}
@@ -153,7 +152,7 @@ public class LeaderboardManager : MonoBehaviour
 		int pos = PlayFabManager.thisUserPosition;
 		int page = (pos+10)/10 - 1;
 		this.pageNum = page;
-		init(PlayFabManager.selectedRaceEvent);
+		init(PlayFabManager.selectedRaceEvent, false);
 	}
 	
 	public IEnumerator downloadRacer(int raceEvent, string pfid){

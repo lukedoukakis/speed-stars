@@ -456,7 +456,7 @@ public class GlobalController : MonoBehaviour
 	}
 	//-----------------------------------------------------------------------------------------------------------
 	public void showResultsScreen(){
-		//StartCoroutine(endRace());
+		StartCoroutine(endRace());
 		goFinishScreen();
 	}
 	public IEnumerator endRace(){
@@ -678,11 +678,11 @@ public class GlobalController : MonoBehaviour
 		if(sendToLeaderboard){
 		
 			int totalScore = ScoreCalculator.calculateScore_user();
-			if(totalScore <= PlayerPrefs.GetInt("Total Score")){ totalScore = -1; }
-			else{ PlayerPrefs.SetInt("Total Score", totalScore); }
+			if(totalScore <= PlayerPrefs.GetInt("Total Score1", 0)){ totalScore = -1; }
+			else{ PlayerPrefs.SetInt("Total Score1", totalScore); }
 			int totalScore_racer = ScoreCalculator.calculateScore(att.personalBests);
-			if(totalScore_racer <= PlayerPrefs.GetInt("Total Score (Best Racer)")){ totalScore_racer = -1; }
-			else{ PlayerPrefs.SetInt("Total Score (Best Racer)", totalScore_racer); }
+			if(totalScore_racer <= PlayerPrefs.GetInt("Total Score (Best Racer)1", 0)){ totalScore_racer = -1; }
+			else{ PlayerPrefs.SetInt("Total Score (Best Racer)1", totalScore_racer); }
 			
 			// package score and attempt to send it to leaderboard
 			string data = attString + "&" + pathsForEventString;
@@ -1280,8 +1280,8 @@ public class GlobalController : MonoBehaviour
 		setUserRecord(RaceManager.RACE_EVENT_200M, float.MaxValue, "None");
 		setUserRecord(RaceManager.RACE_EVENT_400M, float.MaxValue, "None");
 		setUserRecord(RaceManager.RACE_EVENT_60M, float.MaxValue, "None");
-		PlayerPrefs.SetInt("Total Score", 0);
-		PlayerPrefs.SetInt("Total Score (Best Racer)", 0);
+		PlayerPrefs.SetInt("Total Score1", 0);
+		PlayerPrefs.SetInt("Total Score (Best Racer)1", 0);
 		PlayerPrefs.SetFloat("Audio Volume", .04f);
 		PlayerPrefs.SetInt("Camera Gameplay Mode", CameraController.SIDE_RIGHT);
 		PlayerPrefs.SetInt("Camera Replay Mode", CameraController.TV);

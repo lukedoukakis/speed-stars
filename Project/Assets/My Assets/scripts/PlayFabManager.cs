@@ -286,7 +286,33 @@ public class PlayFabManager : MonoBehaviour
 								data_date = titleDataResult.Data["Date_" + leaderboard_event].Value;
 							}
 							else{
-								data_racerName = string.Join(", ", titleDataResult.Data["RacerName_100m"].Value, titleDataResult.Data["RacerName_200m"].Value, titleDataResult.Data["RacerName_400m"].Value, titleDataResult.Data["RacerName_60m"].Value);
+								string pbName;
+								List<string> pbNames = new List<string>();
+								try{
+									pbName = titleDataResult.Data["RacerName_100m"].Value;
+									pbNames.Add(pbName + " <i>(100m)</i>");
+								}
+								catch(KeyNotFoundException e) { pbNames.RemoveAt(pbNames.Count-1); }
+								try
+								{
+									pbName = titleDataResult.Data["RacerName_200m"].Value;
+									pbNames.Add(pbName + " <i>(200m)</i>");
+								}
+								catch (KeyNotFoundException e) { pbNames.RemoveAt(pbNames.Count - 1); }
+								try
+								{
+									pbName = titleDataResult.Data["RacerName_400m"].Value;
+									pbNames.Add(pbName + " <i>(400m)</i>");
+								}
+								catch (KeyNotFoundException e) { pbNames.RemoveAt(pbNames.Count - 1); }
+								try
+								{
+									pbName = titleDataResult.Data["RacerName_60m"].Value;
+									pbNames.Add(pbName + " <i>(60m)</i>");
+								}
+								catch (KeyNotFoundException e) { pbNames.RemoveAt(pbNames.Count - 1); }
+
+								data_racerName = string.Join(", ", pbNames);
 								data_date = titleDataResult.Data["Date_UserTotalScore"].Value;
 							}
 						}

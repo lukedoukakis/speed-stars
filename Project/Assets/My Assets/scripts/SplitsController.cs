@@ -75,11 +75,11 @@ public class SplitsController : MonoBehaviour
 		splitUI.SetActive(true);
 		if(differential > 0f)
         {
-			splitText.text = splitName + " --\n" + playerSplit.ToString("F2") + "s (<color=red>+" + differential.ToString("F2") + "</color>)";
+			splitText.text = splitName + ": " + playerSplit.ToString("F2") + "s (<color=#ffa8a8>+" + differential.ToString("F2") + "</color>)";
 		}
         else
         {
-			splitText.text = splitName + " --\n" + playerSplit.ToString("F2") + "s";
+			splitText.text = splitName + ": " + playerSplit.ToString("F2") + "s";
 		}
     }
 

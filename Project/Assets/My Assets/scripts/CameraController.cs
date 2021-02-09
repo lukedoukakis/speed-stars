@@ -65,9 +65,12 @@ public class CameraController : MonoBehaviour
 	public void initViewSettings(string dm)
 	{
 
-		Debug.Log(dm);
+		//Debug.Log(dm);
 
-		Application.targetFrameRate = 60;
+		//Application.targetFrameRate = 60;
+		Application.targetFrameRate = -1;
+		QualitySettings.vSyncCount = 0;
+
 		FullScreenMode fsm;
 		if (dm == "Windowed")
 		{

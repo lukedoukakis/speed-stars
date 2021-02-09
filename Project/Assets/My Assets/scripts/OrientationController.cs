@@ -64,11 +64,11 @@ public class OrientationController : MonoBehaviour
 				float diff;
 				diff = curD - distance;
 				if(curD > distance){
-					rb.AddForce(transform.right*-1f * 1500f * Time.deltaTime);
+					rb.AddForce(transform.right*-1f * 1500f * (1f / 90f));
 				}
 			
 				else if(curD < distance - 1.25f){
-					rb.AddForce(transform.right * 1500f * Time.deltaTime);
+					rb.AddForce(transform.right * 1500f * (1f / 90f));
 				}
 			}
 			sphere.transform.LookAt(racerPos);

@@ -14,6 +14,7 @@ public class GlobalController : MonoBehaviour
 	public static bool hasInitialSetup;
 	public static bool hasFirstRace;
 	public static bool hasFirstRace_400m;
+	public static bool hasFirstLeaderboard;
 	
 	
 	public static string PLAYABLE_RACER_MEMORY = "PLAYABLE RACER IDS";
@@ -108,7 +109,7 @@ public class GlobalController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-		
+
 		// initialize immediate view and camera setting
 		TransitionScreen.SetActive(true);
 		CanvasGroup cg = TransitionScreen.GetComponent<CanvasGroup>();
@@ -127,6 +128,11 @@ public class GlobalController : MonoBehaviour
 			if(PlayerPrefs.GetInt("hasFirstRace_400m") == 1){
 				hasFirstRace_400m = true;
 			} else { hasFirstRace_400m = false; }
+			if (PlayerPrefs.GetInt("hasFirstLeaderboard") == 1)
+			{
+				hasFirstLeaderboard = true;
+			}
+			else { hasFirstLeaderboard = false; }
 		}
 		else{
 			hasInitialSetup = false;
@@ -252,6 +258,10 @@ public class GlobalController : MonoBehaviour
 	public void goLeaderboardScreen(){
 		//Debug.Log("Going to leaderboard screen");
 		StartCoroutine(screenTransition("Leaderboard Screen", false));
+		if (!hasFirstLeaderboard)
+		{
+			tipsManager.showTips_leaderboard();
+		}
 	}
 	
 	public void goCharacterCreatorScreen(){
@@ -464,10 +474,13 @@ public class GlobalController : MonoBehaviour
 		lbUpdate = false;
 		if(raceManager.racerPB && !raceManager.cancelSaveGhost){
 			if(raceManager.userPB){
+				
+				// DEBUG: COMMENT THIS BLOCK OUT TO PREVENT SAVING SCORES
 				//Debug.Log("USER PB");
 				lbUpdate = true;
 				taskManager.addTask(TaskManager.SAVE_USER_PB);
 				taskManager.addTask(TaskManager.SET_USER_RECORD);
+				
 			}
 			taskManager.addTask(TaskManager.SAVE_PLAYER);
 		}

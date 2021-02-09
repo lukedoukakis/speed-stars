@@ -23,6 +23,32 @@ public class TipsManager : MonoBehaviour
 		timeScale = Time.timeScale;
 		show();
 	}
+
+	public void showTips_400m()
+	{
+		headerText.text = "Tip:";
+		bodyText0.text = "The green bar at the bottom of the screen shows your energy. If you get tired too fast, try pacing yourself!";
+		bodyText1.text = "";
+		controlsButtonL.gameObject.SetActive(false);
+		controlsButtonR.gameObject.SetActive(false);
+		GlobalController.hasFirstRace_400m = true;
+		PlayerPrefs.SetInt("hasFirstRace_400m", 1);
+		timeScale = Time.timeScale;
+		show();
+	}
+
+	public void showTips_leaderboard()
+    {
+		headerText.text = "<color=#000561>Tip:</color>";
+		bodyText0.text = "Click on any score to get that player's ghost. Then you can race against it by selecting it when you start a race!";
+		bodyText1.text = "";
+		controlsButtonL.gameObject.SetActive(false);
+		controlsButtonR.gameObject.SetActive(false);
+		GlobalController.hasFirstLeaderboard = true;
+		PlayerPrefs.SetInt("hasFirstLeaderboard", 1);
+		timeScale = Time.timeScale;
+		show();
+	}
 	
 	public void show(){
 		TipsWindow.SetActive(true);
@@ -33,17 +59,7 @@ public class TipsManager : MonoBehaviour
 		isShowing = false;
 	}
 	
-	public void showTips_400m(){
-		headerText.text = "Tip:";
-		bodyText0.text = "Keep an eye on the green energy meter at the bottom of the screen. If you get tired too fast, try pacing yourself!";
-		bodyText1.text = "";
-		controlsButtonL.gameObject.SetActive(false);
-		controlsButtonR.gameObject.SetActive(false);
-		GlobalController.hasFirstRace_400m = true;
-		PlayerPrefs.SetInt("hasFirstRace_400m", 1);
-		timeScale = Time.timeScale;
-		show();
-	}
+
 	
     // Start is called before the first frame update
     void Start()

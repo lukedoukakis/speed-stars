@@ -49,7 +49,7 @@ public class Bot_AI : MonoBehaviour
 	
 	public void runAI(int tick){
 
-		dTime = Time.deltaTime;
+		dTime = (1f / 90f);
 
 		if (!reaction){
 			reaction = raceManager.raceTime > reactionTime;
@@ -113,7 +113,8 @@ public class Bot_AI : MonoBehaviour
 		// -----------------
 		if(!topEndFlag){
 			if(torsoAngle < torsoAngle_upright){
-				downTicks += 105f;
+				//downTicks += 105f;
+				downTicks += 115f;
 				topEndFlag = true;
 			}
 		}
@@ -145,7 +146,7 @@ public class Bot_AI : MonoBehaviour
 			if(pace < 1f){
 				if(energy < energyThreshold){
 					if(energy > 30f){
-						pace = Mathf.Lerp(pace, 1f * (1f - energy/1000f), 1f * dTime);
+						pace = Mathf.Lerp(pace, 1f * (1f - energy/1000f), dTime);
 					}else{ pace = 1f; }
 					setTicks(2400f);
 				}
@@ -164,6 +165,7 @@ public class Bot_AI : MonoBehaviour
 	public void init(float _difficulty){
 		
 		difficulty = _difficulty;
+		//difficulty = 1f; //DEBUG
 		// -----------------
 		cadenceModifier = 1f;
 		cadenceModifier *= Mathf.Pow(att.TURNOVER, .01f);
@@ -188,9 +190,7 @@ public class Bot_AI : MonoBehaviour
 		transitionPivotSpeed = att.TRANSITION_PIVOT_SPEED;
 		modifierCapSpeed = 23f * difficulty;
 		// -----------------
-		//freeTicks = 2650f * (2f - cadenceModifier);
 		freeTicks = 2700f * (2f - cadenceModifier);
-		//downTicks = 950f * (2f - cadenceModifier);
 		downTicks = 1000f * (2f - cadenceModifier);
 		tickRate = 100f;
 		if(att.leadLeg == 0){
@@ -215,33 +215,40 @@ public class Bot_AI : MonoBehaviour
 	
 	
 	void setSpecialAttributes(){
+
+		float leanMod = -2.5f;
+
 		if(raceManager.raceEvent == RaceManager.RACE_EVENT_100M){
-			torsoAngle_upright = anim.torsoAngle_upright - 4f;
+			torsoAngle_upright = anim.torsoAngle_upright - 4f + leanMod;
 			pace = .95f;
 			energyThreshold = 0f;
+			att.POWER *= 1.1f;
 			att.CRUISE = .55f;
 			att.KNEE_DOMINANCE *= .9f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_200M){
-			torsoAngle_upright = anim.torsoAngle_upright - 4f;
+			torsoAngle_upright = anim.torsoAngle_upright - 3f + leanMod;
 			pace = (Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f)+Random.Range(.97f, 1f))/4f * cadenceModifier;
 			pace = .95f;
 			energyThreshold = 75f;
+			att.POWER *= 1.08f;
 			att.CRUISE = .55f;
 			att.KNEE_DOMINANCE *= .9f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_400M){
-			torsoAngle_upright = anim.torsoAngle_upright - 7f;
+			torsoAngle_upright = anim.torsoAngle_upright - 3f + leanMod;
 			energyThreshold = 75f;
 			pace = .8f;
+			att.POWER *= 1.06f;
 			att.CRUISE = .8f;
 			att.KNEE_DOMINANCE *= .95f;
 			att.FITNESS *= 1.05f;
 		}
 		else if(raceManager.raceEvent == RaceManager.RACE_EVENT_60M){
-			torsoAngle_upright = anim.torsoAngle_upright - 4f;
+			torsoAngle_upright = anim.torsoAngle_upright - 4f + leanMod;
 			pace = .95f;
 			energyThreshold = 0f;
+			att.POWER *= 1.1f;
 			att.CRUISE = .55f;
 			att.KNEE_DOMINANCE *= .9f;
 		}

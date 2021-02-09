@@ -35,8 +35,8 @@ public class StartingBlockController : MonoBehaviour
 	
 	public void addLaunchForce(){
 		Vector3 randomDirection = Random.insideUnitCircle.normalized;
-		rb.AddForce( ((transform.forward*-120f) + (Vector3.up*250f) + (randomDirection*100f)) * Time.deltaTime, ForceMode.Impulse );
-		transform.Rotate(randomDirection * 300f * Time.deltaTime);
+		rb.AddForce( ((transform.forward*-120f) + (Vector3.up*250f) + (randomDirection*100f)) * (1f / 90f), ForceMode.Impulse );
+		transform.Rotate(randomDirection * 300f * (1f / 90f));
 		sparks.Play();
 	}
 }

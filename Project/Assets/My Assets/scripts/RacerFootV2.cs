@@ -42,6 +42,7 @@ public class RacerFootV2 : MonoBehaviour
 	Vector3 forceDirHoriz;
 	Vector3 forceDirVert;
 	float forceHoriz;
+	float forcePatch;
 
     // Start is called before the first frame update
     void Start()
@@ -57,14 +58,14 @@ public class RacerFootV2 : MonoBehaviour
 		turnoverFactor = 150f * (2f-animation.turnover);
 		torsoAngle_max = animation.torsoAngle_max;
 
+		forcePatch = .85f;
+
 
 	}
 
     // Update is called once per frame
     void FixedUpdate()
     {
-
-		float dTime = Time.deltaTime;
 		
 		if(animation.mode == 1){
 			swingTimeBonus = 1f;
@@ -93,7 +94,7 @@ public class RacerFootV2 : MonoBehaviour
 				else{
 					swingTimeBonus = .065f;
 				}
-				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 1000000f * dTime;
+				swingTimeBonus *= swingTimeBonus*swingTimeBonus*swingTimeBonus * 1000000f * (1f / 90f);
 			}
 		}
 		
@@ -150,8 +151,8 @@ public class RacerFootV2 : MonoBehaviour
 	public IEnumerator applyForce(float forceMagnitude){
 		for(int i = 0; i < 5; i++){
 			forceDirHoriz = animation.gyro.transform.forward;
-			rb.AddForce(forceDirHoriz * forceMagnitude, ForceMode.Force);
-			yield return null;
+			rb.AddForce(forceDirHoriz * forcePatch * forceMagnitude, ForceMode.Force);
+			yield return new WaitForSeconds(1f / 90f);
 		}
 	}
 	

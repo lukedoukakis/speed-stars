@@ -203,7 +203,7 @@ public class PlayerAnimationV2 : MonoBehaviour
     {
 		animator.SetBool("groundContact", rightFootScript.groundContact || leftFootScript.groundContact);
 		
-		dTime = Time.deltaTime;
+		dTime = (1f / 90f);
 
 		speedHoriz = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
 
@@ -384,15 +384,15 @@ public class PlayerAnimationV2 : MonoBehaviour
 					foreach(bool input in inputs){
 						if(input){
 							pushing = true;
-							leanWeight += .58f * dTime;
-							root.Rotate(Vector3.right * 23f * dTime, Space.Self);
-							zTilt += 23f * dTime;
+							leanWeight += .58f * (1f / 60f);
+							root.Rotate(Vector3.right * 23f * (1f / 60f), Space.Self);
+							zTilt += 23f * (1f / 60f);
 						}
 					}
 					if(!pushing){
-						leanWeight -= 1.2f * dTime;
-						root.Rotate(Vector3.left * 47f * dTime, Space.Self);
-						zTilt -= 47f * dTime;
+						leanWeight -= 1.2f * (1f / 60f);
+						root.Rotate(Vector3.left * 47f * (1f / 60f), Space.Self);
+						zTilt -= 47f * (1f / 60f);
 					}
 				}
 			}
@@ -444,6 +444,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		}
 		
 		if(tick < pathLength){
+			
 			float vM = velMagPath[tick];
 			float vY = velPathY[tick];
 			float pY = posPathY[tick];
@@ -457,10 +458,14 @@ public class PlayerAnimationV2 : MonoBehaviour
 			vel.y = vY;
 			rb.velocity = vel;
 			// -----------------
+
+			// 2/7/21 -- found to be the cause ghost stuttering
+			/*
 			// set y-position from path
 			Vector3 pos = transform.position;
 			pos.y = pY;
 			transform.position = pos;
+			*/
 			
 			
 			if(oc.trackSegment == 4){
@@ -483,7 +488,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		energyCost *= Mathf.Pow(speed / 27f, 2.5f);
 		energyCost *= 1f + (1f - (swingTimeBonus / 2.0736f));
 		energyCost *= (2f - fitness);
-		energyCost *= (1f - cruiseWeight/4f);
+		energyCost *= (1f - cruiseWeight/3f);
 		if(energyCost < .1f){
 			energyCost = .1f;
 		}
@@ -518,7 +523,7 @@ public class PlayerAnimationV2 : MonoBehaviour
 		float leanMag = rightFootScript.leanMagnitude;
 		if(leanMag > leanThreshold){
 			modifier = leanThreshold/leanMag;
-			modifier *= modifier * modifier * modifier * modifier * modifier;
+			modifier *= modifier * modifier * modifier * modifier * modifier * modifier * modifier;
 			modifiedPower *= modifier;
 		}
 		// -----------------
@@ -668,10 +673,10 @@ public class PlayerAnimationV2 : MonoBehaviour
 		
 		for(int i = 0; i < 12; i++){
 			rb.AddForce((gyro.transform.forward + launchVecVert) * launchPower, ForceMode.Force);
-			yield return null;
+			yield return new WaitForSeconds(1f / 90f);
 		}
 		for(int i = 0; i < 10; i++){
-			yield return null;
+			yield return new WaitForSeconds(1f / 90f);
 		}
 		animator.SetBool("launch", false);
 	}
